@@ -8,6 +8,7 @@ setup(
     install_requires=[
         "torch>=2.0",
         "numpy",
+        "einops",
         "mujoco>=3.0",
         "scipy",
         "hydra-core",
@@ -15,6 +16,8 @@ setup(
         "pytorch-lightning",
         "transformers",
         "pynput",
+        "keyboard; platform_system == 'Windows'",
+        "python-xlib; platform_system == 'Linux'",
         "matplotlib",
         "vector-quantize-pytorch",
         "colorlog",

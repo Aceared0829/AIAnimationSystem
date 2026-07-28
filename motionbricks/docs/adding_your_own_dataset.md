@@ -1,6 +1,7 @@
 # Adding Your Own Dataset
 
-Our open-sourced datasets are available at <https://bones.studio/datasets>. The full training code, within the GR00T whole-body control framework, will be open-sourced soon at <https://github.com/NVlabs/GR00T-WholeBodyControl>. This guide covers bringing your own motion data into MotionBricks training.
+Open motion datasets are available at <https://bones.studio/datasets>. This guide
+covers bringing your own character-motion data into MotionBricks training.
 
 ## Two paths
 

@@ -1,5 +1,10 @@
 # MotionBricks: Scalable Real-Time Motions with Modular Latent Generative Model and Smart Primitives
 
+> **Game-animation branch:** Robot control, hardware deployment, and
+> teleoperation components have been removed from this branch. The G1 skeleton
+> remains only as the reference character rig required by the released
+> MotionBricks checkpoints.
+
 <p align="center">
   <a href="https://nvlabs.github.io/motionbricks"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
   <a href="docs/motion_representation.md"><img src="https://img.shields.io/badge/docs-online-green.svg" alt="Documentation"></a>
@@ -9,7 +14,10 @@
   <img src="assets/teaser_motion_bricks_three_rows.jpg" alt="MotionBricks teaser" width="100%">
 </p>
 
-MotionBricks is a real-time generative framework that transforms interactive motion control for animation and robotics. By combining a large-scale latent backbone with intuitive "smart primitives," it delivers high-quality, zero-shot motion synthesis at 15,000 FPS, allowing users to effortlessly build complex animations and robotic movements like assembling bricks.
+MotionBricks is a real-time generative framework for interactive character
+animation. By combining a large-scale latent backbone with intuitive “smart
+primitives,” it delivers high-quality, zero-shot motion synthesis at 15,000 FPS
+and makes complex motions composable like building blocks.
 
 ## Contents
 
@@ -34,7 +42,7 @@ MotionBricks is a real-time generative framework that transforms interactive mot
 
 ### Roadmap
 
-- [ ] Full training pipeline inside [GR00T Whole-Body Control](https://github.com/NVlabs/GR00T-WholeBodyControl)'s GEAR-SONIC pipeline — targeted for approximately one month out; reproducibility experiments are already in flight.
+- [ ] Additional character rigs and game-engine export/runtime adapters.
 
 ## Results
 
@@ -42,9 +50,7 @@ See the [project page](https://nvlabs.github.io/motionbricks) for the full uncut
 
 ### Teasers
 
-| Animation | Robotics |
-| :---: | :---: |
-| ![Animation teaser](assets/gifs/teaser_animation.gif) | ![Robotics teaser](assets/gifs/teaser_robotics.gif) |
+![Animation teaser](assets/gifs/teaser_animation.gif)
 
 ### Smart Locomotion — Single Styles
 
@@ -78,7 +84,9 @@ See the [project page](https://nvlabs.github.io/motionbricks) for the full uncut
 
 ### Clone the repository
 
-MotionBricks ships as a subproject of [GR00T Whole-Body Control](https://github.com/NVlabs/GR00T-WholeBodyControl). Clone the parent repo and `cd` into `motionbricks/`. Pretrained checkpoints, mesh assets, and gallery GIFs are tracked with Git LFS, so install LFS before cloning:
+MotionBricks is stored in the `motionbricks/` directory. Pretrained checkpoints,
+mesh assets, and gallery GIFs are tracked with Git LFS, so install LFS before
+cloning:
 
 ```bash
 git lfs install
@@ -133,7 +141,9 @@ pip install pynput python-xlib
 DISPLAY=:1 python scripts/interactive_demo_g1.py
 ```
 
-This launches the MuJoCo viewer with the G1 robot. Use your keyboard to control it in real time. Hold the left mouse button and drag to change the camera look-at direction.
+This launches the MuJoCo viewer with the G1 reference character. Use your
+keyboard to control it in real time. Hold the left mouse button and drag to
+change the camera look-at direction.
 
 <p align="center">
   <img src="assets/gifs/interactive_demo.gif" alt="Interactive demo screencast" width="480">
@@ -174,8 +184,6 @@ Without pressing a style key, the default locomotion is: **idle** (no movement k
 
 Training scripts are provided for all three model components. The scripts use synthetic data by default and load model configs from the saved checkpoints in `out/`. The full motion datasets are available at <https://bones.studio/datasets>.
 
-**Full release status:** A full release — a model fully embedded in [GR00T whole-body control](https://github.com/NVlabs/GR00T-WholeBodyControl)'s robotics formulation, along with the complete training pipeline — is targeted for approximately one month out. Reproducibility experiments are already in flight; please check back for updates.
-
 ```bash
 # Train the VQVAE (motion tokenizer)
 python scripts/train_vqvae.py
@@ -195,7 +203,9 @@ The datasets used to train the pretrained checkpoints can be downloaded at <http
 
 For details on the motion feature representation, skeleton system, coordinate conventions, normalization, and feature computation pipeline, see [docs/motion_representation.md](docs/motion_representation.md).
 
-For a step-by-step guide to training MotionBricks on your own motion data and adapting it to a new robot, see [docs/adding_your_own_dataset.md](docs/adding_your_own_dataset.md).
+For a step-by-step guide to training MotionBricks on your own motion data and
+adapting it to a new character rig, see
+[docs/adding_your_own_dataset.md](docs/adding_your_own_dataset.md).
 
 ## Related Work
 
@@ -205,14 +215,6 @@ For a step-by-step guide to training MotionBricks on your own motion data and ad
 
 <p align="center">
   <img src="assets/gifs/kimodo_teaser.gif" alt="Kimodo teaser" width="480">
-</p>
-
-**GEAR-SONIC** — Together with MotionBricks, GEAR-SONIC anchors NVIDIA's GR00T Whole-Body Control initiative.
-
-[Project page](https://nvlabs.github.io/GEAR-SONIC/) · [GitHub](https://github.com/NVlabs/GR00T-WholeBodyControl)
-
-<p align="center">
-  <img src="assets/gifs/sonic_teaser.gif" alt="GEAR-SONIC teaser" width="480">
 </p>
 
 **BONES-SEED Dataset** — MotionBricks' training corpus — 350k production-grade mocap clips from real human actors and actresses.

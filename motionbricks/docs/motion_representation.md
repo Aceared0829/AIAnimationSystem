@@ -2,7 +2,7 @@
 
 ## Overview
 
-MotionBricks represents motion as a normalized feature vector per frame. The representation separates **root motion** (global position and heading of the robot's pelvis) from **body motion** (joint rotations, positions, velocities, and foot contacts). This separation lets the root model and the pose/tokenizer module operate on different subsets of the same representation.
+MotionBricks represents motion as a normalized feature vector per frame. The representation separates **root motion** (global position and heading of the character's pelvis) from **body motion** (joint rotations, positions, velocities, and foot contacts). This separation lets the root model and the pose/tokenizer module operate on different subsets of the same representation.
 
 Throughout the paper and codebase, two interchangeable subsets are used:
 
@@ -11,7 +11,12 @@ Throughout the paper and codebase, two interchangeable subsets are used:
 
 The two subsets share the same 409-dim body features and differ only in how the root is parameterized (5 global vs 4 local dims). They convert losslessly to each other via `dual_rep.global_to_local` / `dual_rep.local_to_global`. In the training loop, batches come out of the loader in the global representation and are converted to local on the fly before being passed to the pose/tokenizer module. Concretely, the `"motion"` tensor in every batch dict is always the **global** motion — per-sample conversion to local happens inside the training step.
 
-The current configuration uses the **DualRootGlobalJoints** representation on the **G1Skeleton34** skeleton (Unitree G1 with 34 joints). The full feature vector is 418-dimensional per frame, composed of the 414-dim global subset and the 413-dim local subset that share the 409-dim body features.
+The released configuration uses the **DualRootGlobalJoints** representation on
+the **G1Skeleton34** reference character rig. This 34-joint topology was
+originally derived from Unitree G1 motion data and is retained because the
+released checkpoints depend on its exact joint order. The full feature vector is
+418-dimensional per frame, composed of the 414-dim global subset and the
+413-dim local subset that share the 409-dim body features.
 
 See the MotionBricks paper for the full derivation of the representation.
 
@@ -61,7 +66,8 @@ The root model uses the **global subset** (414 dims). The pose/tokenizer module 
 
 ## Skeleton: G1Skeleton34
 
-The skeleton defines the kinematic tree. G1Skeleton34 has 34 joints: 32 active joints from the Unitree G1 robot plus 2 dummy toe joints for foot contact detection.
+The skeleton defines the kinematic tree. G1Skeleton34 has 34 joints: 32 animated
+joints plus 2 dummy toe joints for foot-contact detection.
 
 ```
 pelvis (root)
@@ -76,7 +82,7 @@ pelvis (root)
               \-- right_wrist_roll -- right_wrist_pitch -- right_wrist_yaw -- right_hand_roll
 ```
 
-*Dummy toe joints (not actuated on the real robot).
+*Dummy toe joints used only to calculate foot contacts.
 
 ### MuJoCo Joint Mapping
 

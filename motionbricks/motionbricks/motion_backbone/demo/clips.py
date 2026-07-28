@@ -198,12 +198,12 @@ class clip_holder_G1(clip_holder):
             "clip_id": 'dance_sakuras_victory_sway_001__A464',
             "start_frame": 35, "end_frame": 40, 'avg_root_vel': 0.2 * 2,
             'allowed_pred_num_tokens': [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
-        },  # for robot deployment safety; can be turned off
+        },  # optional joint clamp; can be turned off
         "walk_right": {
             "clip_id": 'dance_sakuras_victory_sway_001__A464_M',
             "start_frame": 35, "end_frame": 40, 'avg_root_vel': 0.2 * 2,
             'allowed_pred_num_tokens': [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
-        },  # for robot deployment safety; can be turned off
+        },  # optional joint clamp; can be turned off
     }  # the actual velocity is 0.5 of the `avg_root_vel` because of the spring model
 
     DEFAULT_KEYS = {
@@ -238,7 +238,7 @@ class clip_holder_G1(clip_holder):
         if velocity angle > heading angle, positive, swap to the right
         if velocity angle < heading angle, negative, swap to the left
 
-        This is helpful for the robot deployment safety, but can be removed as well.
+        This is useful for preventing extreme preview poses, but can be removed.
         """
         # note target_movement_direction is in mujoco space, but facing_direction was in the motion space;
         # thus the atan2 is not the same as the target_heading is calculated
