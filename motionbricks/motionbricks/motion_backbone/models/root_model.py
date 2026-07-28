@@ -94,7 +94,7 @@ class MotionModel(LightningModule):
     def inference_step(self, batch, batch_idx, requires_grad=False, meta_info: Dict = {}):
         if not hasattr(self, "_printed_inference_warning"):
             self._printed_inference_warning = True
-            print("Warning: Root model does not have an explicit inference step. Reusing training step.")
+            print("警告：根节点模型没有显式推理步骤，将复用训练步骤。")
         with t.no_grad():
             return self.training_step(batch, batch_idx, use_outside_training=True, meta_info=meta_info)
 

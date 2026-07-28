@@ -7,16 +7,17 @@ import mujoco
 import mujoco.viewer
 import numpy as np
 from motionbricks.motion_backbone.demo.utils import navigation_demo
+from motionbricks.motion_backbone.demo.chinese_control_panel import ChineseControlPanel
+from motionbricks.helper.argparse_zh import enable_chinese_argparse
 
 
 def _disable_mujoco_keyboard_shortcuts(controller_keys='wasdrtfgeqzxcvb'):
-    """Prevent MuJoCo's viewer from processing keyboard shortcuts that
-    conflict with the WASD motion controller.
+    """阻止 MuJoCo 查看器处理与 WASD 动作控制器冲突的快捷键。
 
-    On Linux/X11: uses passive key grabs to intercept keys at the X server
-    level before GLFW sees them.  pynput still captures keys via XRecord.
+    在 Linux/X11 上：通过被动按键抓取，在 GLFW 收到按键前由 X 服务器
+    拦截按键；pynput 仍可通过 XRecord 捕获按键。
 
-    On macOS/Windows: not yet supported — MuJoCo shortcuts may interfere.
+    在 macOS/Windows 上：暂不支持，MuJoCo 快捷键可能产生干扰。
     """
     if platform.system() != 'Linux':
         return
@@ -47,16 +48,17 @@ def _disable_mujoco_keyboard_shortcuts(controller_keys='wasdrtfgeqzxcvb'):
                                 False, X.GrabModeAsync, X.GrabModeAsync)
             _xdpy.sync()
     except Exception as e:
-        print(f"Note: could not disable MuJoCo keyboard shortcuts: {e}")
+        print(f"提示：无法禁用 MuJoCo 键盘快捷键：{e}")
 
 
 def main(args) -> None:
     demo_agent = navigation_demo(args)
+    control_panel = ChineseControlPanel() if args.chinese_ui else None
 
     num_runs = 0
     while num_runs < args.num_runs:
         num_runs += 1
-        print(f"Running iteration {num_runs}... / {args.num_runs}")
+        print(f"正在运行第 {num_runs} 次迭代，共 {args.num_runs} 次……")
         random_seed = args.random_seed * (num_runs + 2333) * 2333 % (2 ** 32 - 1)
         np.random.seed(random_seed)
         t.manual_seed(random_seed)
@@ -65,10 +67,36 @@ def main(args) -> None:
         steps = 0
 
         if args.has_viewer:
-            with mujoco.viewer.launch_passive(demo_agent.mj_model, demo_agent.mj_data) as viewer:
+            with mujoco.viewer.launch_passive(
+                demo_agent.mj_model,
+                demo_agent.mj_data,
+                show_left_ui=not args.chinese_ui,
+                show_right_ui=not args.chinese_ui,
+            ) as viewer:
                 _disable_mujoco_keyboard_shortcuts()
+                if control_panel:
+                    control_panel.embed_mujoco_window()
 
-                while viewer.is_running() and steps < args.max_steps:
+                while viewer.is_running() and steps < args.max_steps and not (
+                    control_panel and control_panel.is_closed
+                ):
+                    if control_panel:
+                        for command, value in control_panel.poll_commands():
+                            if command == "reset":
+                                demo_agent.full_agent.reset()
+                                steps = 0
+                            elif command == "camera":
+                                viewer.cam.azimuth, viewer.cam.elevation, viewer.cam.distance = value
+                            elif command == "display":
+                                viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = value["contact"]
+                                viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_JOINT] = value["joint"]
+                                viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_TRANSPARENT] = value["transparent"]
+
+                        if control_panel.is_paused:
+                            viewer.sync()
+                            time.sleep(demo_agent.mj_model.opt.timestep)
+                            continue
+
                     force_idle = steps + 100 > args.max_steps
                     steps += 1
                     viewer.user_scn.ngeom = 0
@@ -101,6 +129,8 @@ def main(args) -> None:
                     time_until_next_step = demo_agent.mj_model.opt.timestep - (time.time() - step_start)
                     if time_until_next_step > 0:
                         time.sleep(time_until_next_step)
+            if control_panel:
+                control_panel.close()
         else:
             while steps < args.max_steps:
                 steps += 1
@@ -128,39 +158,44 @@ def main(args) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Interactive demo for the G1 humanoid")
+    enable_chinese_argparse()
+    parser = argparse.ArgumentParser(description="G1 人形角色交互演示")
 
-    # path configs
-    parser.add_argument("--humanoid_xml", type=str, default="assets/skeletons/g1/scene_29dof.xml")
-    parser.add_argument("--result_dir", type=str, default="./out")
-    parser.add_argument("--data_root", type=str, default="./datasets")
-    parser.add_argument("--explicit_dataset_folder", type=str, default=None)
-    parser.add_argument("--reprocess_clips", type=int, default=0)
+    # 路径配置
+    parser.add_argument("--humanoid_xml", type=str, default="assets/skeletons/g1/scene_29dof.xml",
+                        help="G1 场景 XML 文件路径")
+    parser.add_argument("--result_dir", type=str, default="./out", help="模型检查点目录")
+    parser.add_argument("--data_root", type=str, default="./datasets", help="数据集根目录")
+    parser.add_argument("--explicit_dataset_folder", type=str, default=None, help="显式指定数据集目录")
+    parser.add_argument("--reprocess_clips", type=int, default=0, help="是否重新处理动作片段")
 
-    # controller config
+    # 控制器配置
     parser.add_argument("--controller", type=str, default="wasd",
-                        choices=["wasd", "random"])
-    parser.add_argument("--lookat_movement_direction", type=int, default=0)
-    parser.add_argument("--has_viewer", type=int, default=1)
-    parser.add_argument("--pre_filter_qpos", type=int, default=1)
-    parser.add_argument("--source_root_realignment", type=int, default=1)
-    parser.add_argument("--target_root_realignment", type=int, default=1)
-    parser.add_argument("--force_canonicalization", type=int, default=1)
-    parser.add_argument("--skip_ending_target_cond", type=int, default=0)
-    parser.add_argument("--random_speed_scale", type=int, default=0)
-    parser.add_argument("--speed_scale", type=str, default="0.8,1.2")
-    parser.add_argument("--generate_dt", type=float, default=2.0)
+                        choices=["wasd", "random"], help="控制器类型：键盘或随机控制")
+    parser.add_argument("--lookat_movement_direction", type=int, default=0,
+                        help="角色是否朝向移动方向")
+    parser.add_argument("--has_viewer", type=int, default=1, help="是否打开 MuJoCo 查看器")
+    parser.add_argument("--pre_filter_qpos", type=int, default=1, help="是否预先平滑关节位置")
+    parser.add_argument("--source_root_realignment", type=int, default=1, help="是否重新对齐源根节点")
+    parser.add_argument("--target_root_realignment", type=int, default=1, help="是否重新对齐目标根节点")
+    parser.add_argument("--force_canonicalization", type=int, default=1, help="是否强制执行动作标准化")
+    parser.add_argument("--skip_ending_target_cond", type=int, default=0, help="是否忽略末尾目标条件")
+    parser.add_argument("--random_speed_scale", type=int, default=0, help="是否随机调整速度比例")
+    parser.add_argument("--speed_scale", type=str, default="0.8,1.2", help="最小和最大速度比例")
+    parser.add_argument("--generate_dt", type=float, default=2.0, help="每次生成的时间跨度")
 
-    # run configs
-    parser.add_argument("--max_steps", type=int, default=10000)
-    parser.add_argument("--random_seed", type=int, default=1234)
-    parser.add_argument("--num_runs", type=int, default=1)
+    # 运行配置
+    parser.add_argument("--max_steps", type=int, default=10000, help="最大运行步数")
+    parser.add_argument("--random_seed", type=int, default=1234, help="随机种子")
+    parser.add_argument("--num_runs", type=int, default=1, help="重复运行次数")
 
-    # model configurations
-    parser.add_argument("--use_qpos", type=int, default=1)
-    parser.add_argument("--planner", type=str, default="default")
-    parser.add_argument("--allowed_mode", type=str, default=None)
-    parser.add_argument("--clips", type=str, default="G1")
+    # 模型配置
+    parser.add_argument("--use_qpos", type=int, default=1, help="是否使用 MuJoCo qpos 作为上下文")
+    parser.add_argument("--planner", type=str, default="default", help="动作规划器配置")
+    parser.add_argument("--allowed_mode", type=str, default=None, help="允许使用的动作模式")
+    parser.add_argument("--clips", type=str, default="G1", help="动作片段集合")
+    parser.add_argument("--chinese_ui", type=int, default=1,
+                        help="启用完整中文控制台并隐藏 MuJoCo 英文侧栏")
 
     args = parser.parse_args()
 

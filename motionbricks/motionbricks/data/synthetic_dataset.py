@@ -7,11 +7,11 @@ from torch.utils.data import Dataset
 
 
 class SyntheticMotionDataset(Dataset):
-    """Synthetic motion dataset for training without the full motion dataset.
+    """无需完整动作数据即可训练的合成动作数据集。
 
-    Each sample is a random tensor of shape [T, feat_dim] where T is drawn
-    uniformly from [min_frames, max_frames] and feat_dim matches the motion
-    representation dimensionality (e.g. 418 for G1Skeleton34).
+    每个样本都是形状为 [T, feat_dim] 的随机张量。T 从
+    [min_frames, max_frames] 中均匀采样，feat_dim 与动作表示维度一致
+    （例如 G1Skeleton34 为 418）。
     """
 
     def __init__(
@@ -40,12 +40,12 @@ def collate_tensors(
     tensor_batch: List[Tensor],
     size: Optional[int] = None,
 ) -> Tuple[Tensor, Tensor, Tensor]:
-    """Pad variable-length tensors to a common length.
+    """将长度不同的张量填充到统一长度。
 
-    Returns:
-        - padded motions [B, T, D]
-        - lengths [B]
-        - pad_mask [B, T] (True where valid)
+    返回：
+        - 填充后的动作 [B, T, D]
+        - 长度 [B]
+        - 填充掩码 [B, T]（有效位置为 True）
     """
     rep_dim = tensor_batch[0].shape[1]
     max_size = max(mo.shape[0] for mo in tensor_batch)
@@ -67,7 +67,7 @@ def collate_tensors(
 
 
 def collate_batch(batch: List[Dict]) -> Dict:
-    """Collate a batch of motion dicts into padded tensors."""
+    """将一批动作字典整理为填充后的张量。"""
     motion = [bdict["motion"] for bdict in batch]
     motion, motion_len, motion_pad_mask = collate_tensors(motion)
     return {

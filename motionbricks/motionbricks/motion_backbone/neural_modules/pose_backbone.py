@@ -28,7 +28,7 @@ class pose_backbone_network(nn.Module):
         # make sure the codebook has the expected shapes
         if not self._args['pose_vqvae'].get('has_codebook', True):
             self.initted[:] = True
-            print("No codebook for pose vqvae, skipping initialization.")
+            print("姿态 VQ-VAE 没有码本，跳过初始化。")
         else:
             assert self._args.pose_vqvae.num_heads == pose_codebook.shape[0] and \
                 self.get_num_codes(include_aug_tokens=False)[0] == pose_codebook.shape[1] and \
@@ -43,7 +43,7 @@ class pose_backbone_network(nn.Module):
                 self._pose_token_emb.weight[:] = pose_codebook
 
             self.initted[:] = True
-            print("Successfully initialized the embeddings from vqvae codebook embeddings.")
+            print("已成功使用 VQ-VAE 码本嵌入初始化嵌入层。")
 
     def _build_transformer_backbone(self):
         """ @brief: the transformer backbone.

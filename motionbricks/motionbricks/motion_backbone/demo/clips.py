@@ -42,7 +42,7 @@ class clip_holder(t.nn.Module):
         elif train_dataloader is not None:
             self._preprocess_clips_from_dataloader(train_dataloader, val_dataloader, visualize_clips, ckpt_path)
         else:
-            raise ValueError("Either train_dataloader or ckpt_path must be provided")
+            raise ValueError("必须提供 train_dataloader 或 ckpt_path")
         self._apply_root_headings_correction()
 
     def _preprocess_clips_from_ckpt(self, ckpt_path: str):

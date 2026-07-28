@@ -103,7 +103,7 @@ class navigation_demo(object):
                                                 clips=self.args.clips, min_token=min_tokens, max_token=max_tokens)
 
         else:
-            raise ValueError(f"Controller {self.args.controller} is not supported")
+            raise ValueError(f"不支持控制器 {self.args.controller}")
 
     def _initialize_mj_simulator(self):
         self.mj_model, self.mj_data = build_mj_simulator(self.args.humanoid_scene_xml, self.inferencer.motion_rep.fps)

@@ -134,6 +134,12 @@ DISPLAY=:1 python scripts/interactive_demo_g1.py
 
 程序会打开 MuJoCo 查看器并加载 G1 参考角色。使用键盘实时控制角色；按住鼠标左键并拖动可以改变相机观察方向。
 
+默认同时打开 **MotionBricks 中文控制台**，并隐藏 MuJoCo 原生查看器中无法配置语言的英文侧栏。中文控制台提供运行/暂停、重置角色、退出演示、相机预设、接触点/关节/半透明显示开关和完整按键说明。若需要恢复 MuJoCo 原生英文侧栏，可运行：
+
+```bash
+python scripts/interactive_demo_g1.py --chinese_ui 0
+```
+
 <p align="center">
   <img src="assets/gifs/interactive_demo.gif" alt="交互演示录屏" width="480">
 </p>

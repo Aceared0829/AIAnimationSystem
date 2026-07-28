@@ -1,10 +1,9 @@
-"""VQVAE training script using synthetic data.
+"""使用合成数据训练 VQ-VAE 的脚本。
 
-Demonstrates how the VQVAE training pipeline works without requiring
-the actual motion dataset. Loads the saved model config from the
-checkpoint directory and trains on randomly generated motion tensors.
+无需真实动作数据集即可演示 VQ-VAE 训练流程。脚本从检查点目录加载
+已保存的模型配置，并使用随机生成的动作张量进行训练。
 
-Usage:
+用法：
     python scripts/train_vqvae.py --max_steps 100
 """
 
@@ -21,21 +20,22 @@ from torch.utils.data import DataLoader
 
 from motionbricks.data.synthetic_dataset import SyntheticMotionDataset, collate_batch
 from motionbricks.helper.pl_util import load_motion_rep
+from motionbricks.helper.argparse_zh import enable_chinese_argparse
 
 
 def load_config(result_dir: str, max_steps: int):
-    """Load and patch hparams.yaml for single-GPU training."""
+    """加载 hparams.yaml，并将其调整为单 GPU 训练配置。"""
     version_dir = os.path.join(result_dir, "motionbricks_vqvae", "version_1")
     hparams_path = os.path.join(version_dir, "hparams.yaml")
     conf = OmegaConf.load(hparams_path)
 
     with open_dict(conf):
-        # resolve data paths to the version directory (where skeleton/stats live)
+        # 将数据路径解析到保存骨架与统计量的版本目录
         conf.data = {"folder": version_dir}
         conf.skeleton.folder = os.path.join(version_dir, "skeleton")
         conf.motion_rep.stats.folder = os.path.join(version_dir, "stats", "motion")
 
-        # single-GPU training overrides
+        # 单 GPU 训练覆盖项
         conf.trainer.devices = 1
         conf.trainer.num_nodes = 1
         conf.trainer.max_steps = max_steps
@@ -43,38 +43,40 @@ def load_config(result_dir: str, max_steps: int):
         conf.trainer.strategy = "auto"
         conf.trainer.enable_progress_bar = True
         conf.trainer.log_every_n_steps = 10
-        conf.trainer.val_check_interval = max_steps  # no validation
+        conf.trainer.val_check_interval = max_steps  # 不执行验证
         conf.trainer.num_sanity_val_steps = 0
 
-        # resolve ${trainer.max_steps} in scheduler
+        # 解析调度器中的 ${trainer.max_steps}
         conf.model.scheduler.num_training_steps = max_steps
 
     return conf, version_dir
 
 
 def main():
-    parser = argparse.ArgumentParser(description="VQVAE training")
+    enable_chinese_argparse()
+    parser = argparse.ArgumentParser(description="VQ-VAE 模型训练")
     parser.add_argument("--result_dir", type=str, default="./out",
-                        help="Directory containing pretrained checkpoints")
+                        help="包含预训练检查点的目录")
     parser.add_argument("--max_steps", type=int, default=200,
-                        help="Number of training steps")
+                        help="训练步数")
     parser.add_argument("--batch_size", type=int, default=8,
-                        help="Batch size")
+                        help="批次大小")
     parser.add_argument("--num_samples", type=int, default=500,
-                        help="Number of synthetic samples in dataset")
-    parser.add_argument("--seed", type=int, default=42)
+                        help="数据集中的合成样本数")
+    parser.add_argument("--seed", type=int, default=42, help="随机种子")
     args = parser.parse_args()
 
     pl.seed_everything(args.seed)
     conf, version_dir = load_config(args.result_dir, args.max_steps)
 
-    # instantiate skeleton and motion representation
+    # 实例化骨架和动作表示
     motion_rep = load_motion_rep(conf)
     feat_dim = len(motion_rep.indices['all'])
 
-    # create synthetic dataset
-    # min_frames must exceed max possible num_frames + 1 used in training_step
-    # max_tokens=16, down_t=2 => max frames = 16 * 4 = 64, +1 for global->local = 65
+    # 创建合成数据集
+    # min_frames 必须大于 training_step 使用的最大 num_frames 加 1
+    # max_tokens=16、down_t=2，因此最大帧数为 16 * 4 = 64；
+    # 全局表示转局部表示还需额外 1 帧，共 65 帧
     dataset = SyntheticMotionDataset(
         feat_dim=feat_dim,
         num_samples=args.num_samples,
@@ -90,15 +92,15 @@ def main():
         persistent_workers=True,
     )
 
-    # instantiate the VQVAE network and model
+    # 实例化 VQ-VAE 网络和模型
     model_conf = copy.deepcopy(conf.model)
     with open_dict(model_conf):
-        # inject the motion_rep into sub-configs that use ???
+        # 将 motion_rep 注入使用 ??? 占位符的子配置
         pose_net = instantiate(
             model_conf.pose_vqvae_network,
             motion_rep=motion_rep.dual_rep.local_motion_rep,
         )
-        # build optimizer and scheduler as partials
+        # 将优化器和调度器构建为偏函数
         optimizer_fn = instantiate(model_conf.optimizer)
         scheduler_fn = instantiate(model_conf.scheduler) if model_conf.scheduler else None
 
@@ -112,7 +114,7 @@ def main():
             _recursive_=False,
         )
 
-    # create trainer (no callbacks needed)
+    # 创建训练器（无需回调）
     trainer = pl.Trainer(
         max_steps=conf.trainer.max_steps,
         devices=conf.trainer.devices,
@@ -128,12 +130,12 @@ def main():
         logger=False,
     )
 
-    print(f"Starting VQVAE training for {args.max_steps} steps...")
-    print(f"  Feature dim: {feat_dim}")
-    print(f"  Batch size: {args.batch_size}")
-    print(f"  Dataset size: {args.num_samples}")
+    print(f"开始训练 VQ-VAE，共 {args.max_steps} 步……")
+    print(f"  特征维度：{feat_dim}")
+    print(f"  批次大小：{args.batch_size}")
+    print(f"  数据集大小：{args.num_samples}")
     trainer.fit(model, train_dataloaders=dataloader)
-    print("Training complete.")
+    print("训练完成。")
 
 
 if __name__ == "__main__":

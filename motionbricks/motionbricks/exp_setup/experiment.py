@@ -24,7 +24,7 @@ def get_path_dir(exp):
         root_model_ckpt = 'model-step=2000000.ckpt'
 
     else:
-        raise NotImplementedError(f"exp {exp} not implemented.")
+        raise NotImplementedError(f"实验配置 {exp} 尚未实现。")
 
     return {'pose_model_path': pose_model_path, 'pose_model_ckpt': pose_model_ckpt,
             'root_model_path': root_model_path, 'root_model_ckpt': root_model_ckpt,
@@ -32,7 +32,7 @@ def get_path_dir(exp):
 
 def test(args: argparse.Namespace = None):
     if args is None:
-        parser = argparse.ArgumentParser(description='model_test')
+        parser = argparse.ArgumentParser(description="模型测试")
         parser.add_argument("--result_dir", type=str, default=DEFAULT_RESULT_DIR)
         parser.add_argument("--data_root", type=str, default="./datasets")
         parser.add_argument("--explicit_dataset_folder", type=str, default=None)
@@ -47,7 +47,7 @@ def test(args: argparse.Namespace = None):
 
     models, confs = {}, {}
     for model_name in ['pose', 'root']:
-        # hard code the config path for now
+        # 目前暂时硬编码配置路径
         model_key = model_name + '_model'
         ckpt_dir = f"{args.result_dir}/{ckpt_info[model_key + '_path']}/version_1"
         ckpt_path = f"{ckpt_dir}/checkpoints/{ckpt_info[model_key + '_ckpt']}"
@@ -68,7 +68,7 @@ def test(args: argparse.Namespace = None):
             conf.data_root = args.data_root
 
         if getattr(args, 'explicit_dataset_folder', None) is not None:
-            # save the results in a different folder: "+data.explicit_dataset_folder=YOUR_DEBUG_FOLDER"
+            # 将结果保存到另一目录："+data.explicit_dataset_folder=YOUR_DEBUG_FOLDER"
             conf.data.folder = args.explicit_dataset_folder
 
         from motionbricks.motionlib.train.utils import get_rank, setup_train_logging
@@ -87,15 +87,15 @@ def test(args: argparse.Namespace = None):
                 pose_vqvae_motion_rep == 'local' else motion_rep.dual_rep.global_motion_rep
             pose_vqvae_network = instantiate(conf.model.pose_vqvae_network, motion_rep=pose_vqvae_motion_rep)
 
-            # make sure it's the same model expected in config
-            sanitized_vqvae_model_ckpt_path = conf.model.args.vqvae_model_ckpt_path.replace("\\", '/')  # for windows
+            # 确保模型与配置中预期的模型一致
+            sanitized_vqvae_model_ckpt_path = conf.model.args.vqvae_model_ckpt_path.replace("\\", '/')  # Windows
             assert sanitized_vqvae_model_ckpt_path.split("/")[-4] == ckpt_info['vqvae_path'] and \
                 sanitized_vqvae_model_ckpt_path.split("/")[-1] == ckpt_info['vqvae_ckpt'], \
-                f"vqvae model path {conf.model.args.vqvae_model_ckpt_path} not match with {ckpt_info}"
+                f"VQ-VAE 模型路径 {conf.model.args.vqvae_model_ckpt_path} 与 {ckpt_info} 不匹配"
         else:
             pose_vqvae_network = None
 
-        # find rank
+        # 获取进程序号
         global_rank = get_rank()
         import tempfile
         run_dir = tempfile.mkdtemp(prefix="motionbricks_")
@@ -103,7 +103,7 @@ def test(args: argparse.Namespace = None):
 
         log = setup_train_logging(run_dir, global_rank)
 
-        assert not conf.resume, "resuming training only valid for training mode. Provide the ckpt path in `def test`."
+        assert not conf.resume, "续训仅适用于训练模式；请在 `test` 函数中提供检查点路径。"
 
         import pytorch_lightning as pl
         import torch
@@ -116,10 +116,10 @@ def test(args: argparse.Namespace = None):
         if "matmul_precision" in conf:
             torch.set_float32_matmul_precision(conf.matmul_precision)
 
-        # Load the model
-        log.info("Loading the model")
+        # 加载模型
+        log.info("正在加载模型")
 
-        # Strip training-only config keys that Hydra would try to instantiate
+        # 移除仅用于训练、但会被 Hydra 尝试实例化的配置键
         for key in ['optimizer', 'scheduler']:
             if key in conf.model:
                 with open_dict(conf):
@@ -131,12 +131,12 @@ def test(args: argparse.Namespace = None):
         # models[model_name]= instantiate(conf.model)
         confs[model_name] = conf
         assert models[model_name].vqvae_model_loaded, \
-            f"vqvae model not loaded for {model_name} model. Please check the config file."
+            f"{model_name} 模型未加载 VQ-VAE，请检查配置文件。"
 
-    log.info("Loading the datasets")
-    assert global_rank == 0, "This script is only for testing, so only rank 0 is supported."
+    log.info("正在加载数据集")
+    assert global_rank == 0, "此脚本仅用于测试，因此只支持序号为 0 的进程。"
 
-    # compatibility; probably not needed after the new ckpts
+    # 兼容旧检查点；使用新检查点后可能不再需要
     conf.data.augment_text = False
     conf.data.use_overview_desc = False
 

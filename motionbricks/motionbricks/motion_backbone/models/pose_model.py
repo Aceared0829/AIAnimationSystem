@@ -95,7 +95,7 @@ class MotionModel(LightningModule):
                     if self._supporting_networks['root_net'] is not None else None
                 self.backbone_net.init_embedding_from_codebooks(pose_codebook, root_codebook)
         else:
-            print(f"No VQVAE model checkpoint path available; Assuming the vqvae weights are intergrated in the model")
+            print("未找到 VQ-VAE 模型检查点路径；假定 VQ-VAE 权重已集成到模型中。")
 
     def configure_optimizers(self):
         if self.one_logger_callback is not None:
@@ -119,7 +119,7 @@ class MotionModel(LightningModule):
     def inference_step(self, batch, batch_idx, requires_grad=False, meta_info: Dict = {}):
         if not hasattr(self, "_printed_inference_warning"):
             self._printed_inference_warning = True
-            print("Warning: Pose model does not have an explicit inference step. Reusing training step.")
+            print("警告：姿态模型没有显式推理步骤，将复用训练步骤。")
         with t.no_grad():
             return self.training_step(batch, batch_idx, use_outside_training=True, meta_info=meta_info)
 

@@ -1,4 +1,4 @@
-<mujoco model="g1_29dof scene">
+<mujoco model="G1 29 自由度带手部交互场景">
   <include file="g1_29dof_with_hand.xml"/>
 
   <statistic center="0 0 0.5" extent="2.0"/>

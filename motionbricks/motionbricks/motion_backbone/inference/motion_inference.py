@@ -72,8 +72,8 @@ class motion_inference(t.nn.Module):
                 t.all(has_local_root_values[:, :num_frames_per_token]) and
                 t.all(has_local_poses[:, :num_frames_per_token])):
             if not getattr(self, 'WARNING_PRINTED', False):
-                print("WARNING: you are advised to provide all first 4 frames.")
-                self.WARNING_PRINTED = True  # print warning only once
+                print("警告：建议完整提供前 4 帧。")
+                self.WARNING_PRINTED = True  # 此警告只显示一次
         if type(num_tokens) == int:
             num_tokens = t.full([batch_size, 1], num_tokens, dtype=t.int).to(device)
         elif num_tokens is None:  # indicate the length of the motion is not provided; needs to be predicted
