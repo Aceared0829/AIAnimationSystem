@@ -1,250 +1,237 @@
-# MotionBricks: Scalable Real-Time Motions with Modular Latent Generative Model and Smart Primitives
+# MotionBricks：基于模块化潜变量生成模型与智能基元的可扩展实时动作系统
 
-> **Game-animation branch:** Robot control, hardware deployment, and
-> teleoperation components have been removed from this branch. The G1 skeleton
-> remains only as the reference character rig required by the released
-> MotionBricks checkpoints.
+> **游戏动画分支：** 本分支已经移除机器人控制、硬件部署和遥操作组件。G1 骨架仅作为已发布 MotionBricks 检查点所需的参考角色骨架保留。
 
 <p align="center">
-  <a href="https://nvlabs.github.io/motionbricks"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
-  <a href="docs/motion_representation.md"><img src="https://img.shields.io/badge/docs-online-green.svg" alt="Documentation"></a>
+  <a href="https://nvlabs.github.io/motionbricks"><img src="https://img.shields.io/badge/项目主页-访问-blue" alt="项目主页"></a>
+  <a href="docs/motion_representation.md"><img src="https://img.shields.io/badge/文档-在线-green.svg" alt="文档"></a>
 </p>
 
 <p align="center">
-  <img src="assets/teaser_motion_bricks_three_rows.jpg" alt="MotionBricks teaser" width="100%">
+  <img src="assets/teaser_motion_bricks_three_rows.jpg" alt="MotionBricks 效果预览" width="100%">
 </p>
 
-MotionBricks is a real-time generative framework for interactive character
-animation. By combining a large-scale latent backbone with intuitive “smart
-primitives,” it delivers high-quality, zero-shot motion synthesis at 15,000 FPS
-and makes complex motions composable like building blocks.
+MotionBricks 是一个面向交互式角色动画的实时生成框架。它将大规模潜变量骨干网络与直观的“智能基元”结合起来，能够以每秒 15,000 帧的速度完成高质量零样本动作合成，并使复杂动作能够像积木一样自由组合。
 
-## Contents
+## 目录
 
-- [News & Roadmap](#news--roadmap)
-- [Results](#results)
-- [Setup](#setup)
-- [Interactive Demo: Quick Start](#interactive-demo-quick-start)
-- [Training](#training)
-- [Motion Representation and Custom Datasets](#motion-representation-and-custom-datasets)
-- [Related Work](#related-work)
-- [Project Structure](#project-structure)
-- [Known Issues](#known-issues)
-- [Citation](#citation)
-- [License](#license)
-- [Contact](#contact)
+- [新闻与路线图](#新闻与路线图)
+- [效果展示](#效果展示)
+- [环境配置](#环境配置)
+- [交互演示快速开始](#交互演示快速开始)
+- [训练](#训练)
+- [动作表示与自定义数据集](#动作表示与自定义数据集)
+- [相关工作](#相关工作)
+- [项目结构](#项目结构)
+- [已知问题](#已知问题)
+- [论文引用](#论文引用)
+- [许可证](#许可证)
+- [联系方式](#联系方式)
 
-## News & Roadmap
+## 新闻与路线图
 
-### News
+### 新闻
 
-- **2026-04-27** — Initial public release: interactive demo, pretrained checkpoints (VQVAE · pose · root), synthetic training code, motion-representation docs, and GIF gallery.
+- **2026-04-27**：首次公开发布，包含交互演示、预训练检查点（VQ-VAE、姿态模型、根节点模型）、合成数据训练代码、动作表示文档和 GIF 展示。
 
-### Roadmap
+### 路线图
 
-- [ ] Additional character rigs and game-engine export/runtime adapters.
+- [ ] 支持更多角色骨架，并提供游戏引擎导出器和运行时适配器。
 
-## Results
+## 效果展示
 
-See the [project page](https://nvlabs.github.io/motionbricks) for the full uncut demos and comparison videos. Short clips below are GIFs (muted, ~10 s each).
+完整的无剪辑演示和对比视频请参阅[项目主页](https://nvlabs.github.io/motionbricks)。以下为静音短 GIF，每段约 10 秒。
 
-### Teasers
+### 效果预览
 
-![Animation teaser](assets/gifs/teaser_animation.gif)
+![动画效果预览](assets/gifs/teaser_animation.gif)
 
-### Smart Locomotion — Single Styles
+### 智能移动——单一风格
 
-| Zombie | Injured leg |
+| 僵尸 | 腿部受伤 |
 | :---: | :---: |
-| ![Zombie](assets/gifs/loco_zombie.gif) | ![Injured leg](assets/gifs/loco_injured_leg.gif) |
-| **Injured torso** | **Skipping** |
-| ![Injured torso](assets/gifs/loco_injured_torso.gif) | ![Skipping](assets/gifs/loco_skipping.gif) |
-| **Strafing** | **Crouch strafing** |
-| ![Strafing](assets/gifs/loco_strafing.gif) | ![Crouch strafing](assets/gifs/loco_crouch_strafing.gif) |
+| ![僵尸](assets/gifs/loco_zombie.gif) | ![腿部受伤](assets/gifs/loco_injured_leg.gif) |
+| **躯干受伤** | **跳步** |
+| ![躯干受伤](assets/gifs/loco_injured_torso.gif) | ![跳步](assets/gifs/loco_skipping.gif) |
+| **侧向移动** | **蹲伏侧移** |
+| ![侧向移动](assets/gifs/loco_strafing.gif) | ![蹲伏侧移](assets/gifs/loco_crouch_strafing.gif) |
 
-### Smart Locomotion — Mixture of Styles
+### 智能移动——混合风格
 
-| Freestyle | Idle · Walk · Jog · Run |
+| 自由风格 | 待机、行走、慢跑、奔跑 |
 | :---: | :---: |
-| ![Freestyle](assets/gifs/loco_freestyle.gif) | ![Idle / walk / jog / run](assets/gifs/loco_idle_walk_jog_run.gif) |
+| ![自由风格](assets/gifs/loco_freestyle.gif) | ![待机、行走、慢跑和奔跑](assets/gifs/loco_idle_walk_jog_run.gif) |
 
-### Smart Objects
+### 智能物体交互
 
-| Pick up sword | Falling |
+| 拾取长剑 | 跌落 |
 | :---: | :---: |
-| ![Pick up sword](assets/gifs/obj_pickup_sword.gif) | ![Falling](assets/gifs/obj_falling.gif) |
-| **Jump over bench** | **Sitting** |
-| ![Jump over bench](assets/gifs/obj_jump_bench.gif) | ![Sitting](assets/gifs/obj_sitting.gif) |
-| **Interactive authoring** | |
-| ![Interactive authoring](assets/gifs/obj_interactive_authoring.gif) | |
+| ![拾取长剑](assets/gifs/obj_pickup_sword.gif) | ![跌落](assets/gifs/obj_falling.gif) |
+| **跃过长凳** | **坐下** |
+| ![跃过长凳](assets/gifs/obj_jump_bench.gif) | ![坐下](assets/gifs/obj_sitting.gif) |
+| **交互式编排** | |
+| ![交互式编排](assets/gifs/obj_interactive_authoring.gif) | |
 
-## Setup
+## 环境配置
 
-**Requirements:** Python 3.10+, a CUDA-capable GPU, [Git LFS](https://git-lfs.com/).
+**要求：** Python 3.10 或更高版本、支持 CUDA 的显卡，以及 [Git LFS](https://git-lfs.com/)。
 
-### Clone the repository
+### 克隆仓库
 
-MotionBricks is stored in the `motionbricks/` directory. Pretrained checkpoints,
-mesh assets, and gallery GIFs are tracked with Git LFS, so install LFS before
-cloning:
+MotionBricks 位于 `motionbricks/` 目录。预训练检查点、网格资源和展示 GIF 由 Git LFS 管理，因此请先安装并启用 Git LFS：
 
 ```bash
 git lfs install
 ```
 
-The parent repo skips MotionBricks pretrained checkpoints by default so a normal monorepo clone does not automatically download the extra ~2.2 GB of checkpoint files. MotionBricks GIFs and mesh assets still download normally. If you only need source code (for example, to train on your own data), clone normally:
+普通克隆不会自动下载约 2.2 GiB 的 MotionBricks 预训练检查点。如果只需要源代码，例如准备使用自己的数据训练，可以直接克隆：
 
 ```bash
-git clone https://github.com/NVlabs/GR00T-WholeBodyControl.git
+git clone https://github.com/Aceared0829/GR00T-WholeBodyControl.git
 cd GR00T-WholeBodyControl/motionbricks
 ```
 
-If you want the checkpoints for the interactive demo, fetch them explicitly from the repo root:
+如需运行交互演示，请在仓库根目录显式拉取检查点和 G1 参考角色网格：
 
 ```bash
-git clone https://github.com/NVlabs/GR00T-WholeBodyControl.git
+git clone https://github.com/Aceared0829/GR00T-WholeBodyControl.git
 cd GR00T-WholeBodyControl
 git lfs pull --include="motionbricks/out/**" --exclude=""
-git lfs pull --include="motionbricks/assets/skeletons/g1/meshes/**" --exclude=""  # needed for interactive demo
+git lfs pull --include="motionbricks/assets/skeletons/g1/meshes/**" --exclude=""  # 交互演示需要
 cd motionbricks
 ```
 
-After fetching MotionBricks checkpoints, verify that checkpoint files were downloaded (not tiny Git LFS pointer files):
+拉取后检查文件大小，确认获得的不是很小的 Git LFS 指针文件：
 
 ```bash
-ls -lh out/G1-clip.ckpt                                     # ~7.5 MB
-ls -lh out/motionbricks_vqvae/version_1/checkpoints/*.ckpt  # ~273 MB
-ls -lh out/motionbricks_pose/version_1/checkpoints/*.ckpt   # ~1.6 GB
-ls -lh out/motionbricks_root/version_1/checkpoints/*.ckpt   # ~391 MB
+ls -lh out/G1-clip.ckpt                                     # 约 7.5 MB
+ls -lh out/motionbricks_vqvae/version_1/checkpoints/*.ckpt  # 约 273 MB
+ls -lh out/motionbricks_pose/version_1/checkpoints/*.ckpt   # 约 1.6 GB
+ls -lh out/motionbricks_root/version_1/checkpoints/*.ckpt   # 约 391 MB
 ```
 
-If these files are unexpectedly small (around 1 KB), they are LFS pointers. From the repo root, run `git lfs pull --include="motionbricks/out/**" --exclude=""` to fetch the actual checkpoints.
+如果文件只有约 1 KB，说明它是 LFS 指针。请回到仓库根目录运行 `git lfs pull --include="motionbricks/out/**" --exclude=""` 下载真实检查点。
 
-
-### Install dependencies
+### 安装依赖
 
 ```bash
-# Create environment
+# 创建环境
 conda create -n motionbricks python=3.10 -y
 conda activate motionbricks
 
-# Install dependencies
+# 安装依赖
 pip install -e .
 
-# Linux only: needed for keyboard input and MuJoCo key-grab workaround
+# 仅 Linux：用于键盘输入和 MuJoCo 按键捕获规避方案
 pip install pynput python-xlib
 ```
 
-## Interactive Demo: Quick Start
+## 交互演示快速开始
 
 ```bash
 DISPLAY=:1 python scripts/interactive_demo_g1.py
 ```
 
-This launches the MuJoCo viewer with the G1 reference character. Use your
-keyboard to control it in real time. Hold the left mouse button and drag to
-change the camera look-at direction.
+程序会打开 MuJoCo 查看器并加载 G1 参考角色。使用键盘实时控制角色；按住鼠标左键并拖动可以改变相机观察方向。
 
 <p align="center">
-  <img src="assets/gifs/interactive_demo.gif" alt="Interactive demo screencast" width="480">
+  <img src="assets/gifs/interactive_demo.gif" alt="交互演示录屏" width="480">
 </p>
 
-### Movement Controls
+### 移动控制
 
-| Key | Action |
-|-----|--------|
-| `W` | Move forward |
-| `A` | Move left |
-| `S` | Move backward |
-| `D` | Move right |
+| 按键 | 动作 |
+|---|---|
+| `W` | 向前移动 |
+| `A` | 向左移动 |
+| `S` | 向后移动 |
+| `D` | 向右移动 |
 
-The movement direction is relative to the camera. Rotate the camera by right-clicking and dragging in the MuJoCo viewer.
+移动方向以相机为参照。在 MuJoCo 查看器中按住鼠标右键并拖动可以旋转相机。
 
-### Motion Styles
+### 动作风格
 
-| Key | Style |
-|-----|-------|
-| `V` | Slow walk |
-| `Z` | Hand crawling |
-| `X` | Walk boxing |
-| `B` | Elbow crawling |
-| `R` | Stealth walk |
-| `T` | Injured walk |
-| `C` | Walk stealth (crouched) |
-| `E` | Happy dance walk |
-| `F` | Zombie walk |
-| `G` | Gun walk |
-| `Q` | Scared walk |
+| 按键 | 风格 |
+|---|---|
+| `V` | 慢走 |
+| `Z` | 手部支撑爬行 |
+| `X` | 拳击式行走 |
+| `B` | 肘部支撑爬行 |
+| `R` | 潜行 |
+| `T` | 受伤行走 |
+| `C` | 蹲伏潜行 |
+| `E` | 快乐舞步 |
+| `F` | 僵尸行走 |
+| `G` | 持枪行走 |
+| `Q` | 惊恐行走 |
 
-Note: crawling modes (`Z` hand crawling and `B` elbow crawling) currently do not support side-only directions.
+注意：爬行模式（`Z` 手部支撑爬行和 `B` 肘部支撑爬行）目前不支持纯侧向移动。
 
-Without pressing a style key, the default locomotion is: **idle** (no movement keys), **walk** (WASD pressed).
+不按风格键时，默认移动方式为：没有按下移动键时**待机**，按下 WASD 时**行走**。
 
-## Training
+## 训练
 
-Training scripts are provided for all three model components. The scripts use synthetic data by default and load model configs from the saved checkpoints in `out/`. The full motion datasets are available at <https://bones.studio/datasets>.
+项目为三个模型组件分别提供了训练脚本。脚本默认使用合成数据，并从 `out/` 中保存的检查点目录加载模型配置。完整动作数据集可在 <https://bones.studio/datasets> 获取。
 
 ```bash
-# Train the VQVAE (motion tokenizer)
+# 训练 VQ-VAE（动作分词器）
 python scripts/train_vqvae.py
 
-# Train the pose model (requires pretrained VQVAE checkpoint)
+# 训练姿态模型（需要预训练 VQ-VAE 检查点）
 python scripts/train_pose.py
 
-# Train the root model (no VQVAE needed)
+# 训练根节点模型（不需要 VQ-VAE）
 python scripts/train_root.py
 ```
 
-### Dataset
+### 数据集
 
-The datasets used to train the pretrained checkpoints can be downloaded at <https://bones.studio/datasets>. All current training scripts default to **synthetic data** (see `motionbricks/data/synthetic_dataset.py`) so that the full training pipeline can be verified end-to-end without the real dataset.
+预训练检查点所用的数据集可以从 <https://bones.studio/datasets> 下载。当前所有训练脚本默认使用**合成数据**，实现位于 `motionbricks/data/synthetic_dataset.py`，因此无需真实数据集也能端到端验证训练流程。
 
-## Motion Representation and Custom Datasets
+## 动作表示与自定义数据集
 
-For details on the motion feature representation, skeleton system, coordinate conventions, normalization, and feature computation pipeline, see [docs/motion_representation.md](docs/motion_representation.md).
+动作特征表示、骨骼系统、坐标约定、归一化和特征计算流程详见[动作表示](docs/motion_representation.md)。
 
-For a step-by-step guide to training MotionBricks on your own motion data and
-adapting it to a new character rig, see
-[docs/adding_your_own_dataset.md](docs/adding_your_own_dataset.md).
+如何使用自己的动作数据训练 MotionBricks，以及如何适配新的角色骨架，详见[添加自定义数据集](docs/adding_your_own_dataset.md)。
 
-## Related Work
+## 相关工作
 
-**Kimodo** — A sibling project focused on offline motion generation, complementary to MotionBricks' real-time runtime.
+**Kimodo**：专注离线动作生成的同系列项目，与 MotionBricks 的实时运行时互补。
 
-[Project page](https://research.nvidia.com/labs/sil/projects/kimodo/) · [GitHub](https://github.com/nv-tlabs/kimodo)
+[项目主页](https://research.nvidia.com/labs/sil/projects/kimodo/) · [GitHub](https://github.com/nv-tlabs/kimodo)
 
 <p align="center">
-  <img src="assets/gifs/kimodo_teaser.gif" alt="Kimodo teaser" width="480">
+  <img src="assets/gifs/kimodo_teaser.gif" alt="Kimodo 效果预览" width="480">
 </p>
 
-**BONES-SEED Dataset** — MotionBricks' training corpus — 350k production-grade mocap clips from real human actors and actresses.
+**BONES-SEED 数据集**：MotionBricks 使用的训练语料，包含由真人演员采集的 35 万段生产级动作捕捉片段。
 
-[Dataset page](https://huggingface.co/datasets/bones-studio/seed)
+[数据集页面](https://huggingface.co/datasets/bones-studio/seed)
 
 <p align="center">
-  <img src="assets/gifs/bones_seed_teaser.gif" alt="BONES-SEED teaser" width="480">
+  <img src="assets/gifs/bones_seed_teaser.gif" alt="BONES-SEED 效果预览" width="480">
 </p>
 
-**SOMA Retargeter** — The Newton-based solver that retargets SOMA capture onto the G1, producing MotionBricks' training data.
+**SOMA Retargeter**：基于 Newton 的重定向求解器，将 SOMA 捕捉数据重定向到 G1 参考骨架，用于生成 MotionBricks 训练数据。
 
 [GitHub](https://github.com/NVIDIA/soma-retargeter)
 
 <p align="center">
-  <img src="assets/gifs/soma_retargeter_teaser.gif" alt="SOMA Retargeter teaser" width="480">
+  <img src="assets/gifs/soma_retargeter_teaser.gif" alt="SOMA Retargeter 效果预览" width="480">
 </p>
 
-## Project Structure
+## 项目结构
 
-```
+```text
 motionbricks/
-  assets/skeletons/g1/     # MuJoCo XMLs and STL meshes
-  motionbricks/            # Python package
+  assets/skeletons/g1/     # MuJoCo XML 和 STL 网格
+  motionbricks/            # Python 包
   scripts/
-    interactive_demo_g1.py # Interactive demo
-    train_vqvae.py         # VQVAE training
-    train_pose.py          # Pose model training
-    train_root.py          # Root model training
-  out/                     # Pre-trained checkpoints (Git LFS)
+    interactive_demo_g1.py # 交互演示
+    train_vqvae.py         # VQ-VAE 训练
+    train_pose.py          # 姿态模型训练
+    train_root.py          # 根节点模型训练
+  out/                     # 预训练检查点（Git LFS）
     G1-clip.ckpt
     motionbricks_vqvae/
     motionbricks_pose/
@@ -252,15 +239,15 @@ motionbricks/
   setup.py
 ```
 
-## Known Issues
+## 已知问题
 
-- **Linux/X11 only:** The keyboard key-grab workaround requires X11 (`python-xlib`). On Wayland, macOS, or Windows, some MuJoCo keyboard shortcuts may conflict with the controller keys. Keep the **terminal focused** (not the MuJoCo window) as a workaround.
-- **`PYTORCH_JIT=0` disables key grabs:** Running with `PYTORCH_JIT=0` interferes with the X11 key-grab workaround. If you need `PYTORCH_JIT=0`, keep the terminal focused instead.
-- The `pynput` package is required for keyboard input on Linux/macOS. On Windows, the `keyboard` package is used instead.
+- **仅 Linux/X11：** 键盘按键捕获规避方案依赖 X11（`python-xlib`）。在 Wayland、macOS 或 Windows 上，部分 MuJoCo 快捷键可能与控制键冲突。临时解决方法是让**终端保持焦点**，而不是 MuJoCo 窗口。
+- **`PYTORCH_JIT=0` 会禁用按键捕获：** 使用 `PYTORCH_JIT=0` 运行会干扰 X11 按键捕获方案。如必须使用该设置，请让终端保持焦点。
+- Linux/macOS 的键盘输入需要 `pynput`；Windows 使用 `keyboard` 包。
 
-## Citation
+## 论文引用
 
-If you use MotionBricks in your research, please cite:
+如果在研究中使用 MotionBricks，请引用：
 
 ```bibtex
 @misc{wang2026motionbricksscalablerealtimemotions,
@@ -274,10 +261,10 @@ If you use MotionBricks in your research, please cite:
 }
 ```
 
-## License
+## 许可证
 
-Source code in this repository is licensed under **Apache 2.0**. Pretrained model weights are licensed under the **NVIDIA Open Model License**, which permits commercial use with attribution subject to the trustworthy AI requirements.
+源代码采用 **Apache 2.0** 许可证。预训练模型权重采用 **NVIDIA Open Model License**，在遵守署名和可信人工智能要求的前提下允许商业使用。法律效力以仓库根目录中的英文 `LICENSE` 原文为准，中文解释见[引用与许可说明](../引用与许可说明.md)。
 
-## Contact
+## 联系方式
 
-For questions and feedback, please reach out at **`gear-wbc@nvidia.com`**.
+问题和反馈请发送至 **`gear-wbc@nvidia.com`**。

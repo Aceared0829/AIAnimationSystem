@@ -2,7 +2,7 @@
 
 本分支已经移除机器人控制与硬件部署模块，只保留可用于游戏开发、实时角色动画和动作生成研究的 MotionBricks。
 
-[English](README_EN.md) · [MotionBricks 技术文档](motionbricks/README.md) · [动作表示](motionbricks/docs/motion_representation.md)
+[MotionBricks 技术文档](motionbricks/README.md) · [动作表示](motionbricks/docs/motion_representation.md) · [引用与许可说明](引用与许可说明.md)
 
 ## 分支定位
 
