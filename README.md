@@ -2,7 +2,7 @@
 
 本分支已经移除机器人控制与硬件部署模块，只保留可用于游戏开发、实时角色动画和动作生成研究的 MotionBricks。
 
-[MotionBricks 技术文档](motionbricks/README.md) · [动作表示](motionbricks/docs/motion_representation.md) · [引用与许可说明](引用与许可说明.md)
+[MotionBricks 技术文档](motionbricks/README.md) · [中文交互界面](motionbricks/docs/chinese_interface.md) · [动作表示](motionbricks/docs/motion_representation.md) · [引用与许可说明](引用与许可说明.md)
 
 ## 分支定位
 
@@ -58,6 +58,8 @@ conda activate motionbricks
 pip install -e .
 python scripts/interactive_demo_g1.py
 ```
+
+交互演示默认启用中文界面。在 Windows 上，中文控制栏和 MuJoCo 3D 画面会嵌入同一个主窗口；其他系统无法使用 Win32 窗口嵌入时，会回退为中文控制窗口与 3D 窗口分离显示。完整说明与故障排查参见[中文交互界面](motionbricks/docs/chinese_interface.md)。
 
 训练入口：
 

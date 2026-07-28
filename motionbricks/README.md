@@ -132,9 +132,16 @@ pip install pynput python-xlib
 DISPLAY=:1 python scripts/interactive_demo_g1.py
 ```
 
-程序会打开 MuJoCo 查看器并加载 G1 参考角色。使用键盘实时控制角色；按住鼠标左键并拖动可以改变相机观察方向。
+程序会打开中文交互界面并加载 G1 参考角色。使用键盘实时控制角色；在 3D 画面中使用鼠标可以改变相机观察方向。
 
-默认同时打开 **MotionBricks 中文控制台**，并隐藏 MuJoCo 原生查看器中无法配置语言的英文侧栏。中文控制台提供运行/暂停、重置角色、退出演示、相机预设、接触点/关节/半透明显示开关和完整按键说明。若需要恢复 MuJoCo 原生英文侧栏，可运行：
+默认启用 **MotionBricks G1 中文交互演示**：
+
+- Windows：中文控制栏位于左侧，MuJoCo 3D 画面嵌入右侧，组成一个主窗口；
+- Linux/macOS：由于不支持 Win32 窗口嵌入，中文控制窗口与 MuJoCo 3D 窗口分开显示；
+- MuJoCo 原生英文左右侧栏默认隐藏；
+- 中文控制栏提供运行/暂停、重置角色、退出演示、相机预设、接触点/关节/半透明显示开关和完整按键说明。
+
+详细的界面说明、实现边界和故障排查参见[中文交互界面](docs/chinese_interface.md)。若需要恢复 MuJoCo 原生英文侧栏，可运行：
 
 ```bash
 python scripts/interactive_demo_g1.py --chinese_ui 0
