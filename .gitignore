@@ -189,6 +189,13 @@ uv.lock
 .venv/
 .venv_*/
 *.code-workspace
+
+# MotionBricks Windows launcher build output and runtime log
+launcher/bin/
+launcher/obj/
+launcher/publish*/
+launcher/assets/motionbricks-icon-chroma.png
+MotionBricks-launcher.log
 # Motion/training data (large local datasets, not tracked in git)
 data/
 bones_seed_smpl/

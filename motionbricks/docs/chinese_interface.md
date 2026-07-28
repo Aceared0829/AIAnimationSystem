@@ -102,6 +102,47 @@ Windows 版本使用一个主窗口：
 
 ## 启动参数
 
+### Windows 无控制台启动器
+
+完成 `.venv` 和模型权重配置后，可以在仓库根目录直接双击：
+
+```text
+MotionBricks.exe
+```
+
+启动器具有以下行为：
+
+- 不显示命令行控制台；
+- 自动使用仓库根目录下的 `.venv\Scripts\pythonw.exe`；
+- 自动启动 `motionbricks\scripts\interactive_demo_g1.py --chinese_ui 1`；
+- 以仓库根目录作为工作目录，确保配置和资源路径一致；
+- 启动失败时显示中文错误窗口；
+- 将启动结果写入仓库根目录的 `MotionBricks-launcher.log`。
+
+`MotionBricks.exe` 需要与项目目录一起使用，它不是包含 Python、模型权重和依赖的独立安装包。移动整个项目目录没有问题，但不要只把 EXE 单独复制到其他位置。
+
+桌面快捷方式应指向仓库根目录的 `MotionBricks.exe`，起始位置设为仓库根目录，图标可使用：
+
+```text
+launcher\assets\motionbricks.ico
+```
+
+快捷方式属于每台电脑的本地系统配置，不提交到 Git 仓库。
+
+### 重新构建 Windows 启动器
+
+启动器源码位于 `launcher` 目录，使用 .NET 10 Windows Desktop 构建：
+
+```powershell
+dotnet publish launcher\MotionBricksLauncher.csproj -c Release -r win-x64 `
+  --self-contained false -p:PublishSingleFile=true `
+  -o launcher\publish
+
+Copy-Item launcher\publish\MotionBricks.exe .\MotionBricks.exe -Force
+```
+
+最终 EXE 已嵌入项目图标；同一份 `.ico` 文件也用于桌面快捷方式，以保持任务栏、资源管理器和快捷方式的视觉一致性。
+
 ### 默认中文界面
 
 ```bash
