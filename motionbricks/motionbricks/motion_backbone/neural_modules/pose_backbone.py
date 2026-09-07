@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized initialization messages.
+
 import torch as t
 import torch
 from torch import nn

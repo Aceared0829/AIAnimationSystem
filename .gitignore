@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: adapted ignore rules for the simplified project and Unreal tooling.
+
  # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

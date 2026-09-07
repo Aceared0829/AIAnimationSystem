@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: adapted LFS rules for the retained project assets.
+
 # Machine-learning models and data files
 *.pt filter=lfs diff=lfs merge=lfs -text
 *.onnx filter=lfs diff=lfs merge=lfs -text

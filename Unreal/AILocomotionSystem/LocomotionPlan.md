@@ -1,4 +1,6 @@
-# AILocomotionSystem 开发方案
+# AIAnimationSystem 第一阶段开发方案：Locomotion
+
+本方案属于 [AIAnimationSystem](../../README.md)，聚焦第一阶段的 Locomotion、跳跃与蹲伏。文中的 `AILocomotion*` 继续表示该阶段的插件与模块命名，不限制整个项目后续的角色动画范围。
 
 日期：2026-09-07。状态：已确认的开发方向，尚未完整实现。
 

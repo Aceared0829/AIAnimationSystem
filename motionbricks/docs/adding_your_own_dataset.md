@@ -1,5 +1,7 @@
 # 添加自定义数据集
 
+> 修改说明：AIAnimationSystem 维护者基于 NVIDIA MotionBricks 上游文档翻译并调整了本文。原始项目来源与许可见[引用与许可说明](../../引用与许可说明.md)。
+
 开放动作数据集可从 <https://bones.studio/datasets> 获取。本指南介绍如何将自己的角色动作数据接入 MotionBricks 训练。
 
 ## 两种接入方式

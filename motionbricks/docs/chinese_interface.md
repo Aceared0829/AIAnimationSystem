@@ -1,5 +1,7 @@
 # MotionBricks 中文交互界面
 
+本页说明 [AIAnimationSystem](../../README.md) 对上游 MotionBricks 参考演示所做的中文界面与 Windows 适配。2026-09-07 修改启动目录与迁移说明；此界面不代表 UE 运行时插件。
+
 ## 界面概览
 
 运行交互演示：
@@ -115,11 +117,11 @@ MotionBricks.exe
 - 不显示命令行控制台；
 - 自动使用仓库根目录下的 `.venv\Scripts\pythonw.exe`；
 - 自动启动 `motionbricks\scripts\interactive_demo_g1.py --chinese_ui 1`；
-- 以仓库根目录作为工作目录，确保配置和资源路径一致；
+- 以仓库内的 `motionbricks` 目录作为工作目录，确保配置和资源路径一致；
 - 启动失败时显示中文错误窗口；
 - 将启动结果写入仓库根目录的 `MotionBricks-launcher.log`。
 
-`MotionBricks.exe` 需要与项目目录一起使用，它不是包含 Python、模型权重和依赖的独立安装包。移动整个项目目录没有问题，但不要只把 EXE 单独复制到其他位置。
+`MotionBricks.exe` 需要与项目目录一起使用，它不是包含 Python、模型权重和依赖的独立安装包。启动器按相对位置查找文件，但 `.venv` 激活脚本和 editable 安装可能记录绝对路径；移动或重命名本地仓库后，需要重建或修复环境并更新快捷方式。仅修改 GitHub 仓库名称不要求移动本地目录。不要只把 EXE 单独复制到其他位置。
 
 桌面快捷方式应指向仓库根目录的 `MotionBricks.exe`，起始位置设为仓库根目录，图标可使用：
 

@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized inference warnings.
+
 from typing import Dict
 import torch as t
 import numpy as np

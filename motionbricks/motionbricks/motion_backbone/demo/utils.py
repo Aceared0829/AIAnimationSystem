@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized controller error messages.
+
 import os
 import numpy as np
 import mujoco

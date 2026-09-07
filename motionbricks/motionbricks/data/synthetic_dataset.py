@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized documentation and messages.
+
 import random
 from typing import List, Dict, Optional, Tuple
 

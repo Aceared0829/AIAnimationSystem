@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: added missing and platform-specific dependencies.
+
 from setuptools import setup, find_packages
 
 setup(

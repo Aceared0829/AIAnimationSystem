@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized inference warnings.
+
 from motionbricks.vqvae.neural_modules import vqvae
 from motionbricks.motion_backbone.neural_modules.pose_backbone import pose_backbone_network
 from motionbricks.motion_backbone.neural_modules.root_backbone import root_backbone_network
