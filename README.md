@@ -2,6 +2,8 @@
 
 新增 [AILocomotionSystem 动画数据插件](Unreal/AILocomotionSystem/README.md)：在 Unreal 中选择 `AnimSequence`，导出角色骨架与动作数据，再通过独立 Python 入口训练适配该骨架的模型。包含编辑器导出、数据预处理和检查点保存；运行时推理插件尚未实现。
 
+[AILocomotionSystem 完整开发方案](Unreal/AILocomotionSystem/LocomotionPlan.md)：以多人联机为默认需求，由 CMC / Mover 驱动移动，统一人形模型生成姿态，通过重定向适配角色；第一阶段覆盖 Locomotion、跳跃与蹲伏。该文档描述已确认的开发方向，不代表功能已经完成。
+
 **该插件当前为实验性实现：真实 UE 动画资产的导出及完整训练可用性尚未验证。** 已通过的编译和 CPU 小网络测试不代表真实项目训练已可用。`codex/game-development-only` 作为主分支，本功能在独立开发分支维护。
 
 本分支已经移除机器人控制与硬件部署模块，只保留可用于游戏开发、实时角色动画和动作生成研究的 MotionBricks。
@@ -78,15 +80,15 @@ python scripts/train_root.py
 
 ## 接入 Unity 或 Unreal 的关键工作
 
-当前代码不会直接输出 Unity `AnimationClip` 或 Unreal `AnimSequence`。接入游戏引擎时需要增加一个导出/运行时桥接层：
+当前代码不会直接输出 Unity `AnimationClip` 或 Unreal `AnimSequence`。Unreal 后续接入按上述开发方案实施，运行时桥接层尚未实现：
 
 ```text
-玩家输入
-  → MotionBricks 条件输入
-  → Pose + Root Motion
-  → 从 G1 骨架重定向到游戏角色骨架
-  → 坐标系与单位转换
-  → Unity/Unreal 骨骼变换
+玩家 / AI 输入
+  → CMC 或 Mover 移动模拟
+  → 实际运动状态与未来轨迹条件
+  → 统一人形模型生成姿态
+  → 目标角色重定向与接触修正
+  → Unreal 骨骼姿态
 ```
 
-需要特别处理骨骼名称映射、T-Pose 差异、左右手坐标系、根节点朝向、单位缩放和脚底锁定。建议先导出离线动画验证重定向，再实现实时推理插件。
+需要处理骨骼语义、参考姿态、坐标系、单位、脚底接触和网络纠正。先用真实资产验证采样与还原，再接入运行时。G1 仅作为已有参考及迁移实验候选；当前自定义 UE 训练入口不支持直接加载 G1 权重微调。Unity 接入不在本次 Unreal 方案范围内。

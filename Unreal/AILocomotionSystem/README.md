@@ -6,6 +6,8 @@
 
 当前实现 `AILocomotionDataset`：从项目中的 `UAnimSequence` 读取骨架和动画，生成可用于训练自有 UE 骨架模型的数据。模型推理与 AnimGraph 输出插件尚未实现。
 
+[完整开发方案：多人联机、CMC / Mover、统一人形模型与训练路线](LocomotionPlan.md)。方案先概述后展开，明确第一阶段范围、模块职责、实施顺序和验收标准；规划能力尚未完整实现。
+
 ## 安装与动画导出
 
 1. 把本目录复制到 UE 项目的 `Plugins/AILocomotionSystem/`。外层不放 `.uplugin`，里面的每个目录才是独立插件。
