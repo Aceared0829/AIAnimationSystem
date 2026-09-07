@@ -201,7 +201,7 @@ python scripts/train_root.py
 
 ### 数据集
 
-预训练检查点所用的数据集可以从 <https://bones.studio/datasets> 下载。当前所有训练脚本默认使用**合成数据**，实现位于 `motionbricks/data/synthetic_dataset.py`，因此无需真实数据集也能端到端验证训练流程。
+上游训练数据的介绍见 [BONES-SEED](https://huggingface.co/datasets/bones-studio/seed)。本节列出的三个上游训练脚本默认使用**合成数据**，实现位于 `motionbricks/data/synthetic_dataset.py`，用于理解和检查训练流程。UE 自定义数据训练需要实际导出并预处理的数据，见 [UE 插件与训练说明](../Unreal/AILocomotionSystem/README.md)。
 
 ## 动作表示与自定义数据集
 
