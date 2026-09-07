@@ -26,6 +26,18 @@ class DatasetContract(pl.Callback):
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         checkpoint["unreal_contract"] = {"signature": self.signature, "kind": self.kind, "config": self.config}
 
+    def on_train_start(self, trainer, pl_module):
+        # Lightning 恢复检查点后才执行此回调；此时旧调度器状态已覆盖构建时的新周期。
+        schedule = self.config["model"]["scheduler"]
+        for entry in trainer.lr_scheduler_configs:
+            scheduler = entry.scheduler
+            scheduler.num_training_steps = schedule["num_training_steps"]
+            scheduler.num_warmup_steps = schedule["num_warmup_steps"]
+            rates = scheduler.get_lr()
+            for group, rate in zip(scheduler.optimizer.param_groups, rates):
+                group["lr"] = rate
+            scheduler._last_lr = rates
+
     def on_before_backward(self, trainer, pl_module, loss):
         if not torch.isfinite(loss).all():
             raise ValueError("训练损失非有限值，请检查动作特征和训练配置")

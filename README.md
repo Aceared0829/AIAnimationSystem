@@ -4,7 +4,7 @@
 
 [AILocomotionSystem 完整开发方案](Unreal/AILocomotionSystem/LocomotionPlan.md)：以多人联机为默认需求，由 CMC / Mover 驱动移动，统一人形模型生成姿态，通过重定向适配角色；第一阶段覆盖 Locomotion、跳跃与蹲伏。该文档描述已确认的开发方向，不代表功能已经完成。
 
-**该插件当前为实验性实现：真实 UE 动画资产的导出及完整训练可用性尚未验证。** 已通过的编译和 CPU 小网络测试不代表真实项目训练已可用。`codex/game-development-only` 作为主分支，本功能在独立开发分支维护。
+**该插件当前为实验性实现：真实 UE 动画资产的导出及完整训练可用性尚未验证。** 已通过的编译和 CPU 小网络测试不代表真实项目训练已可用。本仓库以 `codex/game-development-only` 作为主分支。
 
 本分支已经移除机器人控制与硬件部署模块，只保留可用于游戏开发、实时角色动画和动作生成研究的 MotionBricks。
 

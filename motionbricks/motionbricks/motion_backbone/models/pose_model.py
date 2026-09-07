@@ -268,7 +268,8 @@ class MotionModel(LightningModule):
         incorrect_probs = t.zeros([batch_size, 1], device=device).uniform_(self._args['incorrect_token_ratio_min'],
                                                                            self._args['incorrect_token_ratio_max'])
         num_all_tokens_per_sample = num_pose_heads * num_token_positions
-        num_focus_tokens = (num_all_tokens_per_sample * focus_mask_probs).int()   # [batch, 1]
+        # 每个样本至少监督一个 token，避免全为 ignore_index 时交叉熵产生 NaN。
+        num_focus_tokens = (num_all_tokens_per_sample * focus_mask_probs).int().clamp_min(1)   # [batch, 1]
         num_masked_tokens = t.floor(num_focus_tokens * self._args['masked_token_ratio']).int()
         num_incorrect_tokens = t.floor((num_focus_tokens - num_masked_tokens) * incorrect_probs).int()
         # num_correct_tokens = num_focus_tokens - num_masked_tokens - num_incorrect_tokens

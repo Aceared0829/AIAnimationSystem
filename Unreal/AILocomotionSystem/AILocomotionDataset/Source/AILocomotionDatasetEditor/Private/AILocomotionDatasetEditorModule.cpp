@@ -57,6 +57,11 @@ namespace
 		}
 		const FReferenceSkeleton& RefSkeleton = Skeleton->GetReferenceSkeleton();
 		const int32 PelvisIndex = RefSkeleton.FindBoneIndex(Settings->PelvisBone);
+		if (PelvisIndex == INDEX_NONE)
+		{
+			Error = FText::Format(LOCTEXT("MissingPelvis", "骨架缺少配置的骨盆 {0}，请在项目设置中指定正确骨骼。"), FText::FromName(Settings->PelvisBone)).ToString();
+			return false;
+		}
 		TArray<FName> Names;
 		TArray<int32> SourceIndices;
 		TArray<int32> Parents;
@@ -71,11 +76,12 @@ namespace
 			}
 		}
 		const TArray<FName> Required = { Settings->LeftHipBone, Settings->RightHipBone, Settings->LeftFootBone, Settings->LeftToeBone, Settings->RightFootBone, Settings->RightToeBone };
-		if (Names.IsEmpty() || Names.Num() > 512 || Settings->LeftHipBone == Settings->RightHipBone || FrameCount * Names.Num() > 250000)
+		if (Names.IsEmpty() || Names.Num() > 512 || FrameCount * Names.Num() > 250000)
 		{
-			Error = LOCTEXT("InvalidSkeleton", "骨盆配置无效、左右髋相同、骨骼数超过 512，或帧数乘骨骼数超过 250000；请检查配置或拆分动画。").ToString();
+			Error = LOCTEXT("InvalidSkeleton", "骨骼数超过 512，或帧数乘骨骼数超过 250000；请检查配置或拆分动画。").ToString();
 			return false;
 		}
+		TSet<FName> RoleNames;
 		for (FName Name : Required)
 		{
 			if (!Names.Contains(Name))
@@ -83,6 +89,12 @@ namespace
 				Error = FText::Format(LOCTEXT("MissingBone", "身体骨架缺少 {0}，请在项目设置中指定正确骨骼。"), FText::FromName(Name)).ToString();
 				return false;
 			}
+			if (RoleNames.Contains(Name))
+			{
+				Error = FText::Format(LOCTEXT("DuplicateRole", "骨骼 {0} 被重复分配；左右髋和四个足部接触点必须使用不同骨骼。"), FText::FromName(Name)).ToString();
+				return false;
+			}
+			RoleNames.Add(Name);
 		}
 		FAnimPose ReferencePose;
 		UAnimPoseExtensions::GetReferencePose(Skeleton, ReferencePose);
@@ -144,18 +156,24 @@ namespace
 			}
 			FAnimPose Pose;
 			UAnimPoseExtensions::GetAnimPoseAtTime(Animation, FrameIndex / static_cast<double>(Settings->SampleRate), Options, Pose);
-			TArray<FName> EvaluatedNames;
-			UAnimPoseExtensions::GetBoneNames(Pose, EvaluatedNames);
 			if (!Pose.IsValid())
 			{
 				Error = LOCTEXT("InvalidPose", "动画姿态求值失败。").ToString();
 				return false;
 			}
+			TArray<FName> EvaluatedNames;
+			UAnimPoseExtensions::GetBoneNames(Pose, EvaluatedNames);
+			const TSet<FName> EvaluatedNameSet(EvaluatedNames);
 			TArray<TSharedPtr<FJsonValue>> Transforms;
 			for (FName Name : Names)
 			{
+				if (!EvaluatedNameSet.Contains(Name))
+				{
+					Error = FText::Format(LOCTEXT("MissingEvaluatedBone", "动画姿态缺少骨骼 {0}，无法导出完整身体姿态。"), FText::FromName(Name)).ToString();
+					return false;
+				}
 				const FTransform& Transform = UAnimPoseExtensions::GetBonePose(Pose, Name, EAnimPoseSpaces::World);
-				if (!EvaluatedNames.Contains(Name) || Transform.ContainsNaN() || !Transform.GetScale3D().Equals(FVector::OneVector, 0.0001))
+				if (Transform.ContainsNaN() || !Transform.GetScale3D().Equals(FVector::OneVector, 0.0001))
 				{
 					Error = LOCTEXT("UnsupportedPose", "动画缺少骨骼、包含无效数值或缩放；当前训练表示要求刚性骨骼。").ToString();
 					return false;
