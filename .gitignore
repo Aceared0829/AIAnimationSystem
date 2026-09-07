@@ -187,6 +187,12 @@ uv.lock
 
 # Virtual environments
 .venv/
+.build/
+Unreal/**/Binaries/
+Unreal/**/Intermediate/
+Unreal/**/Saved/
+motionbricks/unreal_runs/
+motionbricks/unreal_data/
 .venv_*/
 *.code-workspace
 

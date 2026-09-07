@@ -1,0 +1,10 @@
+# 本次 CPU 数据/训练验证使用的直接依赖；GPU PyTorch 按目标环境单独安装。
+torch==2.14.0
+numpy==2.5.3
+scipy==1.18.1
+einops==0.8.2
+hydra-core==1.3.6
+pytorch-lightning==2.6.5
+vector-quantize-pytorch==1.31.4
+adam-atan2-pytorch==0.4.1
+colorlog==6.12.0
