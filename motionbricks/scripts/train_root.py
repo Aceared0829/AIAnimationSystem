@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized training documentation and command-line messages.
+
 """使用合成数据训练根节点模型的脚本。
 
 无需真实动作数据集即可演示根节点骨干网络的训练流程。脚本从检查点目录

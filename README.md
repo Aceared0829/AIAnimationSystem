@@ -1,63 +1,57 @@
-# MotionBricks 游戏动画精简版
+# AIAnimationSystem
 
-新增 [AILocomotionSystem 动画数据插件](Unreal/AILocomotionSystem/README.md)：在 Unreal 中选择 `AnimSequence`，导出角色骨架与动作数据，再通过独立 Python 入口训练适配该骨架的模型。包含编辑器导出、数据预处理和检查点保存；运行时推理插件尚未实现。
+面向 Unreal Engine 的 AI 角色动画实验项目，探索从动画数据训练到实时姿态生成的完整流程。
 
-[AILocomotionSystem 完整开发方案](Unreal/AILocomotionSystem/LocomotionPlan.md)：以多人联机为默认需求，由 CMC / Mover 驱动移动，统一人形模型生成姿态，通过重定向适配角色；第一阶段覆盖 Locomotion、跳跃与蹲伏。该文档描述已确认的开发方向，不代表功能已经完成。
+本项目基于 NVIDIA [GR00T-WholeBodyControl](https://github.com/NVlabs/GR00T-WholeBodyControl) 仓库中的 [MotionBricks](https://nvlabs.github.io/motionbricks/) 开发，由本仓库独立维护。MotionBricks 的模型架构、动作表示、原有训练与推理代码、预训练权重和上游演示属于原项目成果；本项目在其基础上面向游戏动画做裁剪、中文交互界面与 Windows 启动器适配，并添加实验性的 UE 动画导出和自定义骨架训练入口。
 
-**该插件当前为实验性实现：真实 UE 动画资产的导出及完整训练可用性尚未验证。** 已通过的编译和 CPU 小网络测试不代表真实项目训练已可用。本仓库以 `codex/game-development-only` 作为主分支。
+> **实验阶段：** 真实 UE 动画资产的端到端导出与完整训练尚未验证；运行时推理和 AnimGraph 输出尚未实现。本项目不代表 NVIDIA 官方产品，也不表示获得 NVIDIA 的认可或背书。
 
-本分支已经移除机器人控制与硬件部署模块，只保留可用于游戏开发、实时角色动画和动作生成研究的 MotionBricks。
+当前先完成 Locomotion、跳跃和蹲伏的数据与动画流程；项目名称覆盖更广泛的角色动画方向，后续动作范围以开发方案与实际验证为准。
 
-[MotionBricks 技术文档](motionbricks/README.md) · [中文交互界面](motionbricks/docs/chinese_interface.md) · [动作表示](motionbricks/docs/motion_representation.md) · [引用与许可说明](引用与许可说明.md)
+[UE 插件与训练](Unreal/AILocomotionSystem/README.md) · [第一阶段开发方案](Unreal/AILocomotionSystem/LocomotionPlan.md) · [MotionBricks 演示与技术说明](motionbricks/README.md) · [来源、引用与许可](引用与许可说明.md)
 
-## 分支定位
+## 当前进度
 
-保留内容包括：
+| 内容 | 当前状态 |
+| --- | --- |
+| MotionBricks G1 参考演示 | 保留上游模型与 MuJoCo 预览流程，增加中文界面和 Windows 启动器；不等同于 UE 运行时效果 |
+| UE 动画导出 | 已有实验性 `AILocomotionDataset` 编辑器插件，从 `AnimSequence` 导出骨架和动作数据 |
+| 自定义 UE 骨架训练 | 已有数据预处理、VQ-VAE / Pose / Root 训练、检查点保存与续训入口 |
+| 已记录的验证 | UE 5.8.2 编译与链接、程序生成动画夹具上的 CPU 小网络训练测试；详见插件说明 |
+| 真实资产与生成质量 | 实际 UE 角色资产端到端导出、完整训练、GPU 训练及动作质量尚未验证 |
+| UE 运行时动画 | 推理、AnimGraph 输出、统一人形重定向，以及 CMC / Mover 与联机接入均为后续工作 |
 
-- 实时神经角色动作生成；
-- 键盘驱动的移动与动作风格切换；
-- Root Motion 与全身骨骼姿态生成；
-- 使用 VQ-VAE 将连续动作编码为离散动作 Token；
-- 骨骼层级、前向运动学、旋转和坐标系工具；
-- 自定义动作数据集和骨骼重定向；
-- 使用 MuJoCo 实时预览生成的角色动作；
-- 预训练模型、训练配置和合成数据训练脚本。
-
-MuJoCo 和 Unitree G1 骨架仍然存在，但这里只把它们当作“动画预览器”和“参考骨架”。现有预训练权重与该骨骼拓扑绑定，因此不能在不重新训练或重定向的情况下直接删除。
-
-## 已删除内容
-
-- GEAR-SONIC 机器人强化学习训练系统；
-- Decoupled WBC 机器人全身控制；
-- Unitree SDK、电机指令、DDS 通信和真机安全检查；
-- TensorRT 真机策略部署；
-- VR 机器人遥操作；
-- VLA 数据采集和机器人推理；
-- 相机服务、ROS、JetPack、systemd 和机器人 Docker 环境；
-- 真机安装脚本、机器人专用媒体与第三方二进制依赖；
-- 与上述模块对应的英文文档。
-
-原始内容仍可在 Git 的 `main` 分支中找到。
-
-## 建议学习顺序
-
-1. 阅读 `motionbricks/docs/motion_representation.md`，理解骨骼、Root Motion、局部姿态和动作特征。
-2. 运行 `motionbricks/scripts/interactive_demo_g1.py`，观察玩家输入怎样改变动作。
-3. 阅读 `motion_backbone/demo/controllers.py`，理解输入层。
-4. 阅读 `motion_backbone/inference/motion_inference.py`，理解逐帧生成流程。
-5. 阅读 `vqvae/`，理解动作 Token。
-6. 使用合成数据运行三个训练脚本。
-7. 最后根据 `adding_your_own_dataset.md` 接入自己的角色骨骼与动画数据。
+现有 G1 权重与参考骨架绑定。自定义 UE 训练入口不支持直接加载 G1 权重微调，原 G1 演示也不能直接预览新的 UE 骨架检查点。
 
 ## 快速开始
 
-需要 Python 3.10、支持 CUDA 的显卡和 Git LFS。
+### 获取仓库
+
+安装 Git LFS 后执行：
 
 ```bash
 git lfs install
+git clone https://github.com/Aceared0829/AIAnimationSystem.git
+cd AIAnimationSystem
+```
+
+当前开发主线为 `codex/game-development-only`，也是默认分支。预训练检查点默认不自动下载；按下面的使用场景准备环境和模型。
+
+### UE 动画导出与训练
+
+将 `Unreal/AILocomotionSystem/` 复制到 UE 项目的 `Plugins/AILocomotionSystem/`，编译 Editor 目标并启用 **AI Locomotion Dataset**。在编辑器中选择动画资产，通过 **工具 → AI Locomotion：导出选中动画** 生成训练数据。
+
+Python 训练环境使用 Python 3.12；完整安装命令、骨架要求、预处理与训练命令见 [UE 插件与训练说明](Unreal/AILocomotionSystem/README.md)。这条路线使用自己的动画数据，不需要下载 G1 演示权重。
+
+`AILocomotionSystem` 与 `AILocomotionDataset` 目前仍是插件目录和技术标识；仓库对外名称为 **AIAnimationSystem**。
+
+### MotionBricks 参考演示
+
+该演示使用 G1 参考骨架、MuJoCo 和预训练权重。按现有演示环境说明准备 Python 3.10、支持 CUDA 的显卡及依赖，在仓库根目录执行：
+
+```bash
 git lfs pull --include="motionbricks/out/**" --exclude=""
 git lfs pull --include="motionbricks/assets/skeletons/g1/meshes/**" --exclude=""
-
 cd motionbricks
 conda create -n motionbricks python=3.10 -y
 conda activate motionbricks
@@ -65,30 +59,46 @@ pip install -e .
 python scripts/interactive_demo_g1.py
 ```
 
-交互演示默认启用中文界面。在 Windows 上，中文控制栏和 MuJoCo 3D 画面会嵌入同一个主窗口；其他系统无法使用 Win32 窗口嵌入时，会回退为中文控制窗口与 3D 窗口分离显示。完整说明与故障排查参见[中文交互界面](motionbricks/docs/chinese_interface.md)。
+Windows 下默认打开中文单窗口界面，其他平台在不能嵌入 MuJoCo 窗口时回退为两个窗口。详见 [演示说明](motionbricks/README.md) 和 [中文交互界面](motionbricks/docs/chinese_interface.md)。
 
-Windows 用户在完成虚拟环境和模型权重配置后，也可以直接双击仓库根目录的 `MotionBricks.exe`。该启动器不会显示控制台窗口，会从项目自带的 `.venv` 启动中文单窗口演示。启动器源码、图标、桌面快捷方式设置及重新构建方法同样记录在[中文交互界面](motionbricks/docs/chinese_interface.md)中。
+仓库根目录的 `MotionBricks.exe` 是该参考演示的 Windows 启动器，固定读取根目录 `.venv` 中的环境；上面的 Conda 环境不会自动供 EXE 使用。它不包含 Python、模型和依赖，也不是 UE 插件启动器。
 
-训练入口：
+## 开发方向
 
-```bash
-cd motionbricks
-python scripts/train_vqvae.py
-python scripts/train_pose.py
-python scripts/train_root.py
-```
-
-## 接入 Unity 或 Unreal 的关键工作
-
-当前代码不会直接输出 Unity `AnimationClip` 或 Unreal `AnimSequence`。Unreal 后续接入按上述开发方案实施，运行时桥接层尚未实现：
+第一阶段由 CMC / Mover 负责移动模拟，模型根据实际运动状态与未来轨迹生成角色姿态，再适配目标骨架：
 
 ```text
-玩家 / AI 输入
-  → CMC 或 Mover 移动模拟
-  → 实际运动状态与未来轨迹条件
-  → 统一人形模型生成姿态
-  → 目标角色重定向与接触修正
-  → Unreal 骨骼姿态
+训练：UE 动画资产 → 采样与数据转换 → 模型训练 → 模型包
+
+运行时目标：玩家 / AI 输入 → CMC 或 Mover → 运动状态与轨迹条件
+                                                   ↓
+                                      动画模型 → 骨架适配 → UE 姿态
 ```
 
-需要处理骨骼语义、参考姿态、坐标系、单位、脚底接触和网络纠正。先用真实资产验证采样与还原，再接入运行时。G1 仅作为已有参考及迁移实验候选；当前自定义 UE 训练入口不支持直接加载 G1 权重微调。Unity 接入不在本次 Unreal 方案范围内。
+运行时部分为开发目标。多人联机、统一人形模型、重定向与接触修正的职责和验收要求见 [第一阶段开发方案](Unreal/AILocomotionSystem/LocomotionPlan.md)。
+
+## 仓库与文档
+
+| 位置 | 用途 |
+| --- | --- |
+| [Unreal/AILocomotionSystem](Unreal/AILocomotionSystem/README.md) | UE 插件安装、动画导出、数据约定与训练说明 |
+| [motionbricks](motionbricks/README.md) | 保留的 MotionBricks 模型、训练工具与参考演示 |
+| [动作表示](motionbricks/docs/motion_representation.md) | 骨架、Root Motion、姿态特征和坐标约定 |
+| [接入自有数据集](motionbricks/docs/adding_your_own_dataset.md) | MotionBricks 通用数据集接入；UE 资产优先使用上面的插件说明 |
+| [学习与项目历史](docs/project-background.md) | 源码阅读顺序、游戏动画裁剪范围与上游关系 |
+| [launcher](launcher) | Windows 参考演示启动器源码 |
+
+## 来源与许可
+
+- **上游来源：** NVIDIA [GR00T-WholeBodyControl / MotionBricks](https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main/motionbricks)。原作者、版权及论文信息予以保留；上游展示不能作为本项目新增 UE 功能的验证结果。
+- **源代码：** 采用 Apache License 2.0，保留适用的版权与变更说明。
+- **NVIDIA 预训练权重：** 单独适用 NVIDIA Open Model License，不能按源代码的 Apache 2.0 授权理解。
+- **第三方资源与动画数据：** 依照各自授权使用；本仓库的代码许可证不授予外部动画资产、网格或数据集的使用权。
+
+Licensed by NVIDIA Corporation under the NVIDIA Open Model License.
+
+完整来源、许可文本入口、第三方声明和论文引用见 [引用与许可说明](引用与许可说明.md)、[NOTICE](NOTICE) 与 [LICENSE](LICENSE)。
+
+---
+
+本文件由 AIAnimationSystem 维护者基于上游 README 改写；2026-09-07 更新项目命名、使用入口、开发状态及来源声明。

@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: added Chinese demo controls and adapted the interactive interface.
+
 import argparse
 import torch as t
 import time

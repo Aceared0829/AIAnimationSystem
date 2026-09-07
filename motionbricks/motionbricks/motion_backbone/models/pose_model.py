@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized messages and ensured at least one supervised token per sample.
+
 from motionbricks.vqvae.neural_modules import vqvae
 from motionbricks.motion_backbone.neural_modules.pose_backbone import pose_backbone_network
 import torch as t

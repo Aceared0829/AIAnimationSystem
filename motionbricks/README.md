@@ -1,6 +1,8 @@
-# MotionBricks：基于模块化潜变量生成模型与智能基元的可扩展实时动作系统
+# MotionBricks：参考演示与模型技术说明
 
-> **游戏动画分支：** 本分支已经移除机器人控制、硬件部署和遥操作组件。G1 骨架仅作为已发布 MotionBricks 检查点所需的参考角色骨架保留。
+> **来源与修改说明：** 本目录基于 NVIDIA [GR00T-WholeBodyControl / MotionBricks](https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main/motionbricks)，是 [AIAnimationSystem](../README.md) 保留的模型基础与参考演示。本文件已由 AIAnimationSystem 维护者汉化并调整安装与演示说明，2026-09-07 补充来源和新仓库地址。原算法、权重及上游演示归原项目作者；本页效果展示不代表本项目 UE 插件的运行效果。
+
+当前分支已移除机器人控制、硬件部署和遥操作组件。G1 骨架作为已有 MotionBricks 检查点所需的参考骨架保留。UE 动画导出与训练请阅读 [专门说明](../Unreal/AILocomotionSystem/README.md)。
 
 <p align="center">
   <a href="https://nvlabs.github.io/motionbricks"><img src="https://img.shields.io/badge/项目主页-访问-blue" alt="项目主页"></a>
@@ -11,7 +13,7 @@
   <img src="assets/teaser_motion_bricks_three_rows.jpg" alt="MotionBricks 效果预览" width="100%">
 </p>
 
-MotionBricks 是一个面向交互式角色动画的实时生成框架。它将大规模潜变量骨干网络与直观的“智能基元”结合起来，能够以每秒 15,000 帧的速度完成高质量零样本动作合成，并使复杂动作能够像积木一样自由组合。
+MotionBricks 是一个面向交互式角色动画的实时生成框架，将潜变量生成模型与可组合的“智能基元”结合起来。原论文的方法、性能与演示请参阅 [上游项目主页](https://nvlabs.github.io/motionbricks/)；本仓库没有将上游性能数字作为新增 UE 通路的实测指标。
 
 ## 目录
 
@@ -32,15 +34,15 @@ MotionBricks 是一个面向交互式角色动画的实时生成框架。它将�
 
 ### 新闻
 
-- **2026-04-27**：首次公开发布，包含交互演示、预训练检查点（VQ-VAE、姿态模型、根节点模型）、合成数据训练代码、动作表示文档和 GIF 展示。
+- **2026-04-27（上游发布记录）**：MotionBricks 首次公开发布，包含交互演示、预训练检查点（VQ-VAE、姿态模型、根节点模型）、合成数据训练代码、动作表示文档和 GIF 展示。
 
 ### 路线图
 
-- [ ] 支持更多角色骨架，并提供游戏引擎导出器和运行时适配器。
+AIAnimationSystem 已添加实验性 UE 导出与自定义骨架训练入口；实际资产端到端流程尚未验证，运行时适配器尚未实现。当前进度见 [项目首页](../README.md)，第一阶段计划见 [开发方案](../Unreal/AILocomotionSystem/LocomotionPlan.md)。
 
 ## 效果展示
 
-完整的无剪辑演示和对比视频请参阅[项目主页](https://nvlabs.github.io/motionbricks)。以下为静音短 GIF，每段约 10 秒。
+以下为上游随仓库提供的展示素材，原项目的完整演示和对比视频见 [MotionBricks 项目主页](https://nvlabs.github.io/motionbricks)。这些素材不是 AIAnimationSystem 新增 UE 功能的录屏。
 
 ### 效果预览
 
@@ -87,15 +89,15 @@ git lfs install
 普通克隆不会自动下载约 2.2 GiB 的 MotionBricks 预训练检查点。如果只需要源代码，例如准备使用自己的数据训练，可以直接克隆：
 
 ```bash
-git clone https://github.com/Aceared0829/GR00T-WholeBodyControl.git
-cd GR00T-WholeBodyControl/motionbricks
+git clone https://github.com/Aceared0829/AIAnimationSystem.git
+cd AIAnimationSystem/motionbricks
 ```
 
 如需运行交互演示，请在仓库根目录显式拉取检查点和 G1 参考角色网格：
 
 ```bash
-git clone https://github.com/Aceared0829/GR00T-WholeBodyControl.git
-cd GR00T-WholeBodyControl
+git clone https://github.com/Aceared0829/AIAnimationSystem.git
+cd AIAnimationSystem
 git lfs pull --include="motionbricks/out/**" --exclude=""
 git lfs pull --include="motionbricks/assets/skeletons/g1/meshes/**" --exclude=""  # 交互演示需要
 cd motionbricks
@@ -129,7 +131,7 @@ pip install pynput python-xlib
 ## 交互演示快速开始
 
 ```bash
-DISPLAY=:1 python scripts/interactive_demo_g1.py
+python scripts/interactive_demo_g1.py
 ```
 
 程序会打开中文交互界面并加载 G1 参考角色。使用键盘实时控制角色；在 3D 画面中使用鼠标可以改变相机观察方向。
@@ -276,8 +278,10 @@ motionbricks/
 
 ## 许可证
 
-源代码采用 **Apache 2.0** 许可证。预训练模型权重采用 **NVIDIA Open Model License**，在遵守署名和可信人工智能要求的前提下允许商业使用。法律效力以仓库根目录中的英文 `LICENSE` 原文为准，中文解释见[引用与许可说明](../引用与许可说明.md)。
+源代码采用 **Apache 2.0** 许可证；NVIDIA 预训练模型权重单独适用 **NVIDIA Open Model License**。适用许可、第三方资源声明及分发要求见 [引用与许可说明](../引用与许可说明.md)、[NOTICE](../NOTICE) 和 [许可文件](../legal/)。
+
+Licensed by NVIDIA Corporation under the NVIDIA Open Model License.
 
 ## 联系方式
 
-问题和反馈请发送至 **`gear-wbc@nvidia.com`**。
+AIAnimationSystem 的中文界面、UE 插件及训练适配问题请提交至 [本仓库 Issues](https://github.com/Aceared0829/AIAnimationSystem/issues)。上游 MotionBricks 的反馈渠道见 [原项目](https://github.com/NVlabs/GR00T-WholeBodyControl)；本项目由本仓库独立维护。

@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized comments and runtime messages.
+
 import os
 import argparse
 from omegaconf import OmegaConf, open_dict

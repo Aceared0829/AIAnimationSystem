@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized controls and messages.
+
 import torch as t
 from motionbricks.motion_backbone.demo.clips import clip_holder_G1
 import mujoco

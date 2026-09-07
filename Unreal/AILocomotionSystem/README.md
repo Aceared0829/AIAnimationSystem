@@ -1,4 +1,6 @@
-# AILocomotionSystem 插件集合
+# AIAnimationSystem：UE 动画数据插件与训练
+
+本目录属于 [AIAnimationSystem](../../README.md)，保留 `AILocomotionSystem` 插件集合目录与 `AILocomotionDataset` 插件标识。项目基于 NVIDIA MotionBricks 开发；来源、原论文和许可见 [引用与许可说明](../../引用与许可说明.md)。
 
 > **当前状态：实验性实现，真实资产端到端未验证。** 已通过 UE 5.8.2 编译与链接，以及程序生成动画夹具上的 CPU 小网络训练测试；尚未验证实际 UE 角色动画的插件导出、完整训练流程、GPU 训练或生成质量。因此目前不能确认该插件已可用于真实项目训练。
 

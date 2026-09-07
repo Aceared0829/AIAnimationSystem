@@ -1,47 +1,26 @@
+# Modified by the AIAnimationSystem downstream project on 2026-09-07:
+# distinguish this derivative project from the original MotionBricks research.
 cff-version: 1.2.0
-message: "如果您使用本软件，请按照以下信息引用 MotionBricks。"
-title: "MotionBricks 游戏动画精简版"
+message: "引用原始 MotionBricks 研究请使用 preferred-citation；提及本派生项目时请同时注明 AIAnimationSystem 仓库和所用提交。"
+title: "AIAnimationSystem"
 authors:
-  - family-names: "Wang"
-    given-names: "Tingwu"
-  - family-names: "Dionne"
-    given-names: "Olivier"
-  - family-names: "De Ruyter"
-    given-names: "Michael"
-  - family-names: "Minor"
-    given-names: "David"
-  - family-names: "Rempe"
-    given-names: "Davis"
-  - family-names: "Zhao"
-    given-names: "Kaifeng"
-  - family-names: "Petrovich"
-    given-names: "Mathis"
-  - family-names: "Yuan"
-    given-names: "Ye"
-  - family-names: "Li"
-    given-names: "Chenran"
-  - family-names: "Luo"
-    given-names: "Zhengyi"
-  - family-names: "Robison"
-    given-names: "Brian"
-  - family-names: "Blackwell"
-    given-names: "Xavier"
-  - family-names: "Antoniazzi"
-    given-names: "Bernardo"
-  - family-names: "Peng"
-    given-names: "Xue Bin"
-  - family-names: "Zhu"
-    given-names: "Yuke"
-  - family-names: "Yuen"
-    given-names: "Simon"
-url: "https://github.com/Aceared0829/GR00T-WholeBodyControl"
-repository-code: "https://github.com/Aceared0829/GR00T-WholeBodyControl"
+  - name: "Aceared0829"
+    website: "https://github.com/Aceared0829"
+abstract: >-
+  基于 NVlabs/GR00T-WholeBodyControl 中 MotionBricks 的独立派生项目，
+  面向 Unreal Engine 角色动画开展数据导出、训练与集成实验。
+  顶层作者项标识维护本派生版本的 GitHub 账号，不表示其原创 MotionBricks 算法、
+  预训练权重或论文；原论文作者与正式题名保留在 preferred-citation。
+  本元数据中的 Apache-2.0 仅描述适用源代码，不覆盖 NVIDIA 预训练模型权重及第三方资源。
+url: "https://github.com/Aceared0829/AIAnimationSystem"
+repository-code: "https://github.com/Aceared0829/AIAnimationSystem"
 type: software
 keywords:
   - character-animation
   - motion-generation
   - motion-tokenization
   - game-development
+  - unreal-engine
   - pytorch
 license: Apache-2.0
 preferred-citation:

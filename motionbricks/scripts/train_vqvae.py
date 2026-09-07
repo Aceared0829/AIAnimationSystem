@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: localized training documentation and command-line messages.
+
 """使用合成数据训练 VQ-VAE 的脚本。
 
 无需真实动作数据集即可演示 VQ-VAE 训练流程。脚本从检查点目录加载

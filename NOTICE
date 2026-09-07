@@ -1,0 +1,50 @@
+AIAnimationSystem
+Downstream project maintained under the GitHub account Aceared0829.
+https://github.com/Aceared0829/AIAnimationSystem
+
+This project is derived from the MotionBricks component of:
+https://github.com/NVlabs/GR00T-WholeBodyControl
+The recorded common ancestor is 4141c34280abb67c82e115342a8720f4a83d750d.
+
+The upstream copyright notice is retained:
+Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+Original MotionBricks research, authors and project information:
+https://nvlabs.github.io/motionbricks/
+https://arxiv.org/abs/2604.24833
+See CITATION.cff for the original paper's title and author list.
+
+AIAnimationSystem is an independent downstream project. Its name does not
+indicate an official NVIDIA product, endorsement, or ownership of the original
+MotionBricks research, code, model weights, or third-party assets.
+
+Downstream changes include removal of robot deployment components, Chinese
+documentation and demo controls, a Windows launcher, and experimental Unreal
+animation dataset export and Python training integration. These descriptions
+identify changes, not a claim of original authorship over upstream work.
+
+NVIDIA MODEL ATTRIBUTION
+Licensed by NVIDIA Corporation under the NVIDIA Open Model License
+
+When distributing NVIDIA model copies, include this NOTICE and the applicable
+agreement. A copy of the official 2025-10-24 agreement is provided at:
+legal/NVIDIA-Open-Model-License-2025-10-24.pdf
+https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/
+
+LICENSE TEXTS AND HISTORICAL NOTICES
+The complete Apache License 2.0 is provided at legal/Apache-2.0.txt.
+The inherited root LICENSE is preserved without alteration. See legal/README.md
+for the difference between inherited abbreviated texts and official full texts.
+
+The GEAR-SONIC files restored under legal/ reproduce historical upstream notices
+without alteration. They describe the original upstream distribution and are
+not a current dependency inventory. Their retention does not mean that every
+listed robot component is included in AIAnimationSystem.
+
+This repository-level NOTICE does not replace the prominent change notices
+required in modified files by Apache License 2.0, section 4(b). Such notices were
+added to inherited text files modified relative to the recorded upstream version.
+This update does not certify completion of a rights audit of all third-party
+code, data, images, meshes, model weights, or dependencies.
+
+Created by the AIAnimationSystem downstream project on 2026-09-07.

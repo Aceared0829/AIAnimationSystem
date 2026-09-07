@@ -1,3 +1,5 @@
+# Modified by the AIAnimationSystem maintainers: adapted preview comments and localized error messages.
+
 import torch as t
 import numpy as np
 import mujoco
