@@ -1,5 +1,9 @@
 # MotionBricks 游戏动画精简版
 
+新增 [AILocomotionSystem 动画数据插件](Unreal/AILocomotionSystem/README.md)：在 Unreal 中选择 `AnimSequence`，导出角色骨架与动作数据，再通过独立 Python 入口训练适配该骨架的模型。包含编辑器导出、数据预处理和检查点保存；运行时推理插件尚未实现。
+
+**该插件当前为实验性实现：真实 UE 动画资产的导出及完整训练可用性尚未验证。** 已通过的编译和 CPU 小网络测试不代表真实项目训练已可用。`codex/game-development-only` 作为主分支，本功能在独立开发分支维护。
+
 本分支已经移除机器人控制与硬件部署模块，只保留可用于游戏开发、实时角色动画和动作生成研究的 MotionBricks。
 
 [MotionBricks 技术文档](motionbricks/README.md) · [中文交互界面](motionbricks/docs/chinese_interface.md) · [动作表示](motionbricks/docs/motion_representation.md) · [引用与许可说明](引用与许可说明.md)

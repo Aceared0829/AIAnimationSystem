@@ -1,0 +1,11 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "AI Locomotion Dataset",
+  "Description": "从 Unreal 动画资产采样骨骼数据，用于 MotionBricks 训练。",
+  "Category": "Animation",
+  "CreatedBy": "ZhaoZining",
+  "CanContainContent": false,
+  "Modules": [{ "Name": "AILocomotionDatasetEditor", "Type": "Editor", "LoadingPhase": "PostEngineInit" }]
+}
