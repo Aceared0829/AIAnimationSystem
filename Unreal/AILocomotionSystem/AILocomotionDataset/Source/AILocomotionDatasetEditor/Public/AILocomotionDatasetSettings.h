@@ -42,8 +42,8 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="Skeleton")
 	FName RightToeBone = TEXT("ball_r");
 
-	/** 每秒采样帧数；训练时必须使用相同帧率。 */
-	UPROPERTY(Config, EditAnywhere, Category="Sampling", meta=(ClampMin="1", ClampMax="120", UIMin="1", UIMax="120"))
+	/** 兼容旧配置的保留字段；导出始终读取源 AnimDataModel 的帧率，此值不再控制采样。 */
+	UPROPERTY(Config)
 	int32 SampleRate = 30;
 
 	/** 单个片段允许的最大采样帧数；超出时拒绝导出，避免意外的大任务。 */
