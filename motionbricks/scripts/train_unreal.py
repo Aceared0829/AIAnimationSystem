@@ -10,7 +10,9 @@ from hydra.utils import instantiate
 from omegaconf import OmegaConf, open_dict
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import CSVLogger
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset, WeightedRandomSampler
+from collections import Counter
+from motionbricks.data.unreal_quality import collate_native, PoseAwareBatchSampler
 
 from motionbricks.data.synthetic_dataset import collate_batch
 from motionbricks.data.unreal_dataset import UnrealMotionDataset
@@ -65,6 +67,15 @@ def build_config(args, dataset):
         conf.model.scheduler.num_training_steps = args.max_steps
         conf.model.scheduler.num_warmup_steps = min(1000, max(0, args.max_steps // 10))
         conf.model.args.keyframe_num_warmup_steps = min(1000, max(1, args.max_steps // 10))
+        if getattr(args, "native_quality", False):
+            if args.model != "vqvae" or dataset.manifest.get("split_policy", "none") == "none":
+                raise ValueError("原生质量训练要求 VQ-VAE 和预先划分的训练/留出集")
+            conf.model._target_ = "motionbricks.data.unreal_quality.UnrealQualityVQVAE"
+            conf.model.args.ue_geometry_coeff = args.geometry_coeff
+            conf.model.args.pose_aware_sampling = getattr(args, "pose_aware_sampling", False)
+            conf.model.args.pose_vqvae_no_keyframe_prob = 0.75
+        conf.trainer.devices = 1
+        conf.trainer.num_nodes = 1
         if args.model == "pose":
             if not args.vqvae:
                 raise ValueError("训练 Pose 必须通过 --vqvae 指定本数据集训练的 VQ-VAE")
@@ -90,6 +101,8 @@ def build_config(args, dataset):
 
 
 def train(args):
+    if getattr(args, "pose_aware_sampling", False) and not getattr(args, "native_quality", False):
+        raise ValueError("--pose_aware_sampling 必须与 --native_quality 一起使用")
     if args.max_steps < 1 or args.batch_size < 1:
         raise ValueError("训练步数和批次大小必须为正数")
     pl.seed_everything(args.seed, workers=True)
@@ -99,6 +112,9 @@ def train(args):
     if args.resume:
         contract = check_checkpoint(args.resume, signature, args.model)
         previous = contract["config"]
+        previous_native = previous["model"].get("_target_", "").endswith("UnrealQualityVQVAE")
+        if previous_native != getattr(args, "native_quality", False):
+            raise ValueError("续训必须保持原检查点的 --native_quality 模式，避免静默改变帧掩码和训练目标")
         if args.model == "pose" and previous["model"]["args"].get("vqvae_sha256") != conf.model.args.vqvae_sha256:
             raise ValueError("Pose 续训必须使用训练时的同一份 VQ-VAE 权重；相同骨架不代表码本相同")
         # 续训复用原网络结构；仅保留本次的训练步数、路径和调度器配置。
@@ -122,10 +138,22 @@ def train(args):
     # 保留 ??? 注入点；其余插值由 Hydra 在构建对应组件时解析。
     config = OmegaConf.to_container(conf, resolve=False)
     OmegaConf.save(conf, output / "config.yaml")
-    checkpoint = ModelCheckpoint(dirpath=str(output / "checkpoints"), every_n_train_steps=max(1, min(1000, args.max_steps)), save_last=True, save_top_k=-1)
+    checkpoint = ModelCheckpoint(dirpath=str(output / "checkpoints"), every_n_train_steps=max(1, min(getattr(args, "checkpoint_every", 1000), args.max_steps)), save_last=True, save_top_k=-1)
     trainer = pl.Trainer(max_steps=args.max_steps, accelerator=args.accelerator, devices=1, logger=CSVLogger(str(output), name="metrics"),
                          callbacks=[checkpoint, DatasetContract(signature, args.model, config)], gradient_clip_val=1.0, num_sanity_val_steps=0, log_every_n_steps=1)
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=0, collate_fn=collate_batch)
+    if getattr(args, "native_quality", False):
+        indices = [i for i, item in enumerate(dataset.manifest["clips"]) if item["split"] == "train"]
+        categories = [dataset.manifest["clips"][i]["labels"]["category"] for i in indices]
+        counts = Counter(categories)
+        weights = [1 / counts[category] ** 0.5 for category in categories]
+        sampler = WeightedRandomSampler(weights, len(indices), replacement=True)
+        if getattr(args, "pose_aware_sampling", False):
+            sampler = PoseAwareBatchSampler([dataset.manifest["clips"][i] for i in indices], args.batch_size)
+            loader = DataLoader(Subset(dataset, indices), batch_sampler=sampler, num_workers=0, collate_fn=collate_native)
+        else:
+            loader = DataLoader(Subset(dataset, indices), batch_size=args.batch_size, sampler=sampler, num_workers=0, collate_fn=collate_native)
+    else:
+        loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=0, collate_fn=collate_batch)
     trainer.fit(model, train_dataloaders=loader, ckpt_path=args.resume)
     trainer.save_checkpoint(output / "checkpoints" / "final.ckpt")
     print(f"训练完成：{output / 'checkpoints' / 'final.ckpt'}")
@@ -143,4 +171,8 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--accelerator", choices=["auto", "cpu", "gpu"], default="auto")
     parser.add_argument("--tiny", action="store_true", help="使用小网络，仅用于接口和训练冒烟验证")
+    parser.add_argument("--native_quality", action="store_true", help="真实帧掩码、家族留出集及几何监督")
+    parser.add_argument("--pose_aware_sampling", action="store_true", help="原生质量训练采用长度分桶和困难类别采样，不增加模型参数")
+    parser.add_argument("--geometry_coeff", type=float, default=1.0, help="0 用于几何损失消融对照")
+    parser.add_argument("--checkpoint_every", type=int, default=1000, help="周期检查点间隔；增大间隔可减少训练产物磁盘占用")
     train(parser.parse_args())
