@@ -44,10 +44,10 @@ dl {{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:16px 0 0 }} d
 footer {{ max-width:1280px; margin:38px auto; padding:0 28px 42px; color:var(--muted); line-height:1.7 }}
 @media (max-width:700px) {{ .metrics {{ grid-template-columns:1fr 1fr }} }}
 </style></head><body><header><h1>VQ 动画训练效果 · 批量预览</h1>
-<p>每张卡片左侧的蓝色骨架是 Unreal 原始动作，右侧橙色骨架是本轮 VQ-VAE 的无姿态关键帧重建。为方便观察姿态，两边都按根节点对齐。</p></header>
+<p>每张卡片左侧蓝色骨架是训练特征经过固定骨长 FK 还原的参考，右侧橙色骨架是 VQ-VAE 的无姿态关键帧重建。两边按根节点对齐；该旧版预览不是未经表示转换的 Unreal 原始采样。</p></header>
 <section class="metrics"><div class="metric"><small>样本数量</small><strong>{len(report['samples'])}</strong></div><div class="metric"><small>平均位置 RMSE</small><strong>{aggregate['position_rmse_m']:.3f} m</strong></div><div class="metric"><small>平均旋转误差</small><strong>{aggregate['rotation_mean_deg']:.1f}°</strong></div><div class="metric"><small>平均根轨迹 RMSE</small><strong>{aggregate['root_path_rmse_m']:.3f} m</strong></div></section>
-<p class="legend"><span class="blue">蓝色：原始 UE 动作</span>　<span class="orange">橙色：训练后 VQ 重建</span></p><main class="grid">{''.join(cards)}</main>
-<footer>这是已知动作的重建质量预览，不等同于文字生成或 Unreal 运行时最终画面。行走、跑步、下蹲更稳定；翻越、上攀、跨栏仍需要专门补强。</footer></body></html>'''
+<p class="legend"><span class="blue">蓝色：特征 FK 参考</span>　<span class="orange">橙色：训练后 VQ 重建</span></p><main class="grid">{''.join(cards)}</main>
+<footer>这是选定特征窗口的重建质量预览，不等同于文字生成或 Unreal 运行时最终画面。GIF 时间精度受格式限制；完整原生时间和源位置对照请使用 evaluate_native_quality.py 与 export_native_gallery.py。</footer></body></html>'''
     output = Path(args.output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(document, encoding="utf-8")

@@ -153,13 +153,13 @@ def main(args):
     reports = []
     for index, labels in find_samples(dataset, args.categories):
         reference, predicted = reconstruct(pose_net, motion_rep, dataset[index]["motion"])
-        result = {"dataset_index": index, "asset": dataset.manifest["clips"][index]["asset"], "labels": labels, **metrics(reference, predicted)}
+        result = {"dataset_index": index, "asset": dataset.manifest["clips"][index]["asset"], "split": dataset.manifest["clips"][index].get("split", "unknown"), "labels": labels, **metrics(reference, predicted)}
         filename = f"{len(reports) + 1:02d}_{labels['action']}_reconstruction.gif"
         render_gif(reference["posed_joints"], predicted["posed_joints"], parents, labels["description_zh"], output / filename, dataset.manifest["fps"], args.max_preview_frames)
         result["preview"] = filename
         reports.append(result)
     aggregate = {key: float(np.mean([item[key] for item in reports])) for key in ("position_rmse_m", "position_p95_m", "rotation_mean_deg", "rotation_p95_deg", "root_path_rmse_m")}
-    report = {"evaluation_type": "VQ-VAE in-distribution reconstruction without pose keyframes", "limitations": ["样本参与了当前 VQ-VAE 的训练，不是留出集。", "根运动作为外部条件保留；此结果不代表无条件或文本生成质量。", "GIF 是独立骨架重建预览，不是 Unreal 运行时画面。"],
+    report = {"evaluation_type": "VQ-VAE selected feature-window reconstruction without pose keyframes", "limitations": ["按类别选择代表动作，未限定留出分区；逐段 split 见 samples。", "参考为训练特征的固定骨长 FK 还原，不是原始 UE 位置。", "此工具裁剪到四帧对齐的特征窗口，短动作可能包含存储补齐；原生时间评估请使用 evaluate_native_quality.py。", "根运动作为外部条件保留；此结果不代表无条件或文本生成质量。", "GIF 是独立骨架重建预览，不是 Unreal 运行时画面。"],
               "checkpoint": str(Path(args.checkpoint).resolve()), "dataset": str(Path(args.dataset).resolve()), "aggregate": aggregate, "samples": reports}
     (output / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     lines = ["# UE 动画 VQ-VAE 视觉重建评估", "", "本报告评估已知动作的无姿态关键帧重建；它不等同于文本生成或 UE 运行时视觉验收。", "", "## 平均误差", "",
