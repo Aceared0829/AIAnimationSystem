@@ -9,7 +9,7 @@ from hydra.utils import instantiate
 from omegaconf import OmegaConf, open_dict
 from evaluate_unreal_vqvae import load_vqvae
 from motionbricks.helper.pl_util import load_motion_rep
-from motionbricks.data.unreal_dataset import training_signature
+from motionbricks.data.unreal_dataset import training_signature, file_sha256
 
 
 def load_package(folder):
@@ -19,9 +19,8 @@ def load_package(folder):
         if training_signature(folder) != manifest.get("signature"):
             raise ValueError("推理包骨架或统计量校验失败")
         if manifest.get("weights_sha256"):
-            with (folder / "weights.pt").open("rb") as stream:
-                if hashlib.file_digest(stream, "sha256").hexdigest() != manifest["weights_sha256"]:
-                    raise ValueError("推理权重校验失败，文件已改变")
+            if file_sha256(folder / "weights.pt") != manifest["weights_sha256"]:
+                raise ValueError("推理权重校验失败，文件已改变")
     conf = OmegaConf.load(folder / "config.yaml")
     with open_dict(conf):
         conf.data.folder = str(folder)
@@ -60,8 +59,7 @@ def export(checkpoint, output, decoder_only=False):
     for key, value in sorted(net.quantizer.state_dict().items()):
         codebook_digest.update(key.encode("utf8"))
         codebook_digest.update(value.cpu().contiguous().numpy().tobytes())
-    with (output / "weights.pt").open("rb") as stream:
-        weights_digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    weights_digest = file_sha256(output / "weights.pt")
     report = {"format": "PyTorch FP32 inference state, portable skeleton and statistics", "checkpoint_bytes": checkpoint.stat().st_size,
               "package_bytes": sum(p.stat().st_size for p in output.rglob("*") if p.is_file()),
               "parameters": sum(p.numel() for p in net.parameters()), "state_bitwise_equal": True, "inference_mode": conf.inference_mode,

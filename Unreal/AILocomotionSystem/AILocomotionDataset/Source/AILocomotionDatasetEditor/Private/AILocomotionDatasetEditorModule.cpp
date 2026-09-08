@@ -56,7 +56,7 @@ namespace
 		}
 		const double Duration = Animation->GetPlayLength();
 		const FFrameRate SourceRate = DataModel->GetFrameRate();
-		const double FrameCount = DataModel->GetNumberOfKeys();
+		const int32 FrameCount = DataModel->GetNumberOfKeys();
 		if (!FMath::IsFinite(Duration) || FrameCount < 2 || FrameCount > Settings->MaxFramesPerClip || FrameCount > 18000)
 		{
 			Error = LOCTEXT("InvalidDuration", "动画长度超出采样范围，请检查单片段最大帧数。").ToString();
@@ -162,7 +162,7 @@ namespace
 		Options.bIncorporateRootMotionIntoPose = true;
 		Options.bEvaluateCurves = false;
 		TArray<TSharedPtr<FJsonValue>> Frames;
-		for (int32 FrameIndex = 0; FrameIndex < static_cast<int32>(FrameCount); ++FrameIndex)
+		for (int32 FrameIndex = 0; FrameIndex < FrameCount; ++FrameIndex)
 		{
 			Progress.EnterProgressFrame(1.0f / static_cast<float>(FrameCount));
 			if (Progress.ShouldCancel())

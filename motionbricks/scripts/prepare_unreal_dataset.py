@@ -34,10 +34,14 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
             positions, rotations, neutral = convert_clip(clip)
             source_frames = len(positions)
             timestamps = np.asarray(clip.get("timestamps_seconds", np.arange(source_frames) / clip["fps"]), dtype=np.float64)
-            if len(timestamps) != source_frames or np.any(np.diff(timestamps) <= 0):
+            if timestamps.shape != (source_frames,) or not np.isfinite(timestamps).all() or abs(timestamps[0]) > 2e-6 or np.any(np.diff(timestamps) <= 0):
                 raise ValueError("源时间戳必须逐帧严格递增")
             if not np.allclose(np.diff(timestamps), 1 / clip["fps"], atol=2e-6, rtol=1e-5):
                 raise ValueError("不规则时间轴需要独立处理，不允许静默重采样")
+            if clip.get("sampling_policy") == "source_data_keys":
+                duration = clip.get("duration_seconds")
+                if not isinstance(duration, (int, float)) or not np.isfinite(duration) or abs(timestamps[-1] - duration) > 2e-6:
+                    raise ValueError("源采样键末帧必须对应原始时长")
             raw_positions, raw_rotations = positions.copy(), rotations.copy()
             if source_frames < MIN_TRAINING_FRAMES:
                 if short_clip_policy != "hold":

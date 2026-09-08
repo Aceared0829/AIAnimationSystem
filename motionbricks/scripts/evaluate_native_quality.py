@@ -1,6 +1,7 @@
 """按真实时间对照原始 UE 采样、FK 表示、旧模型和新模型；输出可离线播放的 HTML。"""
 import argparse
 import json
+import hashlib
 from pathlib import Path
 from collections import defaultdict
 import numpy as np
@@ -11,6 +12,8 @@ from motionbricks.helper.data_training_util import extract_feature_from_motion_r
 
 @torch.no_grad()
 def decode_raw(net, rep, raw, keyframes="none", window_frames=0, bypass_quantizer=False):
+    if window_frames and (window_frames < 8 or window_frames % 4):
+        raise ValueError("重叠窗口必须是至少 8 帧的四倍数")
     positions = torch.from_numpy(raw["positions"].copy())[None]
     rotations = torch.from_numpy(raw["rotations"].copy())[None]
     count = positions.shape[1]
@@ -81,10 +84,13 @@ def evaluate(args):
     if contract["signature"] != manifest["training_signature"]:
         raise ValueError("模型与评估数据集契约不一致")
     old = load_vqvae(args.baseline) if args.baseline else None
-    same_holdout = bool(old and old[2].get("signature") == contract.get("signature")
-                        and old[2].get("config", {}).get("model", {}).get("_target_", "").endswith("UnrealQualityVQVAE"))
+    manifest_hash = hashlib.sha256((folder / "dataset.json").read_bytes()).hexdigest()
+    same_holdout = bool(old and all(c.get("config", {}).get("data", {}).get("manifest_sha256") == manifest_hash for c in (contract, old[2])))
     if old and old[1].fps != rep.fps:
         raise ValueError("禁止用不同帧率模型冒充原生对照")
+    if old and (old[1].skeleton.bone_order_names_with_parents != rep.skeleton.bone_order_names_with_parents
+                or not torch.allclose(old[1].skeleton.neutral_joints, rep.skeleton.neutral_joints, atol=1e-6, rtol=0)):
+        raise ValueError("基线模型骨架或参考姿态不匹配；此评估不执行重定向")
     groups = defaultdict(list)
     for i, item in enumerate(manifest["clips"]):
         if item["split"] == args.split or args.split == "all":
@@ -93,6 +99,8 @@ def evaluate(args):
     for category, ids in sorted(groups.items()):
         selected.extend(ids if args.per_category == 0 else [ids[j] for j in np.unique(np.linspace(0, len(ids) - 1, min(args.per_category, len(ids)), dtype=int))])
     samples, previews = [], []
+    if not selected:
+        raise ValueError("所选划分没有评估动作，不发布空报告")
     for i in selected:
         item = manifest["clips"][i]
         with np.load(folder / item["raw_file"]) as z:
@@ -134,6 +142,7 @@ def evaluate(args):
             aggregate[model] = {key: float(np.mean([v[key] for v in values])) for key in values[0]}
     report = {"checkpoint": str(Path(args.checkpoint).resolve()), "dataset": str(folder.resolve()), "fps": manifest["fps"], "split": args.split,
               "training_steps": contract.get("global_step"), "baseline_steps": old[2].get("global_step") if old else None,
+              "same_holdout_verified": same_holdout,
               "pose_aware_sampling": contract.get("config", {}).get("model", {}).get("args", {}).get("pose_aware_sampling", False),
               "baseline_checkpoint": str(Path(args.baseline).resolve()) if args.baseline else None,
               "aggregation": "unweighted mean of per-clip metrics", "window_frames": args.window_frames, "sample_count": len(samples), "aggregate": aggregate, "samples": samples,

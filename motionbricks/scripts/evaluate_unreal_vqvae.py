@@ -99,7 +99,7 @@ def render_gif(reference, predicted, parents, title, output, fps, max_frames=45)
     center = (low + high) * 0.5
     radius = max(float(np.max(high - low)) * 0.58, 0.7)
     bounds = tuple((center[index] - radius, center[index] + radius) for index in range(3))
-    selected = np.unique(np.linspace(0, len(reference) - 1, min(len(reference), max_frames), dtype=int))
+    selected, durations = preview_timing(len(reference), fps, max_frames)
     figure = plt.figure(figsize=(8, 4.4), dpi=110)
     reference_axis, predicted_axis = figure.add_subplot(1, 2, 1, projection="3d"), figure.add_subplot(1, 2, 2, projection="3d")
     frames = []
@@ -110,7 +110,15 @@ def render_gif(reference, predicted, parents, title, output, fps, max_frames=45)
         figure.canvas.draw()
         frames.append(np.asarray(figure.canvas.buffer_rgba())[:, :, :3].copy())
     plt.close(figure)
-    iio.imwrite(output, np.stack(frames), duration=1000 / fps, loop=0)
+    iio.imwrite(output, np.stack(frames), duration=durations.tolist(), loop=0)
+
+
+def preview_timing(frame_count, fps, max_frames):
+    """抽帧只减少图像数量，保留相邻代表帧之间的源时间间隔。"""
+    if max_frames < 2 or frame_count < 2 or not np.isfinite(fps) or fps <= 0:
+        raise ValueError("预览至少需要两帧且帧率必须为正")
+    selected = np.unique(np.linspace(0, frame_count - 1, min(frame_count, max_frames), dtype=int))
+    return selected, np.diff(np.append(selected, frame_count)) * 1000 / fps
 
 
 def find_samples(dataset, categories):

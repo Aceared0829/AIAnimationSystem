@@ -15,7 +15,7 @@ from collections import Counter
 from motionbricks.data.unreal_quality import collate_native, PoseAwareBatchSampler
 
 from motionbricks.data.synthetic_dataset import collate_batch
-from motionbricks.data.unreal_dataset import UnrealMotionDataset
+from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
 from motionbricks.helper.pl_util import load_motion_rep
 
 
@@ -71,6 +71,7 @@ def build_config(args, dataset):
     conf = OmegaConf.load(base)
     with open_dict(conf):
         conf.data = {"folder": str(Path(args.dataset).resolve()), "text_embeddings": None}
+        conf.data.manifest_sha256 = hashlib.sha256((Path(args.dataset) / "dataset.json").read_bytes()).hexdigest()
         conf.skeleton = {"_target_": "motionbricks.data.unreal_dataset.UnrealSkeleton", "folder": conf.data.folder}
         conf.motion_rep.name = "unreal_dual_root_global_joints"
         conf.motion_rep.stats.folder = str(Path(args.dataset).resolve() / "stats")
@@ -95,8 +96,7 @@ def build_config(args, dataset):
             contract = check_checkpoint(args.vqvae, dataset.manifest["training_signature"], "vqvae")
             conf.model.pose_vqvae_network = contract["config"]["model"]["pose_vqvae_network"]
             conf.model.args.vqvae_model_ckpt_path = str(Path(args.vqvae).resolve())
-            with Path(args.vqvae).open("rb") as stream:
-                conf.model.args.vqvae_sha256 = hashlib.file_digest(stream, "sha256").hexdigest()
+            conf.model.args.vqvae_sha256 = file_sha256(args.vqvae)
         if args.tiny:
             # 仅用于 CPU 冒烟验证；模型配置会随检查点保存，不能与正式模型互换。
             if args.model == "vqvae":

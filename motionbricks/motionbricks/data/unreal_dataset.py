@@ -120,6 +120,15 @@ def read_json(path):
         return json.load(stream)
 
 
+def file_sha256(path):
+    """分块校验大权重，兼容项目声明的 Python 3.10。"""
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
 def contained_file(folder, filename):
     folder = Path(folder).resolve()
     result = (folder / filename).resolve()
@@ -255,6 +264,9 @@ class UnrealMotionDataset(Dataset):
                 raise ValueError(f"{path.name} 维数错误或少于 {min_frames} 帧，请提供更长片段")
             if not np.isfinite(motion).all():
                 raise ValueError(f"{path.name} 包含无效特征")
+            source_frames = item.get("source_frames", item["frames"])
+            if item["frames"] != len(motion) or not isinstance(source_frames, int) or not 2 <= source_frames <= len(motion):
+                raise ValueError(f"{path.name} 真实帧数或存储帧数与张量不一致")
             self.files.append(path)
         if not self.files:
             raise ValueError("训练集为空")

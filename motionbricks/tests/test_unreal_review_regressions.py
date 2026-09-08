@@ -1,27 +1,65 @@
 """评估、推理和训练边界的 PR 回归。"""
-import copy
-import importlib.util
 import json
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+import hashlib
 from unittest.mock import patch
 
 import numpy as np
 import torch
-from omegaconf import OmegaConf
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
-from evaluate_unreal_vqvae import load_vqvae
+from evaluate_unreal_vqvae import load_vqvae, preview_timing
 from export_unreal_inference import load_package
 from export_native_gallery import export
 from train_unreal import training_indices
-from motionbricks.data.unreal_dataset import training_signature
+from motionbricks.data.unreal_dataset import training_signature, file_sha256
+from motionbricks.data.unreal_quality import sample_native_segment
+from test_unreal_dataset import fixture, prepare_function
 
 
 class ReviewRegressions(unittest.TestCase):
+    def test_last_native_window_includes_last_real_frame(self):
+        motion = torch.arange(9)[:, None]
+        with patch("numpy.random.randint", side_effect=lambda high: high - 1):
+            segment, mask = sample_native_segment(motion, 9, 8)
+        self.assertEqual(segment[:, 0].tolist(), [1, 2, 3, 4, 5, 6, 7, 8, 8])
+        self.assertTrue(mask.all())
+        segment, mask = sample_native_segment(motion[:2], 2, 4)
+        self.assertEqual(segment[:, 0].tolist(), [0, 1, 1, 1, 1])
+        self.assertEqual(mask.tolist(), [True, True, False, False])
+
+    def test_large_file_digest_matches_standard_hash(self):
+        payload = b"test" * 700000
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "weights"
+            path.write_bytes(payload)
+            self.assertEqual(file_sha256(path), hashlib.sha256(payload).hexdigest())
+
+    def test_gif_subsampling_preserves_source_duration(self):
+        ids, durations = preview_timing(120, 60, 10)
+        self.assertEqual(ids[0], 0)
+        self.assertEqual(ids[-1], 119)
+        self.assertAlmostEqual(float(durations.sum()), 2000.)
+        np.testing.assert_allclose(durations[:-1], np.diff(ids) * 1000 / 60)
+
+    def test_native_time_rejects_shifted_axis_and_missing_last_key(self):
+        for shifted, missing_end in [(True, False), (False, True)]:
+            with self.subTest(shifted=shifted), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                clip = fixture()
+                clip["sampling_policy"] = "source_data_keys"
+                clip["timestamps_seconds"] = (np.arange(100) / 30 + (1 if shifted else 0)).tolist()
+                clip["duration_seconds"] = (100 if missing_end else 99) / 30
+                (root / "clip.json").write_text(json.dumps(clip))
+                (root / "manifest.json").write_text(json.dumps({"schema_version": 1, "clips": ["clip.json"]}))
+                with self.assertRaises(ValueError):
+                    prepare_function()(root, root / "output")
+                self.assertFalse((root / "output/dataset.json").exists())
+
     def test_all_models_respect_holdout_partition(self):
         manifest = {"split_policy": "asset_family_sha256_80_10_10", "clips": [{"split": s} for s in ["test", "train", "validation"]]}
         self.assertEqual(training_indices(manifest), [1])

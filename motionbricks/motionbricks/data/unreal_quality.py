@@ -51,6 +51,13 @@ def masked_mean(value, mask):
     return (value * mask).sum() / mask.expand_as(value).sum().clamp_min(1)
 
 
+def sample_native_segment(motion, length, frames):
+    """包含最后合法窗口；末端额外导数上下文保持末帧，不越界读取。"""
+    start = int(np.random.randint(max(1, length - frames + 1)))
+    ids = torch.arange(frames + 1, device=motion.device) + start
+    return motion[ids.clamp_max(length - 1)], ids[:frames] < length
+
+
 class UnrealQualityVQVAE(MotionVQVAEModel):
     """独立 UE 训练入口，保留上游训练行为供旧模型复现。"""
 
@@ -63,10 +70,9 @@ class UnrealQualityVQVAE(MotionVQVAEModel):
         segments, masks = [], []
         for _ in range(int(self.args["batchsize_mul_factor"])):
             for index, length in enumerate(lengths.tolist()):
-                start = int(np.random.randint(max(1, length - frames)))
-                ids = torch.arange(frames + 1, device=source.device) + start
-                segments.append(source[index, ids.clamp_max(length - 1)])
-                masks.append(ids[:frames] < length)
+                segment, mask = sample_native_segment(source[index], length, frames)
+                segments.append(segment)
+                masks.append(mask)
         global_motion = torch.stack(segments)
         mask = torch.stack(masks)
         # 旋转增强保留真实采样间隔和动作时长。
