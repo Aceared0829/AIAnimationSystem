@@ -17,7 +17,7 @@ import torch
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 
-from motionbricks.data.unreal_dataset import UnrealMotionDataset, derive_motion_labels, read_json
+from motionbricks.data.unreal_dataset import UnrealMotionDataset, derive_motion_labels, read_json, training_signature
 from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
 from motionbricks.helper.pl_util import load_motion_rep
 
@@ -26,13 +26,14 @@ plt.rcParams["font.family"] = "Microsoft YaHei"
 
 def load_vqvae(checkpoint_path):
     checkpoint_path = Path(checkpoint_path).resolve()
-    run_config = checkpoint_path.parent.parent / "config.yaml"
-    if not run_config.is_file():
-        raise ValueError(f"找不到训练配置：{run_config}")
     checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     if checkpoint.get("unreal_contract", {}).get("kind") != "vqvae":
         raise ValueError("检查点不是受 UE 数据契约保护的 VQ-VAE")
-    conf = OmegaConf.load(run_config)
+    conf = OmegaConf.create(checkpoint["unreal_contract"]["config"])
+    if training_signature(conf.data.folder) != checkpoint["unreal_contract"]["signature"]:
+        raise ValueError("检查点引用的骨架或统计量已改变")
+    if Path(conf.skeleton.folder).resolve() != Path(conf.data.folder).resolve() or Path(conf.motion_rep.stats.folder).resolve() != (Path(conf.data.folder) / "stats").resolve():
+        raise ValueError("检查点骨架和统计量路径必须属于同一数据集")
     motion_rep = load_motion_rep(conf)
     pose_net = instantiate(conf.model.pose_vqvae_network, motion_rep=motion_rep.dual_rep.local_motion_rep)
     prefix = "pose_net."

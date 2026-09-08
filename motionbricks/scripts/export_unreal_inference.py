@@ -9,12 +9,15 @@ from hydra.utils import instantiate
 from omegaconf import OmegaConf, open_dict
 from evaluate_unreal_vqvae import load_vqvae
 from motionbricks.helper.pl_util import load_motion_rep
+from motionbricks.data.unreal_dataset import training_signature
 
 
 def load_package(folder):
     folder = Path(folder).resolve()
     if (folder / "manifest.json").exists():
         manifest = json.loads((folder / "manifest.json").read_text(encoding="utf8"))
+        if training_signature(folder) != manifest.get("signature"):
+            raise ValueError("推理包骨架或统计量校验失败")
         if manifest.get("weights_sha256"):
             with (folder / "weights.pt").open("rb") as stream:
                 if hashlib.file_digest(stream, "sha256").hexdigest() != manifest["weights_sha256"]:
@@ -36,7 +39,7 @@ def export(checkpoint, output, decoder_only=False):
     checkpoint, output = Path(checkpoint).resolve(), Path(output).resolve()
     net, rep, contract = load_vqvae(checkpoint)
     output.mkdir(parents=True, exist_ok=False)
-    conf = OmegaConf.load(checkpoint.parent.parent / "config.yaml")
+    conf = OmegaConf.create(contract["config"])
     source = Path(conf.data.folder)
     shutil.copy2(source / "skeleton.json", output / "skeleton.json")
     shutil.copytree(source / "stats", output / "stats")

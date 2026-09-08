@@ -53,6 +53,19 @@ def check_checkpoint(path, signature, kind):
     return contract
 
 
+def training_indices(manifest):
+    """所有模型都遵守显式划分，只有未划分的数据集才使用全部动作。"""
+    clips = manifest["clips"]
+    if manifest.get("split_policy", "none") == "none":
+        return list(range(len(clips)))
+    if any(item.get("split") not in {"train", "validation", "test"} for item in clips):
+        raise ValueError("数据集存在缺失或非法划分")
+    indices = [i for i, item in enumerate(clips) if item["split"] == "train"]
+    if not indices:
+        raise ValueError("数据集没有训练分区，禁止使用留出动作训练")
+    return indices
+
+
 def build_config(args, dataset):
     base = Path(__file__).resolve().parents[1] / "out" / f"motionbricks_{args.model}" / "version_1" / "hparams.yaml"
     conf = OmegaConf.load(base)
@@ -107,6 +120,7 @@ def train(args):
         raise ValueError("训练步数和批次大小必须为正数")
     pl.seed_everything(args.seed, workers=True)
     dataset = UnrealMotionDataset(args.dataset)
+    indices = training_indices(dataset.manifest)
     signature = dataset.manifest["training_signature"]
     conf = build_config(args, dataset)
     if args.resume:
@@ -142,7 +156,6 @@ def train(args):
     trainer = pl.Trainer(max_steps=args.max_steps, accelerator=args.accelerator, devices=1, logger=CSVLogger(str(output), name="metrics"),
                          callbacks=[checkpoint, DatasetContract(signature, args.model, config)], gradient_clip_val=1.0, num_sanity_val_steps=0, log_every_n_steps=1)
     if getattr(args, "native_quality", False):
-        indices = [i for i, item in enumerate(dataset.manifest["clips"]) if item["split"] == "train"]
         categories = [dataset.manifest["clips"][i]["labels"]["category"] for i in indices]
         counts = Counter(categories)
         weights = [1 / counts[category] ** 0.5 for category in categories]
@@ -153,7 +166,7 @@ def train(args):
         else:
             loader = DataLoader(Subset(dataset, indices), batch_size=args.batch_size, sampler=sampler, num_workers=0, collate_fn=collate_native)
     else:
-        loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=0, collate_fn=collate_batch)
+        loader = DataLoader(Subset(dataset, indices), batch_size=args.batch_size, shuffle=True, num_workers=0, collate_fn=collate_batch)
     trainer.fit(model, train_dataloaders=loader, ckpt_path=args.resume)
     trainer.save_checkpoint(output / "checkpoints" / "final.ckpt")
     print(f"训练完成：{output / 'checkpoints' / 'final.ckpt'}")

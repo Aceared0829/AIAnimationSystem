@@ -256,12 +256,6 @@ namespace
 		TSharedRef<FJsonObject> Manifest = MakeShared<FJsonObject>();
 		Manifest->SetNumberField(TEXT("schema_version"), 1);
 		Manifest->SetArrayField(TEXT("clips"), Files);
-		if (!WriteJson(OutDirectory / TEXT("manifest.json"), Manifest))
-		{
-			OutError = LOCTEXT("ManifestFailed", "清单写入失败，批次未完成。").ToString();
-			return false;
-		}
-
 		TSharedRef<FJsonObject> Report = MakeShared<FJsonObject>();
 		Report->SetNumberField(TEXT("candidate_anim_sequences"), Assets.Num());
 		Report->SetNumberField(TEXT("exported_clips"), Files.Num());
@@ -269,6 +263,13 @@ namespace
 		if (!WriteJson(OutDirectory / TEXT("batch_report.json"), Report))
 		{
 			OutError = LOCTEXT("ReportFailed", "批次报告写入失败。").ToString();
+			return false;
+		}
+
+		// 清单是批次发布标志；报告失败时不能留下可被预处理接受的完整批次。
+		if (!WriteJson(OutDirectory / TEXT("manifest.json"), Manifest))
+		{
+			OutError = LOCTEXT("ManifestFailed", "清单写入失败，批次未完成。").ToString();
 			return false;
 		}
 
@@ -334,7 +335,7 @@ public:
 		FString AssetPath;
 		if (FParse::Value(FCommandLine::Get(), TEXT("AILocomotionExportPath="), AssetPath))
 		{
-			FTSTicker::GetCoreTicker().AddTicker(TEXT("AILocomotionDataset.ExportPath"), 0.0f, [AssetPath](float) {
+			ExportTickerHandle = FTSTicker::GetCoreTicker().AddTicker(TEXT("AILocomotionDataset.ExportPath"), 0.0f, [AssetPath](float) {
 				ExportAnimSequencesInPath(AssetPath);
 				RequestEngineExit(TEXT("AI Locomotion 批量导出完成"));
 				return false;
@@ -344,11 +345,14 @@ public:
 
 	virtual void ShutdownModule() override
 	{
+		FTSTicker::RemoveTicker(ExportTickerHandle);
 		UToolMenus::UnRegisterStartupCallback(this);
 		UToolMenus::UnregisterOwner(this);
 	}
 
 private:
+	FTSTicker::FDelegateHandle ExportTickerHandle;
+
 	void RegisterMenus()
 	{
 		FToolMenuOwnerScoped Owner(this);
