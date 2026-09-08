@@ -4,15 +4,20 @@
 #include "AILocomotionDatasetSettings.h"
 #include "AnimPose.h"
 #include "Animation/AnimSequence.h"
+#include "Animation/AnimData/IAnimationDataModel.h"
 #include "Animation/Skeleton.h"
 #include "AssetRegistry/AssetData.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "ContentBrowserModule.h"
+#include "Containers/Ticker.h"
 #include "IContentBrowserSingleton.h"
 #include "Dom/JsonObject.h"
 #include "HAL/FileManager.h"
+#include "Misc/CommandLine.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Guid.h"
 #include "Misc/MessageDialog.h"
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Misc/ScopedSlowTask.h"
 #include "Modules/ModuleManager.h"
@@ -43,13 +48,15 @@ namespace
 	{
 		const UAILocomotionDatasetSettings* Settings = GetDefault<UAILocomotionDatasetSettings>();
 		USkeleton* Skeleton = Animation->GetSkeleton();
-		if (!Skeleton || Animation->IsValidAdditive() || Settings->SampleRate < 1 || Settings->SampleRate > 120)
+		const IAnimationDataModel* DataModel = Animation->GetDataModel();
+		if (!Skeleton || Animation->IsValidAdditive() || !DataModel || !DataModel->GetFrameRate().IsValid())
 		{
-			Error = LOCTEXT("InvalidAnimation", "动画必须有关联骨架、为非叠加动画，且采样率在 1–120 之间。").ToString();
+			Error = LOCTEXT("InvalidAnimation", "动画必须有关联骨架、为非叠加动画，且源动画数据模型具有有效帧率。").ToString();
 			return false;
 		}
 		const double Duration = Animation->GetPlayLength();
-		const double FrameCount = FMath::FloorToDouble(Duration * Settings->SampleRate) + 1;
+		const FFrameRate SourceRate = DataModel->GetFrameRate();
+		const int32 FrameCount = DataModel->GetNumberOfKeys();
 		if (!FMath::IsFinite(Duration) || FrameCount < 2 || FrameCount > Settings->MaxFramesPerClip || FrameCount > 18000)
 		{
 			Error = LOCTEXT("InvalidDuration", "动画长度超出采样范围，请检查单片段最大帧数。").ToString();
@@ -108,7 +115,16 @@ namespace
 		Document->SetStringField(TEXT("asset"), Animation->GetPathName());
 		Document->SetStringField(TEXT("skeleton"), Skeleton->GetPathName());
 		Document->SetStringField(TEXT("coordinate_system"), TEXT("unreal_component_cm_xyzw"));
-		Document->SetNumberField(TEXT("fps"), Settings->SampleRate);
+		Document->SetNumberField(TEXT("fps"), SourceRate.AsDecimal());
+		Document->SetNumberField(TEXT("source_fps_numerator"), SourceRate.Numerator);
+		Document->SetNumberField(TEXT("source_fps_denominator"), SourceRate.Denominator);
+		Document->SetStringField(TEXT("sampling_policy"), TEXT("source_data_keys"));
+		TArray<TSharedPtr<FJsonValue>> SampleTimes;
+		for (int32 FrameIndex = 0; FrameIndex < FrameCount; ++FrameIndex)
+		{
+			SampleTimes.Add(MakeShared<FJsonValueNumber>(FMath::Min(FrameIndex / SourceRate.AsDecimal(), Duration)));
+		}
+		Document->SetArrayField(TEXT("timestamps_seconds"), SampleTimes);
 		Document->SetNumberField(TEXT("duration_seconds"), Duration);
 		TArray<TSharedPtr<FJsonValue>> Bones;
 		for (int32 Index = 0; Index < Names.Num(); ++Index)
@@ -146,7 +162,7 @@ namespace
 		Options.bIncorporateRootMotionIntoPose = true;
 		Options.bEvaluateCurves = false;
 		TArray<TSharedPtr<FJsonValue>> Frames;
-		for (int32 FrameIndex = 0; FrameIndex < static_cast<int32>(FrameCount); ++FrameIndex)
+		for (int32 FrameIndex = 0; FrameIndex < FrameCount; ++FrameIndex)
 		{
 			Progress.EnterProgressFrame(1.0f / static_cast<float>(FrameCount));
 			if (Progress.ShouldCancel())
@@ -155,7 +171,7 @@ namespace
 				return false;
 			}
 			FAnimPose Pose;
-			UAnimPoseExtensions::GetAnimPoseAtTime(Animation, FrameIndex / static_cast<double>(Settings->SampleRate), Options, Pose);
+			UAnimPoseExtensions::GetAnimPoseAtTime(Animation, FMath::Min(FrameIndex / SourceRate.AsDecimal(), Duration), Options, Pose);
 			if (!Pose.IsValid())
 			{
 				Error = LOCTEXT("InvalidPose", "动画姿态求值失败。").ToString();
@@ -193,6 +209,73 @@ namespace
 		return true;
 	}
 
+	bool ExportAssets(const TArray<FAssetData>& Assets, bool bContinueAfterFailure, FString& OutDirectory, FString& OutError)
+	{
+		OutDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir() / TEXT("AILocomotionDataset") / FGuid::NewGuid().ToString(EGuidFormats::Digits));
+		IFileManager::Get().MakeDirectory(*OutDirectory, true);
+		FScopedSlowTask Progress(Assets.Num(), LOCTEXT("Exporting", "正在导出动画训练数据"));
+		if (!IsRunningCommandlet() && !FApp::IsUnattended())
+		{
+			Progress.MakeDialog(true);
+		}
+
+		TArray<TSharedPtr<FJsonValue>> Files;
+		TArray<TSharedPtr<FJsonValue>> Failures;
+		for (int32 Index = 0; Index < Assets.Num(); ++Index)
+		{
+			UAnimSequence* Animation = Cast<UAnimSequence>(Assets[Index].GetAsset());
+			const FString Filename = FString::Printf(TEXT("clip_%05d.json"), Files.Num());
+			FString Error;
+			if (!Animation || !ExportClip(Animation, OutDirectory / Filename, Progress, Error))
+			{
+				if (!Animation)
+				{
+					Error = LOCTEXT("WrongAsset", "选中资产包含非 AnimSequence 类型。").ToString();
+				}
+				if (!bContinueAfterFailure)
+				{
+					OutError = Assets[Index].GetObjectPathString() + TEXT("\n") + Error;
+					return false;
+				}
+				TSharedRef<FJsonObject> Failure = MakeShared<FJsonObject>();
+				Failure->SetStringField(TEXT("asset"), Assets[Index].GetObjectPathString());
+				Failure->SetStringField(TEXT("error"), Error);
+				Failures.Add(MakeShared<FJsonValueObject>(Failure));
+				UE_LOG(LogTemp, Warning, TEXT("AI Locomotion 数据导出跳过 %s：%s"), *Assets[Index].GetObjectPathString(), *Error);
+				continue;
+			}
+			Files.Add(MakeShared<FJsonValueString>(Filename));
+		}
+
+		if (Files.IsEmpty())
+		{
+			OutError = LOCTEXT("NoExportedClips", "没有动画通过导出校验，未发布训练清单。请检查骨架配置和日志。").ToString();
+			return false;
+		}
+
+		TSharedRef<FJsonObject> Manifest = MakeShared<FJsonObject>();
+		Manifest->SetNumberField(TEXT("schema_version"), 1);
+		Manifest->SetArrayField(TEXT("clips"), Files);
+		TSharedRef<FJsonObject> Report = MakeShared<FJsonObject>();
+		Report->SetNumberField(TEXT("candidate_anim_sequences"), Assets.Num());
+		Report->SetNumberField(TEXT("exported_clips"), Files.Num());
+		Report->SetArrayField(TEXT("skipped_clips"), Failures);
+		if (!WriteJson(OutDirectory / TEXT("batch_report.json"), Report))
+		{
+			OutError = LOCTEXT("ReportFailed", "批次报告写入失败。").ToString();
+			return false;
+		}
+
+		// 清单是批次发布标志；报告失败时不能留下可被预处理接受的完整批次。
+		if (!WriteJson(OutDirectory / TEXT("manifest.json"), Manifest))
+		{
+			OutError = LOCTEXT("ManifestFailed", "清单写入失败，批次未完成。").ToString();
+			return false;
+		}
+
+		return true;
+	}
+
 	void ExportSelected()
 	{
 		TArray<FAssetData> Assets;
@@ -202,36 +285,43 @@ namespace
 			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("NoSelection", "请先在内容浏览器中选择 AnimSequence 动画资产。"));
 			return;
 		}
-		const FString Directory = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir() / TEXT("AILocomotionDataset") / FGuid::NewGuid().ToString(EGuidFormats::Digits));
-		IFileManager::Get().MakeDirectory(*Directory, true);
-		FScopedSlowTask Progress(Assets.Num(), LOCTEXT("Exporting", "正在导出动画训练数据"));
-		Progress.MakeDialog(true);
-		TArray<TSharedPtr<FJsonValue>> Files;
+		FString Directory;
 		FString Error;
-		for (int32 Index = 0; Index < Assets.Num(); ++Index)
+		if (!ExportAssets(Assets, false, Directory, Error))
 		{
-			UAnimSequence* Animation = Cast<UAnimSequence>(Assets[Index].GetAsset());
-			const FString Filename = FString::Printf(TEXT("clip_%05d.json"), Index);
-			if (!Animation || !ExportClip(Animation, Directory / Filename, Progress, Error))
-			{
-				if (!Animation)
-				{
-					Error = LOCTEXT("WrongAsset", "选中资产包含非 AnimSequence 类型。").ToString();
-				}
-				FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Assets[Index].GetObjectPathString() + TEXT("\n") + Error));
-				return;
-			}
-			Files.Add(MakeShared<FJsonValueString>(Filename));
-		}
-		TSharedRef<FJsonObject> Manifest = MakeShared<FJsonObject>();
-		Manifest->SetNumberField(TEXT("schema_version"), 1);
-		Manifest->SetArrayField(TEXT("clips"), Files);
-		if (!WriteJson(Directory / TEXT("manifest.json"), Manifest))
-		{
-			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("ManifestFailed", "清单写入失败，批次未完成。"));
+			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Error));
 			return;
 		}
 		FMessageDialog::Open(EAppMsgType::Ok, FText::Format(LOCTEXT("Complete", "动画采样完成，输出目录：\n{0}\n下一步使用 prepare_unreal_dataset.py 生成训练特征。"), FText::FromString(Directory)));
+	}
+
+	void ExportAnimSequencesInPath(const FString& AssetPath)
+	{
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+		AssetRegistry.WaitForCompletion();
+
+		TArray<FAssetData> AllAssets;
+		AssetRegistry.GetAssetsByPath(*AssetPath, AllAssets, true, true);
+		TArray<FAssetData> Animations;
+		const FTopLevelAssetPath AnimSequenceClassPath = UAnimSequence::StaticClass()->GetClassPathName();
+		for (const FAssetData& Asset : AllAssets)
+		{
+			if (Asset.AssetClassPath == AnimSequenceClassPath)
+			{
+				Animations.Add(Asset);
+			}
+		}
+		Animations.Sort([](const FAssetData& Left, const FAssetData& Right) { return Left.GetObjectPathString() < Right.GetObjectPathString(); });
+
+		FString Directory;
+		FString Error;
+		if (!ExportAssets(Animations, true, Directory, Error))
+		{
+			UE_LOG(LogTemp, Error, TEXT("AI Locomotion 批量导出失败：%s"), *Error);
+			return;
+		}
+		UE_LOG(LogTemp, Display, TEXT("AI Locomotion 批量导出完成：候选 %d 段，输出 %s"), Animations.Num(), *Directory);
 	}
 }
 
@@ -242,15 +332,27 @@ public:
 	virtual void StartupModule() override
 	{
 		UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FAILocomotionDatasetEditorModule::RegisterMenus));
+		FString AssetPath;
+		if (FParse::Value(FCommandLine::Get(), TEXT("AILocomotionExportPath="), AssetPath))
+		{
+			ExportTickerHandle = FTSTicker::GetCoreTicker().AddTicker(TEXT("AILocomotionDataset.ExportPath"), 0.0f, [AssetPath](float) {
+				ExportAnimSequencesInPath(AssetPath);
+				RequestEngineExit(TEXT("AI Locomotion 批量导出完成"));
+				return false;
+			});
+		}
 	}
 
 	virtual void ShutdownModule() override
 	{
+		FTSTicker::RemoveTicker(ExportTickerHandle);
 		UToolMenus::UnRegisterStartupCallback(this);
 		UToolMenus::UnregisterOwner(this);
 	}
 
 private:
+	FTSTicker::FDelegateHandle ExportTickerHandle;
+
 	void RegisterMenus()
 	{
 		FToolMenuOwnerScoped Owner(this);
