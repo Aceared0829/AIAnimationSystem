@@ -11,11 +11,13 @@ from scipy.spatial.transform import Rotation
 from torch.utils.data import Dataset
 
 from motionbricks.motionlib.core.skeletons.base import SkeletonBase
+from motionbricks.motionlib.core.motion_reps.tools.feet import foot_detect_from_pos_and_vel
 
 
 # UE X 前、Y 右、Z 上 → 动作空间 Z 前、X 左、Y 上；同时改变手性。
 UE_TO_MOTION = np.array([[0, -1, 0], [0, 0, 1], [1, 0, 0]], dtype=np.float64)
-ROLE_KEYS = ("right_hip", "left_hip", "left_foot", "left_toe", "right_foot", "right_toe")
+LEG_ROLE_KEYS = ("right_hip", "left_hip", "left_foot", "left_toe", "right_foot", "right_toe")
+POSE_ONLY_ROLE_KEYS = LEG_ROLE_KEYS + ("left_hand", "right_hand")
 
 
 def derive_motion_labels(asset, source_frames=None):
@@ -139,6 +141,9 @@ def contained_file(folder, filename):
 
 def skeleton_signature(metadata):
     fields = {key: metadata[key] for key in ("roles", "coordinate_system", "fps")}
+    for key in ("root_bone", "pelvis_bone", "root_policy", "pose_policy"):
+        if key in metadata:
+            fields[key] = metadata[key]
     fields["bones"] = training_bones(metadata["bones"])
     return hashlib.sha256(json.dumps(fields, sort_keys=True).encode()).hexdigest()
 
@@ -168,8 +173,15 @@ def training_signature(folder):
 
 
 def validate_clip(clip):
-    if clip.get("schema_version") != 1 or clip.get("coordinate_system") != "unreal_component_cm_xyzw":
+    schema_version = clip.get("schema_version")
+    coordinate_system = clip.get("coordinate_system")
+    if (schema_version, coordinate_system) not in ((1, "unreal_component_cm_xyzw"), (2, "unreal_root_relative_cm_xyzw")):
         raise ValueError("不支持的 Unreal 动画导出协议")
+    if schema_version == 2:
+        if clip.get("root_policy") != "separate_authoritative" or clip.get("pose_policy") != "pelvis_subtree_relative_to_root":
+            raise ValueError("Schema v2 必须声明权威 Root 与相对 Pelvis 姿态契约")
+        if not clip.get("root_bone") or not clip.get("pelvis_bone"):
+            raise ValueError("Schema v2 缺少 Root 或 Pelvis 骨骼声明")
     fps = clip.get("fps")
     if not isinstance(fps, (int, float)) or not np.isfinite(fps) or not 1 <= fps <= 120:
         raise ValueError("fps 必须处于 1–120")
@@ -182,10 +194,11 @@ def validate_clip(clip):
         if not isinstance(parent, int) or (index == 0 and parent != -1) or (index > 0 and not 0 <= parent < index):
             raise ValueError("骨骼必须按父先子后排序，并仅含一个身体根节点")
     roles = clip["roles"]
-    if any(roles.get(key) not in names for key in ROLE_KEYS):
-        raise ValueError("髋、脚踝和脚掌角色必须映射到已导出的骨骼")
-    if len({roles[key] for key in ROLE_KEYS}) != len(ROLE_KEYS):
-        raise ValueError("髋与四个接触点必须分别对应不同骨骼")
+    role_keys = POSE_ONLY_ROLE_KEYS if schema_version == 2 else LEG_ROLE_KEYS
+    if any(roles.get(key) not in names for key in role_keys):
+        raise ValueError("髋、脚、脚掌和手部角色必须映射到已导出的骨骼")
+    if len({roles[key] for key in role_keys}) != len(role_keys):
+        raise ValueError("髋、脚部和手部语义角色必须分别对应不同骨骼")
     frames = np.asarray(clip["frames"], dtype=np.float64)
     if frames.ndim != 3 or frames.shape[1:] != (len(names), 7) or not 2 <= len(frames) <= 18000:
         raise ValueError("frames 必须是 [2..18000, 骨骼数, 7] 的位置与 xyzw 四元数")
@@ -199,7 +212,39 @@ def validate_clip(clip):
     for quats in (frames[..., 3:], ref_quat):
         if not np.allclose(np.linalg.norm(quats, axis=-1), 1, atol=1e-3):
             raise ValueError("动画包含非单位四元数")
+    if schema_version == 2:
+        root_frames = np.asarray(clip.get("root_frames"), dtype=np.float64)
+        if root_frames.shape != (len(frames), 7) or not np.isfinite(root_frames).all():
+            raise ValueError("Schema v2 root_frames 必须与身体帧逐帧对应")
+        if not np.allclose(np.linalg.norm(root_frames[:, 3:], axis=-1), 1, atol=1e-3):
+            raise ValueError("权威 Root 轨道包含非单位四元数")
     return frames, ref_pos, ref_quat
+
+
+def convert_root_track(clip):
+    """将 Schema v2 的独立 UE Root 审计轨道转换为米制 Motion 坐标。"""
+    if clip.get("schema_version") != 2:
+        return None
+    root_frames = np.asarray(clip["root_frames"], dtype=np.float64)
+    positions = root_frames[:, :3] @ UE_TO_MOTION.T * 0.01
+    rotations = Rotation.from_quat(root_frames[:, 3:]).as_matrix()
+    rotations = UE_TO_MOTION @ rotations @ UE_TO_MOTION.T
+    return np.concatenate([positions, Rotation.from_matrix(rotations).as_quat()], axis=-1).astype(np.float32)
+
+
+def world_foot_contacts(relative_positions, root_track, skeleton, fps):
+    """使用独立 Root 轨道恢复世界脚速，返回左脚、左脚掌、右脚、右脚掌接触。"""
+    if root_track is None:
+        return None
+    root_rotations = Rotation.from_quat(root_track[:, 3:]).as_matrix()
+    world_positions = np.einsum("tij,tkj->tki", root_rotations, relative_positions) + root_track[:, None, :3]
+    velocity = np.empty_like(world_positions)
+    velocity[:-1] = (world_positions[1:] - world_positions[:-1]) * fps
+    velocity[-1] = velocity[-2]
+    positions_tensor = torch.from_numpy(world_positions.astype(np.float32))[None]
+    velocity_tensor = torch.from_numpy(velocity.astype(np.float32))[None]
+    left, right = foot_detect_from_pos_and_vel(positions_tensor, velocity_tensor, skeleton, 0.15, 0.10)
+    return torch.cat((left, right), dim=-1)[0]
 
 
 def convert_clip(clip):
@@ -249,8 +294,11 @@ class UnrealMotionDataset(Dataset):
     def __init__(self, folder, min_frames=65):
         self.folder = Path(folder).resolve()
         self.manifest = read_json(self.folder / "dataset.json")
-        if self.manifest.get("schema_version") != 1:
+        schema_version = self.manifest.get("schema_version")
+        if schema_version not in (1, 2):
             raise ValueError("不支持的数据集版本")
+        if schema_version == 2 and self.manifest.get("training_contract") != "pose_only_root_authoritative":
+            raise ValueError("Schema v2 数据集缺少 pose-only 训练契约")
         if self.manifest.get("training_signature") != training_signature(self.folder):
             raise ValueError("骨架或统计量已改变，请重新预处理数据集")
         skeleton = read_json(self.folder / "skeleton.json")

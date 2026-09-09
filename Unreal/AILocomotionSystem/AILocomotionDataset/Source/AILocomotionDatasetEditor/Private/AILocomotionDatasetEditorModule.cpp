@@ -63,11 +63,24 @@ namespace
 			return false;
 		}
 		const FReferenceSkeleton& RefSkeleton = Skeleton->GetReferenceSkeleton();
+		const int32 RootIndex = RefSkeleton.FindBoneIndex(Settings->RootBone);
 		const int32 PelvisIndex = RefSkeleton.FindBoneIndex(Settings->PelvisBone);
-		if (PelvisIndex == INDEX_NONE)
+		if (RootIndex == INDEX_NONE || PelvisIndex == INDEX_NONE)
 		{
-			Error = FText::Format(LOCTEXT("MissingPelvis", "骨架缺少配置的骨盆 {0}，请在项目设置中指定正确骨骼。"), FText::FromName(Settings->PelvisBone)).ToString();
+			Error = FText::Format(LOCTEXT("MissingRootOrPelvis", "骨架缺少配置的 UE Root {0} 或骨盆 {1}，请在项目设置中指定正确骨骼。"), FText::FromName(Settings->RootBone), FText::FromName(Settings->PelvisBone)).ToString();
 			return false;
+		}
+		for (int32 AncestorIndex = PelvisIndex; AncestorIndex != INDEX_NONE; AncestorIndex = RefSkeleton.GetParentIndex(AncestorIndex))
+		{
+			if (AncestorIndex == RootIndex)
+			{
+				break;
+			}
+			if (RefSkeleton.GetParentIndex(AncestorIndex) == INDEX_NONE)
+			{
+				Error = LOCTEXT("RootNotPelvisAncestor", "配置的 UE Root 必须是骨盆的祖先，不能从无关骨骼建立相对姿态。").ToString();
+				return false;
+			}
 		}
 		TArray<FName> Names;
 		TArray<int32> SourceIndices;
@@ -82,7 +95,7 @@ namespace
 				Names.Add(RefSkeleton.GetBoneName(Index));
 			}
 		}
-		const TArray<FName> Required = { Settings->LeftHipBone, Settings->RightHipBone, Settings->LeftFootBone, Settings->LeftToeBone, Settings->RightFootBone, Settings->RightToeBone };
+		const TArray<FName> Required = { Settings->LeftHipBone, Settings->RightHipBone, Settings->LeftFootBone, Settings->LeftToeBone, Settings->RightFootBone, Settings->RightToeBone, Settings->LeftHandBone, Settings->RightHandBone };
 		if (Names.IsEmpty() || Names.Num() > 512 || FrameCount * Names.Num() > 250000)
 		{
 			Error = LOCTEXT("InvalidSkeleton", "骨骼数超过 512，或帧数乘骨骼数超过 250000；请检查配置或拆分动画。").ToString();
@@ -111,10 +124,14 @@ namespace
 			return false;
 		}
 		TSharedRef<FJsonObject> Document = MakeShared<FJsonObject>();
-		Document->SetNumberField(TEXT("schema_version"), 1);
+		Document->SetNumberField(TEXT("schema_version"), 2);
 		Document->SetStringField(TEXT("asset"), Animation->GetPathName());
 		Document->SetStringField(TEXT("skeleton"), Skeleton->GetPathName());
-		Document->SetStringField(TEXT("coordinate_system"), TEXT("unreal_component_cm_xyzw"));
+		Document->SetStringField(TEXT("coordinate_system"), TEXT("unreal_root_relative_cm_xyzw"));
+		Document->SetStringField(TEXT("root_policy"), TEXT("separate_authoritative"));
+		Document->SetStringField(TEXT("pose_policy"), TEXT("pelvis_subtree_relative_to_root"));
+		Document->SetStringField(TEXT("root_bone"), Settings->RootBone.ToString());
+		Document->SetStringField(TEXT("pelvis_bone"), Settings->PelvisBone.ToString());
 		Document->SetNumberField(TEXT("fps"), SourceRate.AsDecimal());
 		Document->SetNumberField(TEXT("source_fps_numerator"), SourceRate.Numerator);
 		Document->SetNumberField(TEXT("source_fps_denominator"), SourceRate.Denominator);
@@ -127,9 +144,15 @@ namespace
 		Document->SetArrayField(TEXT("timestamps_seconds"), SampleTimes);
 		Document->SetNumberField(TEXT("duration_seconds"), Duration);
 		TArray<TSharedPtr<FJsonValue>> Bones;
+		const FTransform& RootReferenceTransform = UAnimPoseExtensions::GetRefBonePose(ReferencePose, Settings->RootBone, EAnimPoseSpaces::World);
+		if (RootReferenceTransform.ContainsNaN() || !RootReferenceTransform.GetScale3D().Equals(FVector::OneVector, 0.0001))
+		{
+			Error = LOCTEXT("InvalidRootReferenceTransform", "UE Root 参考姿态包含非单位缩放或无效变换，请先规范化骨架。").ToString();
+			return false;
+		}
 		for (int32 Index = 0; Index < Names.Num(); ++Index)
 		{
-			const FTransform& Transform = UAnimPoseExtensions::GetRefBonePose(ReferencePose, Names[Index], EAnimPoseSpaces::World);
+			const FTransform Transform = UAnimPoseExtensions::GetRefBonePose(ReferencePose, Names[Index], EAnimPoseSpaces::World).GetRelativeTransform(RootReferenceTransform);
 			if (Transform.ContainsNaN() || !Transform.GetScale3D().Equals(FVector::OneVector, 0.0001))
 			{
 				Error = LOCTEXT("InvalidReferenceTransform", "参考姿态包含非单位缩放或无效变换，请先规范化骨架。").ToString();
@@ -152,9 +175,11 @@ namespace
 		Roles->SetStringField(TEXT("right_foot"), Settings->RightFootBone.ToString());
 		Roles->SetStringField(TEXT("left_toe"), Settings->LeftToeBone.ToString());
 		Roles->SetStringField(TEXT("right_toe"), Settings->RightToeBone.ToString());
+		Roles->SetStringField(TEXT("left_hand"), Settings->LeftHandBone.ToString());
+		Roles->SetStringField(TEXT("right_hand"), Settings->RightHandBone.ToString());
 		Document->SetObjectField(TEXT("roles"), Roles);
 
-		// 使用原始求值且保留 root 运动，不依赖预览网格比例或压缩缓存。
+		// 使用原始求值保留完整 Root 轨道，再将身体变换改写到 Root 局部空间；两套数据不能在求值阶段提前混合。
 		FAnimPoseEvaluationOptions Options;
 		Options.EvaluationType = EAnimDataEvalType::Raw;
 		Options.bShouldRetarget = false;
@@ -162,6 +187,7 @@ namespace
 		Options.bIncorporateRootMotionIntoPose = true;
 		Options.bEvaluateCurves = false;
 		TArray<TSharedPtr<FJsonValue>> Frames;
+		TArray<TSharedPtr<FJsonValue>> RootFrames;
 		for (int32 FrameIndex = 0; FrameIndex < FrameCount; ++FrameIndex)
 		{
 			Progress.EnterProgressFrame(1.0f / static_cast<float>(FrameCount));
@@ -180,6 +206,20 @@ namespace
 			TArray<FName> EvaluatedNames;
 			UAnimPoseExtensions::GetBoneNames(Pose, EvaluatedNames);
 			const TSet<FName> EvaluatedNameSet(EvaluatedNames);
+			if (!EvaluatedNameSet.Contains(Settings->RootBone))
+			{
+				Error = FText::Format(LOCTEXT("MissingEvaluatedRoot", "动画姿态缺少 UE Root 骨骼 {0}，无法分离权威轨道。"), FText::FromName(Settings->RootBone)).ToString();
+				return false;
+			}
+			const FTransform& RootTransform = UAnimPoseExtensions::GetBonePose(Pose, Settings->RootBone, EAnimPoseSpaces::World);
+			if (RootTransform.ContainsNaN() || !RootTransform.GetScale3D().Equals(FVector::OneVector, 0.0001))
+			{
+				Error = LOCTEXT("UnsupportedRootPose", "UE Root 包含无效数值或缩放；当前权威轨道要求刚性变换。").ToString();
+				return false;
+			}
+			const FVector RootPosition = RootTransform.GetTranslation();
+			const FQuat RootRotation = RootTransform.GetRotation();
+			RootFrames.Add(MakeShared<FJsonValueArray>(Numbers({ RootPosition.X, RootPosition.Y, RootPosition.Z, RootRotation.X, RootRotation.Y, RootRotation.Z, RootRotation.W })));
 			TArray<TSharedPtr<FJsonValue>> Transforms;
 			for (FName Name : Names)
 			{
@@ -188,7 +228,7 @@ namespace
 					Error = FText::Format(LOCTEXT("MissingEvaluatedBone", "动画姿态缺少骨骼 {0}，无法导出完整身体姿态。"), FText::FromName(Name)).ToString();
 					return false;
 				}
-				const FTransform& Transform = UAnimPoseExtensions::GetBonePose(Pose, Name, EAnimPoseSpaces::World);
+				const FTransform Transform = UAnimPoseExtensions::GetBonePose(Pose, Name, EAnimPoseSpaces::World).GetRelativeTransform(RootTransform);
 				if (Transform.ContainsNaN() || !Transform.GetScale3D().Equals(FVector::OneVector, 0.0001))
 				{
 					Error = LOCTEXT("UnsupportedPose", "动画缺少骨骼、包含无效数值或缩放；当前训练表示要求刚性骨骼。").ToString();
@@ -201,6 +241,7 @@ namespace
 			Frames.Add(MakeShared<FJsonValueArray>(Transforms));
 		}
 		Document->SetArrayField(TEXT("frames"), Frames);
+		Document->SetArrayField(TEXT("root_frames"), RootFrames);
 		if (!WriteJson(Path, Document))
 		{
 			Error = LOCTEXT("WriteFailed", "无法写入动画数据文件，请检查输出目录和磁盘空间。").ToString();
@@ -254,7 +295,8 @@ namespace
 		}
 
 		TSharedRef<FJsonObject> Manifest = MakeShared<FJsonObject>();
-		Manifest->SetNumberField(TEXT("schema_version"), 1);
+		Manifest->SetNumberField(TEXT("schema_version"), 2);
+		Manifest->SetStringField(TEXT("training_contract"), TEXT("pose_only_root_authoritative"));
 		Manifest->SetArrayField(TEXT("clips"), Files);
 		TSharedRef<FJsonObject> Report = MakeShared<FJsonObject>();
 		Report->SetNumberField(TEXT("candidate_anim_sequences"), Assets.Num());

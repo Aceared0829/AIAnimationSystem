@@ -22,11 +22,11 @@ from motionbricks.helper.pl_util import load_motion_rep
 class DatasetContract(pl.Callback):
     """检查点携带骨架和配置契约，阻止把 G1 或其他数据集权重误用于此训练。"""
 
-    def __init__(self, signature, kind, config):
-        self.signature, self.kind, self.config = signature, kind, config
+    def __init__(self, signature, kind, config, training_contract="legacy_root_in_pose"):
+        self.signature, self.kind, self.config, self.training_contract = signature, kind, config, training_contract
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
-        checkpoint["unreal_contract"] = {"signature": self.signature, "kind": self.kind, "config": self.config}
+        checkpoint["unreal_contract"] = {"signature": self.signature, "kind": self.kind, "training_contract": self.training_contract, "config": self.config}
 
     def on_train_start(self, trainer, pl_module):
         # Lightning 恢复检查点后才执行此回调；此时旧调度器状态已覆盖构建时的新周期。
@@ -120,6 +120,8 @@ def train(args):
         raise ValueError("训练步数和批次大小必须为正数")
     pl.seed_everything(args.seed, workers=True)
     dataset = UnrealMotionDataset(args.dataset)
+    if dataset.manifest.get("training_contract") == "pose_only_root_authoritative" and args.model == "root":
+        raise ValueError("Pose-only 数据集的世界移动由 CMC/Mover 权威提供，禁止训练 Root 模型")
     indices = training_indices(dataset.manifest)
     signature = dataset.manifest["training_signature"]
     conf = build_config(args, dataset)
@@ -154,7 +156,7 @@ def train(args):
     OmegaConf.save(conf, output / "config.yaml")
     checkpoint = ModelCheckpoint(dirpath=str(output / "checkpoints"), every_n_train_steps=max(1, min(getattr(args, "checkpoint_every", 1000), args.max_steps)), save_last=True, save_top_k=-1)
     trainer = pl.Trainer(max_steps=args.max_steps, accelerator=args.accelerator, devices=1, logger=CSVLogger(str(output), name="metrics"),
-                         callbacks=[checkpoint, DatasetContract(signature, args.model, config)], gradient_clip_val=1.0, num_sanity_val_steps=0, log_every_n_steps=1)
+                         callbacks=[checkpoint, DatasetContract(signature, args.model, config, dataset.manifest.get("training_contract", "legacy_root_in_pose"))], gradient_clip_val=1.0, num_sanity_val_steps=0, log_every_n_steps=1)
     if getattr(args, "native_quality", False):
         categories = [dataset.manifest["clips"][i]["labels"]["category"] for i in indices]
         counts = Counter(categories)

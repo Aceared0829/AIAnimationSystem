@@ -64,7 +64,8 @@ def export(checkpoint, output, decoder_only=False):
               "package_bytes": sum(p.stat().st_size for p in output.rglob("*") if p.is_file()),
               "parameters": sum(p.numel() for p in net.parameters()), "state_bitwise_equal": True, "inference_mode": conf.inference_mode,
               "weights_sha256": weights_digest, "token_codebook_sha256": codebook_digest.hexdigest(),
-              "signature": contract["signature"], "limitations": "不含优化器，不可恢复训练；不是 ONNX/TensorRT 或 UE 部署格式。decoder_only 仅接受兼容码本的 token，不能独立编码动作或从文字生成动作。"}
+              "signature": contract["signature"], "training_contract": contract.get("training_contract", "legacy_root_in_pose"),
+              "limitations": "不含优化器，不可恢复训练；不是 ONNX/TensorRT 或 UE 部署格式。decoder_only 仅接受兼容码本的 token，不能独立编码动作或从文字生成动作。"}
     (output / "manifest.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf8")
     return report
 
