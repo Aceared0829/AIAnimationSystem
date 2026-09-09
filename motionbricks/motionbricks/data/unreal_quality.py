@@ -42,6 +42,7 @@ class PoseAwareBatchSampler(Sampler):
 def collate_native(batch):
     result = collate_batch(batch)
     result["valid_frames"] = torch.tensor([item["valid_frames"] for item in batch])
+    result["is_traversal"] = torch.tensor([item.get("labels", {}).get("category") == "Traversal" for item in batch])
     return result
 
 
@@ -68,11 +69,13 @@ class UnrealQualityVQVAE(MotionVQVAEModel):
         if self.args.get("pose_aware_sampling", False):
             frames = min(frames, max(4, math.ceil(int(lengths.min()) / 4) * 4))
         segments, masks = [], []
+        traversal_samples = []
         for _ in range(int(self.args["batchsize_mul_factor"])):
             for index, length in enumerate(lengths.tolist()):
                 segment, mask = sample_native_segment(source[index], length, frames)
                 segments.append(segment)
                 masks.append(mask)
+                traversal_samples.append(batch["is_traversal"][index])
         global_motion = torch.stack(segments)
         mask = torch.stack(masks)
         # 旋转增强保留真实采样间隔和动作时长。
@@ -98,7 +101,12 @@ class UnrealQualityVQVAE(MotionVQVAEModel):
         pose_loss = masked_mean(F.smooth_l1_loss(relative_pred, relative_gt, reduction="none", beta=0.05), mask)
         root_loss = masked_mean(F.smooth_l1_loss(pred[:, :, 0], gt[:, :, 0], reduction="none", beta=0.05), mask)
         fidx = self.motion_rep.skeleton.foot_joint_idx
+        hidx = self.motion_rep.skeleton.hand_joint_idx
         endpoint_loss = masked_mean(F.smooth_l1_loss(relative_pred[:, :, fidx], relative_gt[:, :, fidx], reduction="none", beta=0.05), mask)
+        hand_loss = masked_mean(F.smooth_l1_loss(relative_pred[:, :, hidx], relative_gt[:, :, hidx], reduction="none", beta=0.05), mask)
+        traversal_mask = torch.stack(traversal_samples).to(mask.device)[:, None].expand_as(mask) & mask
+        key_joint_indices = list(hidx) + list(fidx)
+        traversal_loss = masked_mean(F.smooth_l1_loss(relative_pred[:, :, key_joint_indices], relative_gt[:, :, key_joint_indices], reduction="none", beta=0.05), traversal_mask)
         pair_mask = mask[:, 1:] & mask[:, :-1]
         velocity_loss = masked_mean(F.smooth_l1_loss(torch.diff(pred, dim=1) * self.motion_rep.fps,
                                                     torch.diff(gt, dim=1) * self.motion_rep.fps, reduction="none"), pair_mask)
@@ -107,9 +115,12 @@ class UnrealQualityVQVAE(MotionVQVAEModel):
         foot_speed = torch.linalg.vector_norm(torch.diff(pred[:, :, fidx], dim=1) * self.motion_rep.fps, dim=-1)
         contact_loss = masked_mean(foot_speed, contact * pair_mask[..., None])
         geometry = self.args.get("ue_geometry_coeff", 1.0)
+        hand_coeff = self.args.get("ue_hand_endpoint_coeff", 0.0)
+        traversal_coeff = self.args.get("ue_traversal_endpoint_coeff", 0.0)
         loss = recon_loss + self.args["commit_loss_coeff"] * result["l_commit"]
-        loss = loss + geometry * (pose_loss + root_loss + 0.5 * endpoint_loss + 0.05 * velocity_loss + 0.005 * contact_loss)
+        loss = loss + geometry * (pose_loss + root_loss + 0.5 * endpoint_loss + hand_coeff * hand_loss + traversal_coeff * traversal_loss + 0.05 * velocity_loss + 0.005 * contact_loss)
         for key, value in {"loss": loss, "recon": recon_loss, "pose_m": pose_loss, "root_m": root_loss, "feet_m": endpoint_loss,
+                           "hands_m": hand_loss, "traversal_key_joints_m": traversal_loss,
                            "velocity": velocity_loss, "contact": contact_loss, "perplexity": result["perplexity"]}.items():
             self.log(f"loss/train_{key}", value, on_step=True, on_epoch=False, batch_size=len(segments))
         return loss

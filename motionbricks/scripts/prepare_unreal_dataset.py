@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from motionbricks.data.unreal_dataset import contained_file, convert_clip, convert_root_track, derive_motion_labels, read_json, skeleton_signature, training_bones, training_signature, UnrealSkeleton, world_foot_contacts
+from motionbricks.data.unreal_dataset import contained_file, convert_clip, convert_root_track, derive_motion_annotations, derive_motion_labels, read_json, skeleton_signature, training_bones, training_signature, UnrealSkeleton, world_foot_contacts
 from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import DualRootGlobalJoints
 
 MIN_TRAINING_FRAMES = 65
@@ -101,10 +101,14 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
         if root_track is not None:
             raw_fields["root_track"] = root_track
         np.savez_compressed(output / raw_path, **raw_fields)
+        labels = derive_motion_labels(clip["asset"], source_frames)
+        annotations = derive_motion_annotations(clip["asset"], root_track, timestamps, contacts[:source_frames].numpy() if contacts is not None else None) if root_track is not None else None
+        if annotations is not None:
+            labels["motion"] = annotations
         clips.append({"file": path, "asset": clip["asset"], "frames": len(features), "source_frames": source_frames,
                       "raw_file": raw_path, "source_file": filename, "split": partition, "group": group,
                       "duration_seconds": clip.get("duration_seconds"), "sampling_policy": clip.get("sampling_policy", "legacy"),
-                      "labels": derive_motion_labels(clip["asset"], source_frames)})
+                      "labels": labels})
     if not clips:
         raise ValueError("没有通过特征与长度校验的动画，无法生成训练集")
     if total == 0:

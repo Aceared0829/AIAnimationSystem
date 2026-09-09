@@ -13,6 +13,7 @@ import torch
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 from evaluate_unreal_vqvae import load_vqvae, preview_timing
+from evaluate_native_quality import select_evaluation_indices, verify_same_partition
 from export_unreal_inference import load_package
 from export_native_gallery import export
 from train_unreal import training_indices
@@ -22,6 +23,25 @@ from test_unreal_dataset import fixture, prepare_function
 
 
 class ReviewRegressions(unittest.TestCase):
+    def test_holdout_selection_never_includes_training_clips(self):
+        manifest = {"clips": [
+            {"split": "train", "labels": {"category": "Traversal"}},
+            {"split": "validation", "labels": {"category": "Traversal"}},
+            {"split": "test", "labels": {"category": "Traversal"}},
+            {"split": "validation", "labels": {"category": "Walk"}},
+        ]}
+        self.assertEqual(select_evaluation_indices(manifest, "holdout", ["Traversal"]), [1, 2])
+
+    def test_partition_verification_allows_label_only_manifest_changes(self):
+        current = {"clips": [{"asset": "/Game/A", "split": "validation", "labels": {"motion": {"speed": 1}}}]}
+        baseline = {"clips": [{"asset": "/Game/A", "split": "validation"}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            (folder / "dataset.json").write_text(json.dumps(baseline), encoding="utf8")
+            verified, method = verify_same_partition(current, {"config": {"data": {"folder": str(folder)}}}, "different")
+        self.assertTrue(verified)
+        self.assertEqual(method, "asset_split_map")
+
     def test_last_native_window_includes_last_real_frame(self):
         motion = torch.arange(9)[:, None]
         with patch("numpy.random.randint", side_effect=lambda high: high - 1):

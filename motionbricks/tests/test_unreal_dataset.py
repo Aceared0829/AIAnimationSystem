@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from scipy.spatial.transform import Rotation
 
-from motionbricks.data.unreal_dataset import UE_TO_MOTION, UnrealMotionDataset, UnrealSkeleton, convert_clip, convert_root_track, derive_motion_labels, validate_clip, world_foot_contacts
+from motionbricks.data.unreal_dataset import UE_TO_MOTION, UnrealMotionDataset, UnrealSkeleton, apply_authoritative_root, convert_clip, convert_root_track, derive_motion_annotations, derive_motion_labels, validate_clip, world_foot_contacts
 
 
 def fixture():
@@ -74,6 +74,28 @@ class UnrealDatasetTests(unittest.TestCase):
         clip["root_frames"] = clip["root_frames"][:-1]
         with self.assertRaisesRegex(ValueError, "root_frames"):
             validate_clip(clip)
+
+    def test_authoritative_root_reconstructs_world_motion(self):
+        clip = pose_only_fixture()
+        positions, _, _ = convert_clip(clip)
+        root_track = convert_root_track(clip)
+        world = apply_authoritative_root(positions, root_track)
+        np.testing.assert_allclose(world[:, 0, 2], root_track[:, 2], atol=1e-6)
+        self.assertGreater(np.linalg.norm(world[-1, 0] - world[0, 0]), 0.4)
+
+    def test_motion_annotations_use_root_track_without_inventing_environment(self):
+        clip = pose_only_fixture()
+        root_track = convert_root_track(clip)
+        annotations = derive_motion_annotations("/Game/Animations/Traversal/Hurdle_low_run", root_track, np.arange(len(root_track)) / clip["fps"])
+        self.assertEqual(annotations["trajectory_source"], "exported_ue_root")
+        self.assertEqual(annotations["obstacle_height_class"], "low")
+        self.assertEqual(annotations["approach_gait"], "run")
+        self.assertGreater(annotations["trajectory_length_m"], 0.4)
+        self.assertEqual(len(annotations["trajectory_samples_root_space_m"]), 9)
+        self.assertIsNone(annotations["facing_velocity_angle_deg"])
+        self.assertEqual(annotations["facing_reference_status"], "unavailable_without_model_forward_axis")
+        self.assertEqual(annotations["environment_context"]["status"], "unavailable_from_animation_asset")
+        self.assertIsNone(annotations["environment_context"]["left_hand_target"])
 
     def test_pose_only_contacts_use_reconstructed_world_motion(self):
         clip = pose_only_fixture()
