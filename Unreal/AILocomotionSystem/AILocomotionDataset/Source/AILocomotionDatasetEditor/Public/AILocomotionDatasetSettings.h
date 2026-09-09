@@ -14,7 +14,11 @@ class AILOCOMOTIONDATASETEDITOR_API UAILocomotionDatasetSettings : public UDevel
 	GENERATED_BODY()
 
 public:
-	/** 作为模型根节点的骨盆。导出该骨骼及全部子骨骼，祖先运动会合入组件空间姿态。 */
+	/** 只承载角色整体运动的 UE Root；导出时从身体姿态中剥离，并单独写入审计轨道。 */
+	UPROPERTY(Config, EditAnywhere, Category="Skeleton")
+	FName RootBone = TEXT("root");
+
+	/** 作为模型身体根节点的骨盆。导出该骨骼及全部子骨骼，并保存为相对 UE Root 的姿态。 */
 	UPROPERTY(Config, EditAnywhere, Category="Skeleton")
 	FName PelvisBone = TEXT("pelvis");
 
@@ -41,6 +45,14 @@ public:
 	/** 右前脚掌接触点。 */
 	UPROPERTY(Config, EditAnywhere, Category="Skeleton")
 	FName RightToeBone = TEXT("ball_r");
+
+	/** 左手运行时 IK 的语义骨骼；必须位于骨盆子树且不能与其他语义骨骼重复。 */
+	UPROPERTY(Config, EditAnywhere, Category="Skeleton")
+	FName LeftHandBone = TEXT("hand_l");
+
+	/** 右手运行时 IK 的语义骨骼；必须位于骨盆子树且不能与其他语义骨骼重复。 */
+	UPROPERTY(Config, EditAnywhere, Category="Skeleton")
+	FName RightHandBone = TEXT("hand_r");
 
 	/** 兼容旧配置的保留字段；导出始终读取源 AnimDataModel 的帧率，此值不再控制采样。 */
 	UPROPERTY(Config)

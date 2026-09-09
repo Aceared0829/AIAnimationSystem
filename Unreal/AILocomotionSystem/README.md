@@ -6,7 +6,7 @@
 
 本仓库以 `main` 作为主分支；插件与训练数据功能按实验性能力维护，未经独立动作质量评估不视为稳定能力。
 
-当前实现 `AILocomotionDataset`：从项目中的 `UAnimSequence` 读取骨架和动画，生成可用于训练自有 UE 骨架模型的数据。模型推理与 AnimGraph 输出插件尚未实现。
+当前实现 `AILocomotionDataset`：从项目中的 `UAnimSequence` 读取骨架和动画，将 UE Root 权威轨道与 Root 局部空间中的身体姿态分离，生成可用于训练自有 UE 骨架 Pose 模型的数据。模型推理与 AnimGraph 输出插件尚未实现。
 
 [完整开发方案：多人联机、CMC / Mover、统一人形模型与训练路线](LocomotionPlan.md)。方案先概述后展开，明确第一阶段范围、模块职责、实施顺序和验收标准；规划能力尚未完整实现。
 
@@ -14,7 +14,7 @@
 
 1. 把本目录复制到 UE 项目的 `Plugins/AILocomotionSystem/`。外层不放 `.uplugin`，里面的每个目录才是独立插件。
 2. 为项目编译 Editor 目标，启用 **AI Locomotion Dataset**。当前接口依据本机 UE 5.8.2 源码实现。
-3. 在项目设置中搜索 **AI Locomotion 动画数据**，设置骨盆、左右髋、脚踝和脚掌。导出按源 AnimDataModel 的帧率与采样键求值，记录有理数帧率和逐帧时间戳；不再受旧 SampleRate 设置影响。默认名称适用于常见 Manny/Quinn 命名，但会按实际资产检查，不能仅凭“UE 骨架”认定兼容。
+3. 在项目设置中搜索 **AI Locomotion 动画数据**，设置 UE Root、骨盆、左右髋、脚踝、脚掌和双手。导出按源 AnimDataModel 的帧率与采样键求值，记录有理数帧率和逐帧时间戳；不再受旧 SampleRate 设置影响。默认名称适用于常见 Manny/Quinn 命名，但会按实际资产检查，不能仅凭“UE 骨架”认定兼容。
 4. 在内容浏览器多选 `AnimSequence`，点击主菜单 **工具 → AI Locomotion：导出选中动画**。
 5. 完整导出批次位于项目 `Saved/AILocomotionDataset/<唯一编号>/`，包含 `manifest.json`、每段动画的 JSON，以及批量模式下的 `batch_report.json`。
 
@@ -49,10 +49,9 @@ uv pip install --python .venv/Scripts/python.exe --no-deps -e motionbricks
 
 .venv/Scripts/python.exe motionbricks/scripts/train_unreal.py --model pose --dataset motionbricks/unreal_data/walk --output motionbricks/unreal_runs/pose --vqvae motionbricks/unreal_runs/vqvae/checkpoints/final.ckpt --max_steps 10000
 
-.venv/Scripts/python.exe motionbricks/scripts/train_unreal.py --model root --dataset motionbricks/unreal_data/walk --output motionbricks/unreal_runs/root --max_steps 10000
 ```
 
-Root 不依赖 VQ-VAE，可独立训练。Pose 必须使用本数据集训练的 VQ-VAE，检查点绑定骨架及归一化统计量，不允许使用原 G1 权重。Pose 续训还会核对 VQ-VAE 文件哈希，避免换码本后误用原模型。
+Schema v2 数据集声明 `pose_only_root_authoritative`：Root 世界运动由 CMC、Mover 或受控 Traversal Warp 提供，因此训练入口会拒绝 Root 模型。Pose 必须使用本数据集训练的 VQ-VAE，检查点绑定骨架及归一化统计量，不允许使用原 G1 权重。Pose 续训还会核对 VQ-VAE 文件哈希，避免换码本后误用原模型。旧 Schema v1 数据仍保留兼容读取能力，但不能冒充新的 Root/Pelvis 契约。
 
 训练会保存 `config.yaml`、CSV 训练指标、周期检查点、`last.ckpt` 和正常完成时的 `final.ckpt`。使用 `--resume 路径` 恢复模型、优化器和训练步数；`--max_steps` 是恢复后总步数，学习率周期按本次总步数重新计算并从已恢复的步数继续。Pose 续训仍需提供原 VQ-VAE。只加载可信的本地检查点。
 
@@ -83,8 +82,8 @@ Root 不依赖 VQ-VAE，可独立训练。Pose 必须使用本数据集训练的
 
 ## 数据约定与支持边界
 
-- 原始导出：组件空间位置（厘米）、四元数 `xyzw`、参考姿态、父子索引和骨骼角色。JSON 明确标记 `unreal_component_cm_xyzw`。
-- 身体根节点默认 `pelvis`，保留它的全部子骨骼。根骨骼及其他祖先的运动通过组件空间姿态合入骨盆轨迹；模型使用骨盆根节点，不单独训练 UE 的 `root` 轨道。身体树外的 IK 辅助骨骼不参与训练。
+- Schema v2 原始导出：`root_frames` 保存组件空间 UE Root 审计轨道；`frames` 保存 Root 局部空间中的骨盆子树，单位为厘米、旋转为四元数 `xyzw`，JSON 明确标记 `unreal_root_relative_cm_xyzw`。
+- 身体根节点默认 `pelvis`，保留它的全部子骨骼。UE Root 不进入训练骨架，也不由模型生成；它的世界移动在运行时由 CMC、Mover 或受控 Traversal Warp 提供。身体树外的 IK 辅助骨骼不参与训练，双手与双脚语义骨用于运行时 IK/warping 对接。
 - 转换：`Motion(X,Y,Z) = UE(-Y,Z,X) / 100`。旋转执行基变换，并消除每根骨骼的参考旋转，使其符合现有 FK 算法。将来输出 UE 动画时必须恢复参考骨轴。
 - 每个身体骨架有 J 根骨骼时，全局训练特征维数为 `12J + 6`，局部为 `12J + 5`，双表示为 `12J + 10`；不再固定为 G1 的 414 维。
 - 每个数据集只能包含一致的骨架拓扑、参考姿态、语义映射和帧率。不同 `USkeleton` 路径但结构完全一致可以共用；结构不一致须分开处理。

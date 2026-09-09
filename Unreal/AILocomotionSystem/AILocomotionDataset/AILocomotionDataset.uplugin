@@ -1,9 +1,9 @@
 {
   "FileVersion": 3,
-  "Version": 1,
-  "VersionName": "0.1.0",
+  "Version": 2,
+  "VersionName": "0.2.0",
   "FriendlyName": "AI Locomotion Dataset",
-  "Description": "从 Unreal 动画资产采样骨骼数据，用于 MotionBricks 训练。",
+  "Description": "从 Unreal 动画资产分离权威 Root 轨道与相对身体姿态，用于 Pose-only 训练。",
   "Category": "Animation",
   "CreatedBy": "ZhaoZining",
   "CanContainContent": false,

@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from motionbricks.data.unreal_dataset import contained_file, convert_clip, derive_motion_labels, read_json, skeleton_signature, training_bones, training_signature, UnrealSkeleton
+from motionbricks.data.unreal_dataset import contained_file, convert_clip, convert_root_track, derive_motion_labels, read_json, skeleton_signature, training_bones, training_signature, UnrealSkeleton, world_foot_contacts
 from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import DualRootGlobalJoints
 
 MIN_TRAINING_FRAMES = 65
@@ -19,8 +19,12 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
     if short_clip_policy not in {"reject", "hold"}:
         raise ValueError("短片段策略必须是 reject 或 hold")
     manifest = read_json(source / "manifest.json")
-    if manifest.get("schema_version") != 1 or not manifest.get("clips"):
+    manifest_version = manifest.get("schema_version")
+    if manifest_version not in (1, 2) or not manifest.get("clips"):
         raise ValueError("导出批次缺少有效清单")
+    pose_only = manifest_version == 2 and manifest.get("training_contract") == "pose_only_root_authoritative"
+    if manifest_version == 2 and not pose_only:
+        raise ValueError("Schema v2 批次缺少 pose_only_root_authoritative 训练契约")
     # 新目录避免覆盖已有训练数据；仅最后写 dataset.json，失败目录不会被识别为完整训练集。
     output.mkdir(parents=True, exist_ok=False)
     metadata, signature, total, sum_x, sum_x2 = None, None, 0, None, None
@@ -32,6 +36,9 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
             if native_fps is not None and abs(clip["fps"] - native_fps) > 1e-6:
                 continue
             positions, rotations, neutral = convert_clip(clip)
+            if clip.get("schema_version") != manifest_version:
+                raise ValueError("动画协议版本与批次清单不一致")
+            root_track = convert_root_track(clip)
             source_frames = len(positions)
             timestamps = np.asarray(clip.get("timestamps_seconds", np.arange(source_frames) / clip["fps"]), dtype=np.float64)
             if timestamps.shape != (source_frames,) or not np.isfinite(timestamps).all() or abs(timestamps[0]) > 2e-6 or np.any(np.diff(timestamps) <= 0):
@@ -56,14 +63,20 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
             if signature is None:
                 signature = current_signature
                 metadata = {key: clip[key] for key in ("roles", "coordinate_system", "fps")}
+                for key in ("root_bone", "pelvis_bone", "root_policy", "pose_policy"):
+                    if key in clip:
+                        metadata[key] = clip[key]
                 metadata["bones"] = training_bones(clip["bones"])
                 metadata["neutral_joints"] = neutral.tolist()
                 (output / "skeleton.json").write_text(json.dumps(metadata, ensure_ascii=False), encoding="utf-8")
                 skeleton = UnrealSkeleton(output)
                 representation = DualRootGlobalJoints(fps=clip["fps"], skeleton=skeleton, name="unreal_dual_root_global_joints")
-            # 地面仍为 UE 的 Z=0；不自动把腾空动作落到地面。
+            contacts = world_foot_contacts(positions[:source_frames], root_track, skeleton, clip["fps"])
+            if contacts is not None and len(positions) > source_frames:
+                contacts = torch.cat([contacts, contacts[-1:].repeat(len(positions) - source_frames, 1)])
+            # 身体特征始终处于 Root 局部空间；脚接触由独立 Root 轨道恢复的世界脚速与高度判定。
             with torch.no_grad():
-                features = representation({"posed_joints": torch.from_numpy(positions)[None], "global_joint_rots": torch.from_numpy(rotations)[None]},
+                features = representation({"posed_joints": torch.from_numpy(positions)[None], "global_joint_rots": torch.from_numpy(rotations)[None], "foot_contacts": contacts[None] if contacts is not None else None},
                                           to_normalize=False, lengths=torch.tensor([len(positions)]))[0].numpy()
             if len(features) < MIN_TRAINING_FRAMES or not np.isfinite(features).all():
                 raise ValueError(f"{filename} 特征无效或不足 {MIN_TRAINING_FRAMES} 帧；30 FPS 下请提供至少约 2.2 秒动画")
@@ -84,7 +97,10 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
         path = f"motion_{len(clips):05d}.npy"
         np.save(output / path, features)
         raw_path = f"raw_{len(clips):05d}.npz"
-        np.savez_compressed(output / raw_path, positions=raw_positions, rotations=raw_rotations, timestamps=timestamps)
+        raw_fields = {"positions": raw_positions, "rotations": raw_rotations, "timestamps": timestamps}
+        if root_track is not None:
+            raw_fields["root_track"] = root_track
+        np.savez_compressed(output / raw_path, **raw_fields)
         clips.append({"file": path, "asset": clip["asset"], "frames": len(features), "source_frames": source_frames,
                       "raw_file": raw_path, "source_file": filename, "split": partition, "group": group,
                       "duration_seconds": clip.get("duration_seconds"), "sampling_policy": clip.get("sampling_policy", "legacy"),
@@ -109,10 +125,11 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
         features = np.load(path, allow_pickle=False)
         normalized = ((features - mean) / np.sqrt(std ** 2 + 1e-5))[:, indices]
         np.save(path, normalized.astype(np.float32))
-    dataset = {"schema_version": 1, "fps": metadata["fps"], "feature_dim": len(indices), "skeleton_signature": signature,
+    dataset = {"schema_version": manifest_version, "fps": metadata["fps"], "feature_dim": len(indices), "skeleton_signature": signature,
                "training_signature": training_signature(output), "clips": clips, "rejected_clips": len(rejected),
                "held_short_clips": len(held_short_clips), "short_clip_policy": short_clip_policy,
-               "source": str(source), "split_policy": "asset_family_sha256_80_10_10" if split else "none", "stats_scope": "train_valid_frames"}
+               "source": str(source), "split_policy": "asset_family_sha256_80_10_10" if split else "none", "stats_scope": "train_valid_frames",
+               "training_contract": "pose_only_root_authoritative" if pose_only else "legacy_root_in_pose"}
     (output / "dataset.json").write_text(json.dumps(dataset, ensure_ascii=False, indent=2), encoding="utf-8")
     return dataset
 

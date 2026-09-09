@@ -14,10 +14,24 @@ from unittest.mock import patch
 import numpy as np
 import torch
 
-from test_unreal_dataset import fixture, prepare_function
+from test_unreal_dataset import fixture, pose_only_fixture, prepare_function
 
 
 class UnrealTrainingTests(unittest.TestCase):
+    def test_pose_only_dataset_rejects_root_training(self):
+        script = Path(__file__).resolve().parents[1] / "scripts" / "train_unreal.py"
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            source = folder / "source"
+            source.mkdir()
+            (source / "manifest.json").write_text(json.dumps({"schema_version": 2, "training_contract": "pose_only_root_authoritative", "clips": ["clip.json"]}), encoding="utf-8")
+            (source / "clip.json").write_text(json.dumps(pose_only_fixture()), encoding="utf-8")
+            dataset = folder / "data"
+            prepare_function()(source, dataset)
+            result = subprocess.run([sys.executable, str(script), "--model", "root", "--dataset", str(dataset), "--output", str(folder / "root"), "--max_steps", "1", "--tiny"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Root", result.stderr)
+
     def test_pose_low_focus_probability_has_finite_loss(self):
         from motionbricks.motion_backbone.models.pose_model import MotionModel
 

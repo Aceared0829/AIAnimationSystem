@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from scipy.spatial.transform import Rotation
 
-from motionbricks.data.unreal_dataset import UE_TO_MOTION, UnrealMotionDataset, UnrealSkeleton, convert_clip, derive_motion_labels, validate_clip
+from motionbricks.data.unreal_dataset import UE_TO_MOTION, UnrealMotionDataset, UnrealSkeleton, convert_clip, convert_root_track, derive_motion_labels, validate_clip, world_foot_contacts
 
 
 def fixture():
@@ -32,6 +32,30 @@ def fixture():
             "roles": {"left_hip": "thigh_l", "right_hip": "thigh_r", "left_foot": "foot_l", "left_toe": "ball_l", "right_foot": "foot_r", "right_toe": "ball_r"}}
 
 
+def pose_only_fixture():
+    clip = fixture()
+    clip["schema_version"] = 2
+    clip["coordinate_system"] = "unreal_root_relative_cm_xyzw"
+    clip["root_policy"] = "separate_authoritative"
+    clip["pose_policy"] = "pelvis_subtree_relative_to_root"
+    clip["root_bone"] = "root"
+    clip["pelvis_bone"] = "pelvis"
+    clip["roles"]["left_hand"] = "hand_l"
+    clip["roles"]["right_hand"] = "hand_r"
+    clip["bones"].extend([
+        {"name": "hand_l", "parent": 0, "position": [0, -40, 120], "rotation": [0, 0, 0, 1]},
+        {"name": "hand_r", "parent": 0, "position": [0, 40, 120], "rotation": [0, 0, 0, 1]},
+    ])
+    root_frames = []
+    for index, frame in enumerate(clip["frames"]):
+        frame.extend([[0, -40, 120, 0, 0, 0, 1], [0, 40, 120, 0, 0, 0, 1]])
+        root_frames.append([index * 0.5, 0, 0, 0, 0, 0, 1])
+        for transform in frame:
+            transform[0] -= index * 0.5
+    clip["root_frames"] = root_frames
+    return clip
+
+
 def prepare_function():
     path = Path(__file__).resolve().parents[1] / "scripts" / "prepare_unreal_dataset.py"
     spec = importlib.util.spec_from_file_location("prepare_unreal", path)
@@ -41,6 +65,45 @@ def prepare_function():
 
 
 class UnrealDatasetTests(unittest.TestCase):
+    def test_pose_only_contract_separates_authoritative_root(self):
+        clip = pose_only_fixture()
+        positions, _, _ = convert_clip(clip)
+        root_track = convert_root_track(clip)
+        np.testing.assert_allclose(positions[:, 0], np.tile([0, 1, 0], (len(positions), 1)), atol=1e-6)
+        self.assertGreater(root_track[-1, 2], root_track[0, 2])
+        clip["root_frames"] = clip["root_frames"][:-1]
+        with self.assertRaisesRegex(ValueError, "root_frames"):
+            validate_clip(clip)
+
+    def test_pose_only_contacts_use_reconstructed_world_motion(self):
+        clip = pose_only_fixture()
+        positions, _, _ = convert_clip(clip)
+        root_track = convert_root_track(clip)
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            metadata = {key: clip[key] for key in ("roles", "coordinate_system", "fps", "root_bone", "pelvis_bone", "root_policy", "pose_policy")}
+            metadata["bones"] = clip["bones"]
+            metadata["neutral_joints"] = [bone["position"] for bone in clip["bones"]]
+            (folder / "skeleton.json").write_text(json.dumps(metadata), encoding="utf-8")
+            contacts = world_foot_contacts(positions, root_track, UnrealSkeleton(folder), clip["fps"])
+            self.assertEqual(contacts.shape, (100, 4))
+            self.assertTrue(torch.isfinite(contacts).all())
+
+    def test_prepare_pose_only_dataset_preserves_root_audit_track(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "source"
+            source.mkdir()
+            clip = pose_only_fixture()
+            (source / "manifest.json").write_text(json.dumps({"schema_version": 2, "training_contract": "pose_only_root_authoritative", "clips": ["clip.json"]}), encoding="utf-8")
+            (source / "clip.json").write_text(json.dumps(clip), encoding="utf-8")
+            output = Path(temp) / "prepared"
+            manifest = prepare_function()(source, output)
+            self.assertEqual(manifest["schema_version"], 2)
+            self.assertEqual(manifest["training_contract"], "pose_only_root_authoritative")
+            with np.load(output / manifest["clips"][0]["raw_file"]) as raw:
+                self.assertIn("root_track", raw.files)
+                self.assertEqual(raw["root_track"].shape, (100, 7))
+
     def test_coordinate_and_reference_axes(self):
         positions, rotations, neutral = convert_clip(fixture())
         np.testing.assert_allclose(positions[0, 0], [0, 1, 0])
