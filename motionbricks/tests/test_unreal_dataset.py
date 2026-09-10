@@ -56,12 +56,16 @@ def pose_only_fixture():
     return clip
 
 
-def prepare_function():
+def prepare_module():
     path = Path(__file__).resolve().parents[1] / "scripts" / "prepare_unreal_dataset.py"
     spec = importlib.util.spec_from_file_location("prepare_unreal", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.prepare
+    return module
+
+
+def prepare_function():
+    return prepare_module().prepare
 
 
 class UnrealDatasetTests(unittest.TestCase):
@@ -161,6 +165,14 @@ class UnrealDatasetTests(unittest.TestCase):
         self.assertIn("下蹲", labels["description_zh"])
         transition = derive_motion_labels("/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Transition_Run_to_Walk.M_Neutral_Transition_Run_to_Walk")
         self.assertEqual(transition["action"], "walk")
+
+    def test_traversal_asset_family_ignores_style_gait_height_and_foot(self):
+        module = prepare_module()
+        variants = [
+            "/Game/Animations/Traversal/Hurdle/M_Neutral_Traversal_Hurdle_1_0_run_F_Lfoot",
+            "/Game/Animations/Traversal/Hurdle/M_Relaxed_Traversal_Hurdle_1_0_walk_F_V2_Rfoot",
+        ]
+        self.assertEqual({module.asset_family(asset) for asset in variants}, {"traversal/hurdle"})
 
     def test_reject_bad_topology_and_quaternion(self):
         for mutate in (lambda c: c["bones"][1].update(parent=2), lambda c: c["frames"][0][0].__setitem__(6, 0)):

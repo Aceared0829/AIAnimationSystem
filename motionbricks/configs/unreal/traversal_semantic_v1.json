@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "name": "traversal_semantic_family_60_25_15_v1",
+  "description": "Traversal 按目录级动作语义家族隔离；同家族的风格、速度、高度和左右脚变体不得跨分区。",
+  "groups": {
+    "traversal/catch/cliff": "test",
+    "traversal/catch/hurdle": "validation",
+    "traversal/catch/mantle": "test",
+    "traversal/catch/vault": "validation",
+    "traversal/climb": "train",
+    "traversal/hurdle": "train",
+    "traversal/mantle": "train",
+    "traversal/vault": "train"
+  }
+}

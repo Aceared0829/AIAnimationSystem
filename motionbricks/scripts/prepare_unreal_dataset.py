@@ -14,7 +14,31 @@ from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import Dual
 
 MIN_TRAINING_FRAMES = 65
 
-def prepare(source, output, skip_invalid=False, short_clip_policy="reject", native_fps=None, split=False):
+
+def asset_family(asset):
+    """Traversal 使用目录级语义家族；其他类别保留历史资产变体规则。"""
+    base = str(asset).split(".")[0].lower().replace("\\", "/")
+    parts = [part for part in base.split("/") if part]
+    if "traversal" in parts:
+        traversal_index = parts.index("traversal")
+        if traversal_index < len(parts) - 2:
+            return "/".join(parts[traversal_index:-1])
+    return re.sub(r"(?:_?\d+)+$", "", base)
+
+
+def load_split_plan(path):
+    plan_path = Path(path).resolve()
+    plan = read_json(plan_path)
+    assignments = plan.get("groups")
+    if plan.get("schema_version") != 1 or not isinstance(assignments, dict) or not assignments:
+        raise ValueError("split plan 缺少 schema_version=1 或 groups")
+    invalid = {value for value in assignments.values() if value not in {"train", "validation", "test"}}
+    if invalid:
+        raise ValueError(f"split plan 包含非法分区：{sorted(invalid)}")
+    return plan, hashlib.sha256(plan_path.read_bytes()).hexdigest()
+
+
+def prepare(source, output, skip_invalid=False, short_clip_policy="reject", native_fps=None, split=False, split_plan=None):
     source, output = Path(source).resolve(), Path(output).resolve()
     if short_clip_policy not in {"reject", "hold"}:
         raise ValueError("短片段策略必须是 reject 或 hold")
@@ -25,6 +49,9 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
     pose_only = manifest_version == 2 and manifest.get("training_contract") == "pose_only_root_authoritative"
     if manifest_version == 2 and not pose_only:
         raise ValueError("Schema v2 批次缺少 pose_only_root_authoritative 训练契约")
+    if split_plan and not split:
+        raise ValueError("--split_plan 必须与 --split 一起使用")
+    plan, plan_sha256 = load_split_plan(split_plan) if split_plan else (None, None)
     # 新目录避免覆盖已有训练数据；仅最后写 dataset.json，失败目录不会被识别为完整训练集。
     output.mkdir(parents=True, exist_ok=False)
     metadata, signature, total, sum_x, sum_x2 = None, None, 0, None, None
@@ -85,10 +112,14 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
                 raise
             rejected.append({"file": filename, "asset": clip.get("asset") if clip else None, "error": str(error)})
             continue
-        # 同一目录下去掉末尾数字变体的动作家族只落入一个集合。
-        group = re.sub(r"(?:_?\d+)+$", "", clip["asset"].split(".")[0].lower())
-        bucket = int(hashlib.sha256(group.encode()).hexdigest()[:8], 16) % 10
-        partition = ("test" if bucket == 0 else "validation" if bucket == 1 else "train") if split else "train"
+        group = asset_family(clip["asset"])
+        if plan and group.startswith("traversal/"):
+            if group not in plan["groups"]:
+                raise ValueError(f"Traversal 语义家族未写入 split plan：{group}")
+            partition = plan["groups"][group]
+        else:
+            bucket = int(hashlib.sha256(group.encode()).hexdigest()[:8], 16) % 10
+            partition = ("test" if bucket == 0 else "validation" if bucket == 1 else "train") if split else "train"
         if partition == "train":
             values = features[:source_frames].astype(np.float64)
             total += len(values)
@@ -132,7 +163,8 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
     dataset = {"schema_version": manifest_version, "fps": metadata["fps"], "feature_dim": len(indices), "skeleton_signature": signature,
                "training_signature": training_signature(output), "clips": clips, "rejected_clips": len(rejected),
                "held_short_clips": len(held_short_clips), "short_clip_policy": short_clip_policy,
-               "source": str(source), "split_policy": "asset_family_sha256_80_10_10" if split else "none", "stats_scope": "train_valid_frames",
+               "source": str(source), "split_policy": plan.get("name", "semantic_split_plan_v1") if plan else "asset_family_sha256_80_10_10" if split else "none",
+               "split_plan_sha256": plan_sha256, "stats_scope": "train_valid_frames",
                "training_contract": "pose_only_root_authoritative" if pose_only else "legacy_root_in_pose"}
     (output / "dataset.json").write_text(json.dumps(dataset, ensure_ascii=False, indent=2), encoding="utf-8")
     return dataset
@@ -145,7 +177,8 @@ if __name__ == "__main__":
     parser.add_argument("--skip_invalid", action="store_true", help="记录并跳过不满足特征或训练窗口要求的片段")
     parser.add_argument("--native_fps", type=float, help="只处理此原生帧率组，不改变采样")
     parser.add_argument("--split", action="store_true", help="按动作家族划分独立留出集，统计量仅来自训练有效帧")
+    parser.add_argument("--split_plan", help="显式语义家族分区 JSON；Traversal 家族必须全部列出")
     parser.add_argument("--short_clip_policy", choices=("reject", "hold"), default="reject", help="短片段为 hold 时保持末帧至最小训练窗口")
     args = parser.parse_args()
-    result = prepare(args.input, args.output, args.skip_invalid, args.short_clip_policy, args.native_fps, args.split)
+    result = prepare(args.input, args.output, args.skip_invalid, args.short_clip_policy, args.native_fps, args.split, args.split_plan)
     print(f"已准备 {len(result['clips'])} 段动画，每帧 {result['feature_dim']} 维；跳过 {result['rejected_clips']} 段，保持短片段 {result['held_short_clips']} 段。")
