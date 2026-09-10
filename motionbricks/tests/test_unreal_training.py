@@ -18,6 +18,13 @@ from test_unreal_dataset import fixture, pose_only_fixture, prepare_function
 
 
 class UnrealTrainingTests(unittest.TestCase):
+    def test_negative_endpoint_weight_is_rejected(self):
+        script = Path(__file__).resolve().parents[1] / "scripts" / "train_unreal.py"
+        result = subprocess.run([sys.executable, str(script), "--model", "vqvae", "--dataset", "unused", "--output", "unused",
+                                 "--hand_endpoint_coeff", "-0.1"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("ValueError", result.stderr)
+
     def test_pose_only_dataset_rejects_root_training(self):
         script = Path(__file__).resolve().parents[1] / "scripts" / "train_unreal.py"
         with tempfile.TemporaryDirectory() as directory:

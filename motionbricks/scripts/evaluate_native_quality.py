@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from evaluate_unreal_vqvae import load_vqvae, rotation_error_degrees
 from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+from motionbricks.data.unreal_dataset import apply_authoritative_root
 
 
 @torch.no_grad()
@@ -76,6 +77,34 @@ def measure(reference, predicted):
             "root_end_cm": float(np.linalg.norm(root[-1]) * 100)}
 
 
+def select_evaluation_indices(manifest, split, categories=None):
+    """选择显式留出分区；holdout 合并 validation/test，但永不包含 train。"""
+    allowed_splits = {"validation", "test"} if split == "holdout" else None
+    allowed_categories = set(categories or [])
+    selected = []
+    for index, item in enumerate(manifest["clips"]):
+        split_matches = item["split"] in allowed_splits if allowed_splits is not None else split == "all" or item["split"] == split
+        category_matches = not allowed_categories or item["labels"]["category"] in allowed_categories
+        if split_matches and category_matches:
+            selected.append(index)
+    return selected
+
+
+def verify_same_partition(current_manifest, baseline_contract, current_manifest_hash):
+    """标签扩展不应破坏公平对照；优先哈希，否则逐资产核对 split。"""
+    baseline_data = baseline_contract.get("config", {}).get("data", {})
+    if baseline_data.get("manifest_sha256") == current_manifest_hash:
+        return True, "manifest_sha256"
+    baseline_folder = baseline_data.get("folder")
+    baseline_path = Path(baseline_folder) / "dataset.json" if baseline_folder else None
+    if not baseline_path or not baseline_path.is_file():
+        return False, "unavailable"
+    baseline_manifest = json.loads(baseline_path.read_text(encoding="utf8"))
+    current_partition = {item["asset"]: item.get("split") for item in current_manifest["clips"]}
+    baseline_partition = {item["asset"]: item.get("split") for item in baseline_manifest["clips"]}
+    return current_partition == baseline_partition, "asset_split_map"
+
+
 def evaluate(args):
     torch.set_num_threads(4)
     folder = Path(args.dataset)
@@ -84,17 +113,19 @@ def evaluate(args):
     if contract["signature"] != manifest["training_signature"]:
         raise ValueError("模型与评估数据集契约不一致")
     old = load_vqvae(args.baseline) if args.baseline else None
+    if old and old[2].get("signature") != manifest["training_signature"]:
+        raise ValueError("基线模型与评估数据集训练签名不一致")
     manifest_hash = hashlib.sha256((folder / "dataset.json").read_bytes()).hexdigest()
-    same_holdout = bool(old and all(c.get("config", {}).get("data", {}).get("manifest_sha256") == manifest_hash for c in (contract, old[2])))
+    same_holdout, holdout_verification = verify_same_partition(manifest, old[2], manifest_hash) if old else (False, "no_baseline")
     if old and old[1].fps != rep.fps:
         raise ValueError("禁止用不同帧率模型冒充原生对照")
     if old and (old[1].skeleton.bone_order_names_with_parents != rep.skeleton.bone_order_names_with_parents
                 or not torch.allclose(old[1].skeleton.neutral_joints, rep.skeleton.neutral_joints, atol=1e-6, rtol=0)):
         raise ValueError("基线模型骨架或参考姿态不匹配；此评估不执行重定向")
     groups = defaultdict(list)
-    for i, item in enumerate(manifest["clips"]):
-        if item["split"] == args.split or args.split == "all":
-            groups[item["labels"]["category"]].append(i)
+    for i in select_evaluation_indices(manifest, args.split, args.categories):
+        item = manifest["clips"][i]
+        groups[item["labels"]["category"]].append(i)
     selected = []
     for category, ids in sorted(groups.items()):
         selected.extend(ids if args.per_category == 0 else [ids[j] for j in np.unique(np.linspace(0, len(ids) - 1, min(args.per_category, len(ids)), dtype=int))])
@@ -121,16 +152,25 @@ def evaluate(args):
             from motionbricks.data.unreal_dataset import derive_motion_labels
             preview_group += "/" + derive_motion_labels(item["asset"])["action"]
         if not any(p["preview_group"] == preview_group for p in previews) or len(selected) <= 6:
+            visual_ref, visual_pred, visual_fk, visual_old = ref, pred, fk, old_pred
+            if "root_track" in raw:
+                visual_ref = apply_authoritative_root(ref, raw["root_track"])
+                visual_pred = apply_authoritative_root(pred, raw["root_track"])
+                visual_fk = apply_authoritative_root(fk, raw["root_track"])
+                visual_old = apply_authoritative_root(old_pred, raw["root_track"]) if old_pred is not None else None
             entry = {"name": item["labels"]["asset_name"], "category": item["labels"]["category"], "split": item["split"], "fps": manifest["fps"],
                      "preview_group": preview_group,
-                     "time": raw["timestamps"].tolist(), "ref": ref.round(5).tolist(), "pred": pred.round(5).tolist(), "scores": report}
-            if old_pred is not None:
-                entry["old"] = old_pred.round(5).tolist()
+                     "time": raw["timestamps"].tolist(), "ref": visual_ref.round(5).tolist(), "pred": visual_pred.round(5).tolist(), "scores": report,
+                     "authoritative_root_applied": "root_track" in raw}
+            if visual_old is not None:
+                entry["old"] = visual_old.round(5).tolist()
             else:
-                entry["fk"] = fk.round(5).tolist()
+                entry["fk"] = visual_fk.round(5).tolist()
             for mode in ("first", "ends"):
                 _, conditioned, _, _, _ = decode_raw(net, rep, raw, mode, window_frames=args.window_frames)
                 report[mode] = measure(ref, conditioned)
+                if "root_track" in raw:
+                    conditioned = apply_authoritative_root(conditioned, raw["root_track"])
                 entry[mode] = conditioned.round(5).tolist()
             previews.append(entry)
         samples.append(report)
@@ -143,10 +183,11 @@ def evaluate(args):
     report = {"checkpoint": str(Path(args.checkpoint).resolve()), "dataset": str(folder.resolve()), "fps": manifest["fps"], "split": args.split,
               "training_steps": contract.get("global_step"), "baseline_steps": old[2].get("global_step") if old else None,
               "same_holdout_verified": same_holdout,
+              "holdout_verification": holdout_verification,
               "pose_aware_sampling": contract.get("config", {}).get("model", {}).get("args", {}).get("pose_aware_sampling", False),
               "baseline_checkpoint": str(Path(args.baseline).resolve()) if args.baseline else None,
               "aggregation": "unweighted mean of per-clip metrics", "window_frames": args.window_frames, "sample_count": len(samples), "aggregate": aggregate, "samples": samples,
-              "limitations": ["VQ 编码重建已知动作，不是文本生成。", "新模型留出集按资产名称家族划分，原始录制来源未知，无法保证录制级独立。",
+              "limitations": ["VQ 编码重建已知动作，不是文本生成。", "当前留出为未参与训练的独立动画资产；同类动作的速度、高度或左右脚语义变体仍可能跨分区，不等于语义家族级独立。",
                               "新旧模型使用同一原生数据集的训练分区；本轮没有改变划分。" if same_holdout else "旧基线未验证采用相同留出集；其对照不能解释为独立测试成绩。",
                               "保留骨盆及其后代；非骨盆 UE root、曲线、事件和 additive 不在本次模型输出范围。",
                               "FK 固定骨长不能精确表达所有辅助骨平移；位置特征另行检查。", "骨架预览不是 UE 实际蒙皮角色验收。"]}
@@ -164,7 +205,8 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--baseline")
     parser.add_argument("--output", required=True)
-    parser.add_argument("--split", choices=["train", "validation", "test", "all"], default="test")
+    parser.add_argument("--split", choices=["train", "validation", "test", "holdout", "all"], default="test", help="holdout 只合并 validation 与 test，不包含训练数据")
+    parser.add_argument("--categories", nargs="+", help="只评估指定动作类别，例如 Traversal")
     parser.add_argument("--per_category", type=int, default=0)
     parser.add_argument("--window_frames", type=int, default=0, help="0 为整段推理；否则重叠融合特征后一次积分根轨迹")
     evaluate(parser.parse_args())

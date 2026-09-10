@@ -86,6 +86,8 @@ def build_config(args, dataset):
                 raise ValueError("原生质量训练要求 VQ-VAE 和预先划分的训练/留出集")
             conf.model._target_ = "motionbricks.data.unreal_quality.UnrealQualityVQVAE"
             conf.model.args.ue_geometry_coeff = args.geometry_coeff
+            conf.model.args.ue_hand_endpoint_coeff = args.hand_endpoint_coeff
+            conf.model.args.ue_traversal_endpoint_coeff = args.traversal_endpoint_coeff
             conf.model.args.pose_aware_sampling = getattr(args, "pose_aware_sampling", False)
             conf.model.args.pose_vqvae_no_keyframe_prob = 0.75
         conf.trainer.devices = 1
@@ -118,6 +120,8 @@ def train(args):
         raise ValueError("--pose_aware_sampling 必须与 --native_quality 一起使用")
     if args.max_steps < 1 or args.batch_size < 1:
         raise ValueError("训练步数和批次大小必须为正数")
+    if args.geometry_coeff < 0 or args.hand_endpoint_coeff < 0 or args.traversal_endpoint_coeff < 0:
+        raise ValueError("几何损失权重不能为负数")
     pl.seed_everything(args.seed, workers=True)
     dataset = UnrealMotionDataset(args.dataset)
     if dataset.manifest.get("training_contract") == "pose_only_root_authoritative" and args.model == "root":
@@ -189,5 +193,7 @@ if __name__ == "__main__":
     parser.add_argument("--native_quality", action="store_true", help="真实帧掩码、家族留出集及几何监督")
     parser.add_argument("--pose_aware_sampling", action="store_true", help="原生质量训练采用长度分桶和困难类别采样，不增加模型参数")
     parser.add_argument("--geometry_coeff", type=float, default=1.0, help="0 用于几何损失消融对照")
+    parser.add_argument("--hand_endpoint_coeff", type=float, default=0.2, help="全类别手部端点几何损失权重，不增加模型参数")
+    parser.add_argument("--traversal_endpoint_coeff", type=float, default=0.2, help="Traversal 手脚端点额外几何损失权重，不增加模型参数")
     parser.add_argument("--checkpoint_every", type=int, default=1000, help="周期检查点间隔；增大间隔可减少训练产物磁盘占用")
     train(parser.parse_args())

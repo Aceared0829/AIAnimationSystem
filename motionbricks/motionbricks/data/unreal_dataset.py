@@ -117,6 +117,51 @@ def derive_motion_labels(asset, source_frames=None):
             "asset_name": asset_name}
 
 
+def derive_motion_annotations(asset, root_track, timestamps, contacts=None):
+    """从真实 Root 轨道与脚接触派生可审计运动条件；不伪造动画资产中不存在的环境几何。"""
+    root_track = np.asarray(root_track)
+    timestamps = np.asarray(timestamps)
+    if root_track.ndim != 2 or root_track.shape != (len(timestamps), 7) or len(root_track) < 2:
+        raise ValueError("运动标注要求逐帧 Root 轨道和时间戳")
+    positions = root_track[:, :3]
+    deltas = np.diff(positions, axis=0)
+    delta_seconds = np.diff(timestamps)
+    speeds = np.linalg.norm(deltas, axis=-1) / delta_seconds
+    rotations = Rotation.from_quat(root_track[:, 3:])
+    velocity = np.zeros((len(root_track), 2), dtype=np.float64)
+    velocity[1:] = deltas[:, [0, 2]] / delta_seconds[:, None]
+    moving = np.linalg.norm(velocity, axis=-1) > 0.1
+    headings = np.unwrap(np.arctan2(velocity[moving, 0], velocity[moving, 1])) if moving.any() else np.zeros(1)
+    relative_rotation = rotations[0].inv() * rotations[-1]
+    yaw_delta = float(relative_rotation.as_euler("yxz", degrees=True)[0])
+    sample_indices = np.unique(np.linspace(0, len(root_track) - 1, min(9, len(root_track)), dtype=int))
+    relative_positions = rotations[0].inv().apply(positions - positions[0])
+    asset_tokens = set(re.split(r"[^a-z0-9]+", str(asset).lower()))
+    height_class = next((value for value in ("low", "high") if value in asset_tokens), "unknown")
+    approach_gait = next((value for value in ("run", "walk", "stand") if value in asset_tokens), "unknown")
+    takeoff_seconds = landing_seconds = None
+    if contacts is not None:
+        grounded = np.asarray(contacts).max(axis=-1) > 0.5
+        airborne = ~grounded
+        starts = np.flatnonzero(airborne & np.r_[True, ~airborne[:-1]])
+        ends = np.flatnonzero(airborne & np.r_[~airborne[1:], True])
+        valid = [(start, end) for start, end in zip(starts, ends) if end > start]
+        if valid:
+            takeoff, landing = max(valid, key=lambda pair: pair[1] - pair[0])
+            takeoff_seconds = float(timestamps[takeoff])
+            landing_seconds = float(timestamps[min(landing + 1, len(timestamps) - 1)])
+    return {"schema_version": 1, "trajectory_source": "exported_ue_root", "displacement_root_space_m": relative_positions[-1].round(6).tolist(),
+            "trajectory_length_m": float(np.linalg.norm(deltas, axis=-1).sum()), "mean_speed_mps": float(speeds.mean()),
+            "entry_speed_mps": float(speeds[:max(1, len(speeds) // 10)].mean()), "exit_speed_mps": float(speeds[-max(1, len(speeds) // 10):].mean()),
+            "root_yaw_delta_deg": yaw_delta, "trajectory_heading_start_deg": float(np.degrees(headings[0])),
+            "trajectory_heading_end_deg": float(np.degrees(headings[-1])), "trajectory_heading_delta_deg": float(np.degrees(headings[-1] - headings[0])),
+            "facing_velocity_angle_deg": None, "facing_reference_status": "unavailable_without_model_forward_axis",
+            "trajectory_samples_root_space_m": relative_positions[sample_indices].round(6).tolist(), "takeoff_seconds": takeoff_seconds,
+            "landing_seconds": landing_seconds, "phase_source": "derived_from_foot_contacts", "obstacle_height_class": height_class, "approach_gait": approach_gait,
+            "environment_context": {"status": "unavailable_from_animation_asset", "obstacle_transform": None, "ledge": None,
+                                    "landing_target": None, "left_hand_target": None, "right_hand_target": None}}
+
+
 def read_json(path):
     with Path(path).open(encoding="utf-8") as stream:
         return json.load(stream)
@@ -247,6 +292,16 @@ def world_foot_contacts(relative_positions, root_track, skeleton, fps):
     return torch.cat((left, right), dim=-1)[0]
 
 
+def apply_authoritative_root(relative_positions, root_track):
+    """将 Root 局部空间关节重新合成到独立权威 Root 轨道。"""
+    positions = np.asarray(relative_positions)
+    root_track = np.asarray(root_track)
+    if positions.ndim != 3 or positions.shape[0] != root_track.shape[0] or root_track.shape[1:] != (7,):
+        raise ValueError("相对姿态与权威 Root 轨道必须逐帧对应")
+    root_rotations = Rotation.from_quat(root_track[:, 3:]).as_matrix()
+    return np.einsum("tij,tkj->tki", root_rotations, positions) + root_track[:, None, :3]
+
+
 def convert_clip(clip):
     """返回米制位置、消除参考骨轴后的全局旋转和根节点归零的参考关节。"""
     frames, ref_pos, ref_quat = validate_clip(clip)
@@ -280,6 +335,7 @@ class UnrealSkeleton(SkeletonBase):
         self.left_foot_joint_names = [roles["left_foot"], roles["left_toe"]]
         self.right_foot_joint_names = [roles["right_foot"], roles["right_toe"]]
         super().__init__(folder=str(folder), load=False, t_pose="unreal_reference")
+        self.hand_joint_idx = [self.bone_index[roles[name]] for name in ("left_hand", "right_hand") if roles.get(name) in self.bone_index]
         self.register_buffer("neutral_joints", torch.tensor(metadata["neutral_joints"], dtype=torch.float32), persistent=False)
 
     def get_skel_slice(self, skeleton):
