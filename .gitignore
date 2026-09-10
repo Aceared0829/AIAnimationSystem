@@ -212,6 +212,10 @@ sonic_release/
 logs_rl/
 logs_eval/
 
+# Local browser QA artifacts (not dataset or source)
+.playwright-cli/
+output/playwright/
+
 # Model checkpoints directory
 models/
 

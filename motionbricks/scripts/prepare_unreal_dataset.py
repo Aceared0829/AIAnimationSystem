@@ -38,11 +38,11 @@ def load_split_plan(path):
     return plan, hashlib.sha256(plan_path.read_bytes()).hexdigest()
 
 
-def prepare(source, output, skip_invalid=False, short_clip_policy="reject", native_fps=None, split=False, split_plan=None):
+def prepare(source, output, skip_invalid=False, short_clip_policy="reject", native_fps=None, split=False, split_plan=None, *, input_manifest=None, clip_loader=None):
     source, output = Path(source).resolve(), Path(output).resolve()
     if short_clip_policy not in {"reject", "hold"}:
         raise ValueError("短片段策略必须是 reject 或 hold")
-    manifest = read_json(source / "manifest.json")
+    manifest = read_json(source / "manifest.json") if input_manifest is None else input_manifest
     manifest_version = manifest.get("schema_version")
     if manifest_version not in (1, 2) or not manifest.get("clips"):
         raise ValueError("导出批次缺少有效清单")
@@ -59,7 +59,7 @@ def prepare(source, output, skip_invalid=False, short_clip_policy="reject", nati
     for index, filename in enumerate(manifest["clips"]):
         clip = None
         try:
-            clip = read_json(contained_file(source, filename))
+            clip = read_json(contained_file(source, filename)) if clip_loader is None else clip_loader(filename)
             if native_fps is not None and abs(clip["fps"] - native_fps) > 1e-6:
                 continue
             positions, rotations, neutral = convert_clip(clip)
