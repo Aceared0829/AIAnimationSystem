@@ -11,8 +11,8 @@ internal static class Program
         string projectRoot = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
         string logPath = Path.Combine(projectRoot, "MotionBricks-launcher.log");
         string pythonw = Path.Combine(projectRoot, ".venv", "Scripts", "pythonw.exe");
-        string workingDirectory = Path.Combine(projectRoot, "motionbricks");
-        string demoScript = Path.Combine(workingDirectory, "scripts", "interactive_demo_g1.py");
+        string workingDirectory = projectRoot;
+        string demoScript = Path.Combine(projectRoot, "inference", "cli", "interactive_demo_g1.py");
 
         if (!File.Exists(pythonw) || !File.Exists(demoScript))
         {

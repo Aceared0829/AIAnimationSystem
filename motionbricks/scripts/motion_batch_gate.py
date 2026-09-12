@@ -1,12 +1,7 @@
-"""每轮最多 500 条待验收；不以人工标记代替发布事务。"""
-REVIEW_BATCH_SIZE = 500
+"""Compatibility entry; use data/tools/motion_batch_gate.py."""
+import runpy
 
-
-def batch_capacity(pending):
-    if pending < 0:
-        raise ValueError('待验收数量无效')
-    return min(8, max(0, REVIEW_BATCH_SIZE - pending))
-
-
-def pending_count(db):
-    return db.execute("SELECT COUNT(*) FROM motions WHERE dataset='bones-seed' AND state='retargeted_pending_quality'").fetchone()[0]
+if __name__ == "__main__":
+    runpy.run_module("data.tools.motion_batch_gate", run_name="__main__")
+else:
+    from data.tools.motion_batch_gate import *
