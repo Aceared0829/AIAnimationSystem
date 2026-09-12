@@ -1,2 +1,2 @@
 [lfs]
-	fetchexclude = motionbricks/out/**
+	fetchexclude = model-weight/base/**

@@ -4,11 +4,11 @@
 
 本项目基于 NVIDIA [GR00T-WholeBodyControl](https://github.com/NVlabs/GR00T-WholeBodyControl) 仓库中的 [MotionBricks](https://nvlabs.github.io/motionbricks/) 开发，由本仓库独立维护。MotionBricks 的模型架构、动作表示、原有训练与推理代码、预训练权重和上游演示属于原项目成果；本项目在其基础上面向游戏动画做裁剪、中文交互界面与 Windows 启动器适配，并添加实验性的 UE 动画导出和自定义骨架训练入口。
 
-> **实验阶段：** 真实 UE 动画资产的端到端导出与完整训练尚未验证；运行时推理和 AnimGraph 输出尚未实现。本项目不代表 NVIDIA 官方产品，也不表示获得 NVIDIA 的认可或背书。
+> **实验阶段：** 已有 UE 数据、训练与 FP32 导出工具；历史实验见插件说明，本次目录迁移验收见仓库结构文档。UE 运行时推理和 AnimGraph 输出尚未实现。本项目不代表 NVIDIA 官方产品，也不表示获得 NVIDIA 的认可或背书。
 
 当前先完成 Locomotion、跳跃和蹲伏的数据与动画流程；项目名称覆盖更广泛的角色动画方向，后续动作范围以开发方案与实际验证为准。
 
-[UE 插件与训练](Unreal/AILocomotionSystem/README.md) · [第一阶段开发方案](Unreal/AILocomotionSystem/LocomotionPlan.md) · [MotionBricks 演示与技术说明](motionbricks/README.md) · [来源、引用与许可](引用与许可说明.md)
+[UE 插件与训练](unreal-script/AILocomotionSystem/README.md) · [第一阶段开发方案](unreal-script/AILocomotionSystem/LocomotionPlan.md) · [MotionBricks 演示与技术说明](docs/motionbricks/README.md) · [来源、引用与许可](引用与许可说明.md)
 
 ## 当前进度
 
@@ -18,7 +18,7 @@
 | UE 动画导出 | 已有实验性 `AILocomotionDataset` 编辑器插件，从 `AnimSequence` 导出骨架和动作数据 |
 | 自定义 UE 骨架训练 | 已有数据预处理、VQ-VAE / Pose / Root 训练、检查点保存与续训入口 |
 | 已记录的验证 | UE 5.8.2 编译与链接、程序生成动画夹具上的 CPU 小网络训练测试；详见插件说明 |
-| 真实资产与生成质量 | 实际 UE 角色资产端到端导出、完整训练、GPU 训练及动作质量尚未验证 |
+| 真实资产与生成质量 | 历史实验见插件的 TrainingResults；本次迁移使用受控夹具验证功能，不重新评定真实动作生成质量 |
 | UE 运行时动画 | 推理、AnimGraph 输出、统一人形重定向，以及 CMC / Mover 与联机接入均为后续工作 |
 
 现有 G1 权重与参考骨架绑定。自定义 UE 训练入口不支持直接加载 G1 权重微调，原 G1 演示也不能直接预览新的 UE 骨架检查点。
@@ -39,9 +39,9 @@ cd AIAnimationSystem
 
 ### UE 动画导出与训练
 
-将 `Unreal/AILocomotionSystem/` 复制到 UE 项目的 `Plugins/AILocomotionSystem/`，编译 Editor 目标并启用 **AI Locomotion Dataset**。在编辑器中选择动画资产，通过 **工具 → AI Locomotion：导出选中动画** 生成训练数据。
+将 `unreal-script/AILocomotionSystem/AILocomotionDataset/` 复制到 UE 项目的 `Plugins/AILocomotionDataset/`，编译 Editor 目标并启用 **AI Locomotion Dataset**。在编辑器中选择动画资产，通过 **工具 → AI Locomotion：导出选中动画** 生成训练数据。
 
-Python 训练环境使用 Python 3.12；完整安装命令、骨架要求、预处理与训练命令见 [UE 插件与训练说明](Unreal/AILocomotionSystem/README.md)。这条路线使用自己的动画数据，不需要下载 G1 演示权重。
+Python 训练环境使用 Python 3.12；完整安装命令、骨架要求、预处理与训练命令见 [UE 插件与训练说明](unreal-script/AILocomotionSystem/README.md)。这条路线使用自己的动画数据，不需要下载 G1 演示权重。
 
 `AILocomotionSystem` 与 `AILocomotionDataset` 目前仍是插件目录和技术标识；仓库对外名称为 **AIAnimationSystem**。
 
@@ -50,16 +50,16 @@ Python 训练环境使用 Python 3.12；完整安装命令、骨架要求、预�
 该演示使用 G1 参考骨架、MuJoCo 和预训练权重。按现有演示环境说明准备 Python 3.10、支持 CUDA 的显卡及依赖，在仓库根目录执行：
 
 ```bash
-git lfs pull --include="motionbricks/out/**" --exclude=""
-git lfs pull --include="motionbricks/assets/skeletons/g1/meshes/**" --exclude=""
-cd motionbricks
+git lfs pull --include="model-weight/base/motionbricks/**" --exclude=""
+git lfs pull --include="inference/assets/skeletons/g1/meshes/**" --exclude=""
+# 以下命令在仓库根目录执行
 conda create -n motionbricks python=3.10 -y
 conda activate motionbricks
-pip install -e .
-python scripts/interactive_demo_g1.py
+pip install -e ".[training,demo]"
+python inference/cli/interactive_demo_g1.py
 ```
 
-Windows 下默认打开中文单窗口界面，其他平台在不能嵌入 MuJoCo 窗口时回退为两个窗口。详见 [演示说明](motionbricks/README.md) 和 [中文交互界面](motionbricks/docs/chinese_interface.md)。
+Windows 下默认打开中文单窗口界面，其他平台在不能嵌入 MuJoCo 窗口时回退为两个窗口。详见 [演示说明](docs/motionbricks/README.md) 和 [中文交互界面](docs/motionbricks/chinese_interface.md)。
 
 仓库根目录的 `MotionBricks.exe` 是该参考演示的 Windows 启动器，固定读取根目录 `.venv` 中的环境；上面的 Conda 环境不会自动供 EXE 使用。它不包含 Python、模型和依赖，也不是 UE 插件启动器。
 
@@ -75,16 +75,29 @@ Windows 下默认打开中文单窗口界面，其他平台在不能嵌入 MuJoC
                                       动画模型 → 骨架适配 → UE 姿态
 ```
 
-运行时部分为开发目标。多人联机、统一人形模型、重定向与接触修正的职责和验收要求见 [第一阶段开发方案](Unreal/AILocomotionSystem/LocomotionPlan.md)。
+运行时部分为开发目标。多人联机、统一人形模型、重定向与接触修正的职责和验收要求见 [第一阶段开发方案](unreal-script/AILocomotionSystem/LocomotionPlan.md)。
 
 ## 仓库与文档
 
+已按职责重组。Python 导入名仍为 `motionbricks`，安装入口改为仓库根目录；数据、权重和检查点保留。目录与测试说明见 [仓库结构](docs/repository-layout.md)。
+
+```text
+data/               runtime/ · tools/ · prepared/（本地）
+training/           pretrain/ · posttrain/ · common/ · models/ · evaluation/ · configs/ · runs/（本地）
+model/motionbricks/ 网络、几何、动作表示与共享实现
+model-weight/       base/motionbricks/ · 自定义发布产物
+inference/          runtime/ · export/ · profiling/ · cli/ · demo/ · assets/
+unreal-script/      AILocomotionSystem/ · python/
+unreal-sample/      示例交付边界说明（当前无独立工程）
+tests/              单元、训练、导出与目录回归测试
+```
+
 | 位置 | 用途 |
 | --- | --- |
-| [Unreal/AILocomotionSystem](Unreal/AILocomotionSystem/README.md) | UE 插件安装、动画导出、数据约定与训练说明 |
-| [motionbricks](motionbricks/README.md) | 保留的 MotionBricks 模型、训练工具与参考演示 |
-| [动作表示](motionbricks/docs/motion_representation.md) | 骨架、Root Motion、姿态特征和坐标约定 |
-| [接入自有数据集](motionbricks/docs/adding_your_own_dataset.md) | MotionBricks 通用数据集接入；UE 资产优先使用上面的插件说明 |
+| [unreal-script](unreal-script/README.md) | UE 插件安装、动画导出、数据约定与训练说明 |
+| [模型与参考演示说明](docs/motionbricks/README.md) | 上游模型技术说明与 G1 参考演示 |
+| [动作表示](docs/motionbricks/motion_representation.md) | 骨架、Root Motion、姿态特征和坐标约定 |
+| [接入自有数据集](docs/motionbricks/adding_your_own_dataset.md) | MotionBricks 通用数据集接入；UE 资产优先使用上面的插件说明 |
 | [学习与项目历史](docs/project-background.md) | 源码阅读顺序、游戏动画裁剪范围与上游关系 |
 | [launcher](launcher) | Windows 参考演示启动器源码 |
 

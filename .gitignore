@@ -68,8 +68,7 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-data/
+# Data source code is tracked; generated datasets are scoped below.
 
 # PyBuilder
 .pybuilder/
@@ -179,6 +178,7 @@ huggingface/
 *.safetensors
 *.engine
 !motionbricks/out/**/*.ckpt
+!model-weight/base/motionbricks/**/*.ckpt
 
 
 # Mujoco
@@ -205,7 +205,23 @@ launcher/publish*/
 launcher/assets/motionbricks-icon-chroma.png
 MotionBricks-launcher.log
 # Motion/training data (large local datasets, not tracked in git)
-data/
+/data/raw/
+/data/prepared/
+/training/runs/
+/model-weight/pretrained/
+/model-weight/finetuned/
+/model-weight/exported/
+/unreal-script/**/Binaries/
+/unreal-script/**/Intermediate/
+/unreal-script/**/Saved/
+/unreal-sample/**/Content/
+/unreal-sample/**/Binaries/
+/unreal-sample/**/Intermediate/
+/unreal-sample/**/Saved/
+/motionbricks/assets/
+/motionbricks/out/
+/motionbricks/unreal_data/
+/motionbricks/unreal_runs/
 bones_seed_smpl/
 sonic_release/
 # Training output logs

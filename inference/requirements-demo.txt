@@ -1,0 +1,6 @@
+# Verified G1 demo add-ons, 2026-09-12. Install from the repository root.
+# Preserve the existing CUDA PyTorch build when supplementing a training environment.
+mujoco==3.13.0
+pynput==1.8.2
+keyboard==0.13.5; platform_system == "Windows"
+transformers==4.57.6
