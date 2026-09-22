@@ -142,3 +142,9 @@ GASP 动画序列 → 79 骨骼的 Root 相对姿态 → 30 Hz、16 帧历史窗
 - `AIAnimationPrepareCommandlet`：资产导入、GPU 数值校验和实验场景生成。
 
 下一阶段继续用这个实验台分析按动作分类的质量、接触状态与延迟代价。游戏工具函数、模型服务生命周期、资源加载、LOD/预算、多人实例调度、动画切换与接触约束，均属于后续正式运行时工作的范围。
+
+## 参考姿态后续实验（2026-09-23）
+
+[Candidate24](docs/candidate24-evaluation.md) 为隔离导出与 UE 场景候选，默认导出仍是16帧无条件。后续增加了 [稀疏参考](docs/pose-reference-evaluation.md)、[姿态形状参考](docs/pose-shape-reference-evaluation.md)、[具体问题姿态](docs/targeted-pose-reference-evaluation.md) 等离线对照。
+
+当前 [手选实验室](../../inference/profiling/pose-reference-lab.md) 允许用户亲自指定姿态，并比较模型软输出与最终融合后的硬约束。关键帧通过等式约束到位，不意味着模型预测精度达到零误差。它没有改动本插件推理节点、权重、Root 运动或游戏代理逻辑；UE 生产运行时、接触与过渡生成仍待实现。

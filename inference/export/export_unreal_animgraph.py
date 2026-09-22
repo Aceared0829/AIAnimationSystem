@@ -74,7 +74,7 @@ class UnrealPoseReconstruction(torch.nn.Module):
         local = (features - self.mean) / self.scale
         external = extract_feature_from_motion_rep(local, self.net.motion_rep, self.net.decoder_external_cond_feature_mode)
         tokens = self.net.encode_into_idx(local)
-        # 条件只使用已进入历史窗口的首尾源姿态，不读取尚未发生的动作。
+        # 默认掩码选择输入窗口首尾；历史或已知代理前瞻的时间边界由调用方负责。
         target = local if self.pose_condition == "endpoints" else None
         mask = self.endpoint_mask if target is not None else None
         decoded = self.net.forward_decoder(tokens, target, has_target_cond=mask, external_cond=external)["recon_state"] * self.scale + self.mean
