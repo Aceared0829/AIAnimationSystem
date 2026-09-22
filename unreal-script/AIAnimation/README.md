@@ -2,6 +2,8 @@
 
 **定位：模型效果与性能实验插件。正式游戏运行时、业务工具函数及完整动画系统将在后续独立设计和开发。**
 
+2026-09-22 新增 [24 帧稀疏条件候选实验](docs/candidate24-evaluation.md)：170 条可比留出片段中 164 条位置误差改善，UE 数值校验和运行验收通过。使用 `Run-GaspPreview.ps1 -Variant Candidate24 -Mode Interactive` 查看；旧默认入口保留。该方案尚未解决全部 Traversal 偏差和抽搐，未采用直接骨盆纠正或末端外推。
+
 UE 模块声明中的 `Runtime` 只表示实验场景在游戏进程内需要加载它，不代表具备生产可用性。插件在编辑器中标记 Experimental，默认不启用。
 
 ## 已验证的实验链路
@@ -140,3 +142,9 @@ GASP 动画序列 → 79 骨骼的 Root 相对姿态 → 30 Hz、16 帧历史窗
 - `AIAnimationPrepareCommandlet`：资产导入、GPU 数值校验和实验场景生成。
 
 下一阶段继续用这个实验台分析按动作分类的质量、接触状态与延迟代价。游戏工具函数、模型服务生命周期、资源加载、LOD/预算、多人实例调度、动画切换与接触约束，均属于后续正式运行时工作的范围。
+
+## 参考姿态后续实验（2026-09-23）
+
+[Candidate24](docs/candidate24-evaluation.md) 为隔离导出与 UE 场景候选，默认导出仍是16帧无条件。后续增加了 [稀疏参考](docs/pose-reference-evaluation.md)、[姿态形状参考](docs/pose-shape-reference-evaluation.md)、[具体问题姿态](docs/targeted-pose-reference-evaluation.md) 等离线对照。
+
+当前 [手选实验室](../../inference/profiling/pose-reference-lab.md) 允许用户亲自指定姿态，并比较模型软输出与最终融合后的硬约束。关键帧通过等式约束到位，不意味着模型预测精度达到零误差。它没有改动本插件推理节点、权重、Root 运动或游戏代理逻辑；UE 生产运行时、接触与过渡生成仍待实现。

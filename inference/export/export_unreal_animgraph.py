@@ -27,10 +27,16 @@ def matrix_product(left, right):
 class UnrealPoseReconstruction(torch.nn.Module):
     """输入 cm 与行优先旋转矩阵；输出同一 Root 空间的姿态，不输出权威位移。"""
 
-    def __init__(self, net, rep, skeleton, window_frames=16):
+    def __init__(self, net, rep, skeleton, window_frames=16, pose_condition="none"):
         super().__init__()
         self.net = net
         self.frames = window_frames
+        if pose_condition not in ("none", "endpoints"):
+            raise ValueError("未知的姿态条件模式")
+        self.pose_condition = pose_condition
+        endpoint_mask = torch.zeros(1, window_frames, dtype=torch.bool)
+        endpoint_mask[:, 0] = endpoint_mask[:, -1] = True
+        self.register_buffer("endpoint_mask", endpoint_mask)
         self.joints = len(skeleton["bones"])
         self.fps = rep.fps
         self.parents = [b["parent"] for b in skeleton["bones"]]
@@ -68,7 +74,10 @@ class UnrealPoseReconstruction(torch.nn.Module):
         local = (features - self.mean) / self.scale
         external = extract_feature_from_motion_rep(local, self.net.motion_rep, self.net.decoder_external_cond_feature_mode)
         tokens = self.net.encode_into_idx(local)
-        decoded = self.net.forward_decoder(tokens, None, external_cond=external)["recon_state"] * self.scale + self.mean
+        # 默认掩码选择输入窗口首尾；历史或已知代理前瞻的时间边界由调用方负责。
+        target = local if self.pose_condition == "endpoints" else None
+        mask = self.endpoint_mask if target is not None else None
+        decoded = self.net.forward_decoder(tokens, target, has_target_cond=mask, external_cond=external)["recon_state"] * self.scale + self.mean
         global_rotations = matrix_product(heading[:, None, None], cont6d_to_matrix(decoded[..., self.rotation_indices].reshape(1, frames, joints, 6)))
         displacement = torch.cat([torch.zeros_like(decoded[:, :1, 1:3]), decoded[:, :-1, 1:3] / self.fps], 1).cumsum(1)
         pelvis = torch.stack([displacement[..., 0], decoded[..., 3], displacement[..., 1]], -1) @ heading.transpose(-1, -2) + initial_position[:, None]
@@ -90,7 +99,7 @@ def pack_raw_pose(raw, skeleton):
 
 
 @torch.no_grad()
-def reference_forward(net, rep, skeleton, packed):
+def reference_forward(net, rep, skeleton, packed, pose_condition="none"):
     """使用原始训练代码独立验证包装器，避免仅比较两个相同的新实现。"""
     basis = torch.tensor(UE_TO_MOTION, dtype=torch.float32)
     reference = torch.tensor(Rotation.from_quat([b["rotation"] for b in skeleton["bones"]]).as_matrix(), dtype=torch.float32)
@@ -101,14 +110,19 @@ def reference_forward(net, rep, skeleton, packed):
                             lengths=torch.tensor([count]), return_init_heading_info=True)
     local = rep.dual_rep.global_to_local(features, is_normalized=True, to_normalize=True, lengths=torch.tensor([count]))[:, :-1]
     external = extract_feature_from_motion_rep(local, net.motion_rep, net.decoder_external_cond_feature_mode)
-    decoded = net(local, None, external_cond=external)["recon_state"]
+    target, mask = None, None
+    if pose_condition == "endpoints":
+        target = local
+        mask = torch.zeros(local.shape[:2], dtype=torch.bool)
+        mask[:, 0] = mask[:, -1] = True
+    decoded = net(local, target, has_target_cond=mask, external_cond=external)["recon_state"]
     recovered = rep.dual_rep.local_motion_rep.inverse(decoded, is_normalized=True, init_heading_info=initial)
     output_pos = recovered["posed_joints"] @ basis * 100
     output_rot = basis.T @ recovered["global_joint_rots"] @ basis @ reference
     return torch.cat([output_pos, output_rot.reshape(1, count - 1, len(skeleton["bones"]), 9)], -1)
 
 
-def export(checkpoint, output, window_frames=16):
+def export(checkpoint, output, window_frames=16, pose_condition="none"):
     import onnx
     import onnxruntime
 
@@ -126,7 +140,7 @@ def export(checkpoint, output, window_frames=16):
     dataset_manifest = json.loads((dataset / "dataset.json").read_text(encoding="utf8"))
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
-    wrapper = UnrealPoseReconstruction(net, rep, skeleton, window_frames).eval()
+    wrapper = UnrealPoseReconstruction(net, rep, skeleton, window_frames, pose_condition).eval()
     selected = []
     for category in ("Walk", "Run", "Crouch", "Jump", "Traversal", "Idle"):
         item = next(x for x in dataset_manifest["clips"] if x["split"] == "test" and x["labels"]["category"] == category and x["source_frames"] >= window_frames)
@@ -139,7 +153,7 @@ def export(checkpoint, output, window_frames=16):
             # 与实时节点一致：过去窗口加一帧末帧复制，不读取未来姿态。
             sample = torch.from_numpy(np.concatenate([packed[:window_frames], packed[window_frames - 1:window_frames]])[None])
             actual = wrapper(sample)
-            reference = reference_forward(net, rep, skeleton, sample)
+            reference = reference_forward(net, rep, skeleton, sample, pose_condition)
             error = float((actual - reference).abs().max())
             if error > .002 or not torch.isfinite(actual).all():
                 raise ValueError(f"原训练实现与导出包装器不一致：{item['asset']}，最大误差 {error}")
@@ -164,6 +178,7 @@ def export(checkpoint, output, window_frames=16):
         "training_signature": contract["signature"], "checkpoint_sha256": hashlib.sha256(Path(checkpoint).read_bytes()).hexdigest(),
         "onnx_sha256": hashlib.sha256((output / "model.onnx").read_bytes()).hexdigest(), "training_steps": contract["global_step"],
         "window_frames": window_frames, "fps": rep.fps, "num_bones": wrapper.joints, "root_bone": skeleton["root_bone"],
+        "pose_condition": pose_condition,
         "input_shape": [1, window_frames + 1, wrapper.joints, 12], "output_shape": [1, window_frames, wrapper.joints, 12],
         "layout": "root-relative UE cm xyz followed by row-major 3x3 rotation", "bones": skeleton["bones"], "validation": comparisons,
         "limitations": ["重建已知姿态，不是 Pose 条件生成。", "固定窗口使用末帧复制；边界质量需要实测。", "ONNX CPU 只用于导出数值校验，UE 使用 DirectML GPU。"]
@@ -177,7 +192,8 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--window_frames", type=int, default=16)
+    parser.add_argument("--pose-condition", choices=("none", "endpoints"), default="none")
     args = parser.parse_args()
     torch.set_num_threads(4)
-    result = export(args.checkpoint, args.output, args.window_frames)
+    result = export(args.checkpoint, args.output, args.window_frames, args.pose_condition)
     print(json.dumps({"output": args.output, "training_steps": result["training_steps"], "validation": result["validation"]}, ensure_ascii=False, indent=2))

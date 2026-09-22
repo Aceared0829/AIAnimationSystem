@@ -49,7 +49,11 @@ def positions(local, parents):
     return result
 
 
-def simulate(source, windows, delay):
+def simulate(source, windows, delay, window_frames=16, fusion="temporal"):
+    if fusion not in ("temporal", "source_residual"):
+        raise ValueError(f"未知融合方式：{fusion}")
+    if window_frames < 8 or window_frames % 4 or delay not in (4, 8):
+        raise ValueError("窗口必须为至少 8 帧的四倍数，播放延迟必须为 4 或 8")
     # 用 60 Hz 播放冻结左右插值端点，对齐 UE 的 Commit 规则；只导出整数 30 Hz 采样点。
     models, weights, output = {}, {}, {}
     frozen = -1
@@ -62,12 +66,16 @@ def simulate(source, windows, delay):
         resume.append(4 if not same and stationary[-2] >= 6 else max(0, resume[-1] - 1))
     for tick in range(len(source) * 2):
         end = tick // 2
-        if tick % 2 == 0 and end >= 15 and (end - 15) % 4 == 0:
+        if tick % 2 == 0 and end >= window_frames - 1 and (end - window_frames + 1) % 4 == 0:
             for offset, prediction in enumerate(windows[end]):
-                index = end - 15 + offset
+                index = end - window_frames + 1 + offset
                 if index <= frozen:
                     continue
-                weight = 1 + min(offset, 15 - offset)
+                weight = 1 + min(offset, window_frames - 1 - offset)
+                if fusion == "source_residual":
+                    angle = 2 * np.arccos(np.clip(np.abs(np.sum(prediction[:, 3:] * source[index, :, 3:], axis=-1)), 0, 1))
+                    pelvis_error = np.sum((prediction[0, :3] - source[index, 0, :3]) ** 2)
+                    weight /= 1 + np.mean(angle ** 2) / .35 ** 2 + pelvis_error / 100
                 models[index] = prediction.copy() if index not in models else blend(models[index], prediction, weight / (weights[index] + weight))
                 weights[index] = weights.get(index, 0) + weight
         playback = max(0, tick / 2 - delay)
@@ -96,6 +104,7 @@ def rms(x):
 def evaluate(bundle, dataset, output):
     bundle, dataset, output = Path(bundle), Path(dataset), Path(output)
     manifest = json.loads((bundle / 'manifest.json').read_text(encoding='utf8'))
+    width = manifest['window_frames']
     skeleton = json.loads((dataset / 'skeleton.json').read_text(encoding='utf8'))
     clips = json.loads((dataset / 'dataset.json').read_text(encoding='utf8'))['clips']
     parents = [b['parent'] for b in skeleton['bones']]
@@ -111,13 +120,13 @@ def evaluate(bundle, dataset, output):
             packed = pack_raw_pose(raw, skeleton)
         source = localize(packed, parents)
         windows = {}
-        for end in range(15, len(packed)):
-            sample = np.concatenate([packed[end - 15:end + 1], packed[end:end + 1]])[None]
+        for end in range(width - 1, len(packed)):
+            sample = np.concatenate([packed[end - width + 1:end + 1], packed[end:end + 1]])[None]
             prediction = session.run(None, {'pose_history': sample})[0][0]
             windows[end] = localize(prediction, parents)
         variants = {'last_frame': {end: value[-1] for end, value in windows.items()},
-                    'overlap4': simulate(source, windows, 4), 'overlap8': simulate(source, windows, 8)}
-        common = sorted(set(range(20, len(source) - 8)).intersection(*(set(v) for v in variants.values())))
+                    'overlap4': simulate(source, windows, 4, width), 'overlap8': simulate(source, windows, 8, width)}
+        common = sorted(set(range(width + 4, len(source) - 8)).intersection(*(set(v) for v in variants.values())))
         if len(common) < 10 or np.any(np.diff(common) != 1):
             raise ValueError('缺少连续且对齐的评估区间')
         reference = source[common]

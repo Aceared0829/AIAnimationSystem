@@ -202,6 +202,8 @@ void AAIAnimationBenchmark::SaveReport()
 	Report->SetNumberField(TEXT("delay_frames"), FinalStats.DelayFrames);
 	Report->SetNumberField(TEXT("inference_stride"), FinalStats.InferenceStride);
 	Report->SetStringField(TEXT("quality_timebase"), TEXT("30 Hz source-aligned playback samples; acceleration cm/frame^2, velocity error cm/frame, local rotation error degrees; excludes warmup/crossfade"));
+	Report->SetNumberField(TEXT("window_frames"), Model ? Model->WindowFrames : 0);
+	Report->SetStringField(TEXT("model_sha256"), Model ? Model->ModelSha256 : FString());
 	uint64 TotalFailures = 0;
 	uint64 TotalFallbacks = 0;
 	uint64 TotalSkips = 0;
