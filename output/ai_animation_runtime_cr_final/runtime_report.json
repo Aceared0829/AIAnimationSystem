@@ -1,0 +1,338 @@
+{
+	"scope": "GASP assets, two rendered characters, one DirectML reconstruction on animation worker; not conditional generation",
+	"model": "/Game/AIAnimationPreview/DA_Reconstruction.DA_Reconstruction",
+	"gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+	"game_thread_id": 32764,
+	"delay_frames": 8,
+	"inference_stride": 4,
+	"quality_timebase": "30 Hz source-aligned playback samples; acceleration cm/frame^2, velocity error cm/frame, local rotation error degrees; excludes warmup/crossfade",
+	"failures": 0,
+	"fallbacks": 0,
+	"game_thread_skips": 0,
+	"clips": [
+		{
+			"asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Transition_Sprint_to_Walk_Lfoot.M_Neutral_Transition_Sprint_to_Walk_Lfoot",
+			"passed": true,
+			"samples": 23,
+			"quality_samples": 80,
+			"failures": 0,
+			"fallbacks": 0,
+			"game_thread_skips": 0,
+			"loop_resets": 1,
+			"gpu_sync_ms":
+			{
+				"count": 23,
+				"mean": 1.9147172570228577,
+				"p95": 2.0107999444007874
+			},
+			"joint_rmse_cm":
+			{
+				"count": 80,
+				"mean": 5.1227567803056875,
+				"p95": 9.8830587779713817
+			},
+			"model_acceleration":
+			{
+				"count": 76,
+				"mean": 3.0835207327663889,
+				"p95": 7.4347717330863325
+			},
+			"source_acceleration":
+			{
+				"count": 76,
+				"mean": 2.658475553725991,
+				"p95": 7.1410090367691605
+			},
+			"velocity_error":
+			{
+				"count": 76,
+				"mean": 1.8971824696596515,
+				"p95": 3.8753488400423257
+			},
+			"rotation_error_degrees":
+			{
+				"count": 80,
+				"mean": 11.198767825784383,
+				"p95": 28.744544804993495
+			}
+		},
+		{
+			"asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Box_B_LL_Lfoot.M_Neutral_Run_Box_B_LL_Lfoot",
+			"passed": true,
+			"samples": 27,
+			"quality_samples": 97,
+			"failures": 0,
+			"fallbacks": 0,
+			"game_thread_skips": 0,
+			"loop_resets": 1,
+			"gpu_sync_ms":
+			{
+				"count": 27,
+				"mean": 1.9721706156377439,
+				"p95": 2.3068003356456757
+			},
+			"joint_rmse_cm":
+			{
+				"count": 97,
+				"mean": 7.0857037946364603,
+				"p95": 10.779555350984428
+			},
+			"model_acceleration":
+			{
+				"count": 93,
+				"mean": 3.8388359140333823,
+				"p95": 6.3210836457760315
+			},
+			"source_acceleration":
+			{
+				"count": 93,
+				"mean": 3.5879311270615224,
+				"p95": 5.9824278500627956
+			},
+			"velocity_error":
+			{
+				"count": 93,
+				"mean": 2.7197305061925099,
+				"p95": 4.7742536284781973
+			},
+			"rotation_error_degrees":
+			{
+				"count": 97,
+				"mean": 12.101301580426222,
+				"p95": 16.869011962156925
+			}
+		},
+		{
+			"asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Box_F_LR_Lfoot.M_Neutral_Crouch_Box_F_LR_Lfoot",
+			"passed": true,
+			"samples": 26,
+			"quality_samples": 97,
+			"failures": 0,
+			"fallbacks": 0,
+			"game_thread_skips": 0,
+			"loop_resets": 1,
+			"gpu_sync_ms":
+			{
+				"count": 26,
+				"mean": 1.9039227985418761,
+				"p95": 2.0633973181247711
+			},
+			"joint_rmse_cm":
+			{
+				"count": 97,
+				"mean": 7.0946367564031378,
+				"p95": 15.32660993312895
+			},
+			"model_acceleration":
+			{
+				"count": 93,
+				"mean": 2.4830170883574985,
+				"p95": 4.786984894932746
+			},
+			"source_acceleration":
+			{
+				"count": 93,
+				"mean": 1.6325729219512874,
+				"p95": 2.7724677414024006
+			},
+			"velocity_error":
+			{
+				"count": 93,
+				"mean": 2.4395630950663594,
+				"p95": 4.3201945873069425
+			},
+			"rotation_error_degrees":
+			{
+				"count": 97,
+				"mean": 11.581066857163597,
+				"p95": 17.749279225416778
+			}
+		},
+		{
+			"asset": "/Game/Characters/UEFN_Mannequin/Animations/Jump/M_Neutral_Jump_B_Land_Run_Heavy.M_Neutral_Jump_B_Land_Run_Heavy",
+			"passed": true,
+			"samples": 26,
+			"quality_samples": 97,
+			"failures": 0,
+			"fallbacks": 0,
+			"game_thread_skips": 0,
+			"loop_resets": 1,
+			"gpu_sync_ms":
+			{
+				"count": 26,
+				"mean": 2.1161267963739543,
+				"p95": 2.4255998432636261
+			},
+			"joint_rmse_cm":
+			{
+				"count": 97,
+				"mean": 9.112263731416995,
+				"p95": 14.375211002311941
+			},
+			"model_acceleration":
+			{
+				"count": 93,
+				"mean": 3.4507476854680181,
+				"p95": 7.5061351805699195
+			},
+			"source_acceleration":
+			{
+				"count": 93,
+				"mean": 2.7736600668492093,
+				"p95": 5.4784041340642471
+			},
+			"velocity_error":
+			{
+				"count": 93,
+				"mean": 3.3058414949872015,
+				"p95": 6.1184330350256824
+			},
+			"rotation_error_degrees":
+			{
+				"count": 97,
+				"mean": 13.294246603593491,
+				"p95": 20.483565147500709
+			}
+		},
+		{
+			"asset": "/Game/Characters/UEFN_Mannequin/Animations/Traversal/Catch/Hurdle/M_Neutral_Traversal_Catch_Hurdle_low_run.M_Neutral_Traversal_Catch_Hurdle_low_run",
+			"passed": true,
+			"samples": 26,
+			"quality_samples": 97,
+			"failures": 0,
+			"fallbacks": 0,
+			"game_thread_skips": 0,
+			"loop_resets": 1,
+			"gpu_sync_ms":
+			{
+				"count": 26,
+				"mean": 2.4100311387043734,
+				"p95": 2.8297975659370422
+			},
+			"joint_rmse_cm":
+			{
+				"count": 97,
+				"mean": 13.836272636624757,
+				"p95": 29.137260939797503
+			},
+			"model_acceleration":
+			{
+				"count": 93,
+				"mean": 5.7931143586027014,
+				"p95": 12.075566028416606
+			},
+			"source_acceleration":
+			{
+				"count": 93,
+				"mean": 5.0577011878632172,
+				"p95": 10.517332649240076
+			},
+			"velocity_error":
+			{
+				"count": 93,
+				"mean": 5.3413512978055282,
+				"p95": 10.420081133610063
+			},
+			"rotation_error_degrees":
+			{
+				"count": 97,
+				"mean": 17.207686425723491,
+				"p95": 32.693364007038213
+			}
+		},
+		{
+			"asset": "/Game/Characters/UEFN_Mannequin/Animations/Idle/M_Neutral_Idle_turn_left.M_Neutral_Idle_turn_left",
+			"passed": true,
+			"samples": 24,
+			"quality_samples": 77,
+			"failures": 0,
+			"fallbacks": 0,
+			"game_thread_skips": 0,
+			"loop_resets": 2,
+			"gpu_sync_ms":
+			{
+				"count": 24,
+				"mean": 1.9941334612667561,
+				"p95": 2.734798938035965
+			},
+			"joint_rmse_cm":
+			{
+				"count": 77,
+				"mean": 2.5462294547741275,
+				"p95": 2.9269879692237692
+			},
+			"model_acceleration":
+			{
+				"count": 71,
+				"mean": 0.26249399060372558,
+				"p95": 1.4144388714921863
+			},
+			"source_acceleration":
+			{
+				"count": 71,
+				"mean": 0.099420846068436611,
+				"p95": 0.91149507502802496
+			},
+			"velocity_error":
+			{
+				"count": 71,
+				"mean": 0.23749711542828877,
+				"p95": 1.119708631265846
+			},
+			"rotation_error_degrees":
+			{
+				"count": 77,
+				"mean": 5.336994413473386,
+				"p95": 6.2879329164407434
+			}
+		}
+	],
+	"passed": true,
+	"animation_worker_thread_ids": [
+		4192,
+		16620,
+		18684,
+		50488,
+		40288
+	],
+	"gpu_sync_ms":
+	{
+		"count": 152,
+		"mean": 2.054792142620212,
+		"p50": 1.923002302646637,
+		"p95": 2.7553997933864594,
+		"p99": 2.8297975659370422
+	},
+	"reconstruction_evaluation_ms":
+	{
+		"count": 152,
+		"mean": 2.290963244281317,
+		"p50": 2.1907985210418701,
+		"p95": 3.0315965414047241,
+		"p99": 3.1243003904819489
+	},
+	"source_joint_rmse_cm":
+	{
+		"count": 545,
+		"mean": 7.7199656359503717,
+		"p50": 6.4584901954288512,
+		"p95": 18.417489274505151,
+		"p99": 28.857323722017323
+	},
+	"baseline_frame_ms":
+	{
+		"count": 142,
+		"mean": 22.853816216680364,
+		"p50": 16.666799783706665,
+		"p95": 16.66710153222084,
+		"p99": 128.55339050292969
+	},
+	"model_frame_ms":
+	{
+		"count": 1377,
+		"mean": 17.398281340786919,
+		"p50": 16.666799783706665,
+		"p95": 16.666900366544724,
+		"p99": 16.676101833581924
+	}
+}
