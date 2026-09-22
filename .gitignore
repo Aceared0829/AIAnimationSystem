@@ -231,6 +231,8 @@ logs_eval/
 # Local browser QA artifacts (not dataset or source)
 .playwright-cli/
 output/playwright/
+/output/ue_animgraph*/
+/output/ai_animation_runtime*/
 
 # Model checkpoints directory
 models/

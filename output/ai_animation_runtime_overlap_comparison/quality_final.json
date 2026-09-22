@@ -1,0 +1,576 @@
+{
+  "scope": "algorithm quality, 60 Hz playback, same source times; not GPU performance or gameplay validation",
+  "model_sha256": "a4c79fc50eba44945f55a556dde1ee83b04d09824fcc2539b59a7c989e2235e1",
+  "clips": [
+    {
+      "category": "Walk",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Transition_Sprint_to_Walk_Lfoot.M_Neutral_Transition_Sprint_to_Walk_Lfoot",
+      "source_frame_start": 20,
+      "source_frame_end": 137,
+      "samples": 118,
+      "source_acceleration_cm_per_frame2": {
+        "mean": 2.336139495605658,
+        "p95": 6.544972336316821,
+        "max": 7.9901477185578385
+      },
+      "variants": {
+        "last_frame": {
+          "joint_rmse_cm": {
+            "mean": 6.990300699513226,
+            "p95": 12.313749778281338,
+            "max": 14.753368968224565
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 13.314578974649477,
+            "p95": 27.58367635453095,
+            "max": 32.05754700221131
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 6.087837128343274,
+            "p95": 12.109694943983369,
+            "max": 18.701994525745423
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 4.055496179958239,
+            "p95": 7.963967567891989,
+            "max": 11.04292168688846
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 5.511923904500912,
+            "p95": 11.24340695998103,
+            "max": 14.81851834156681
+          }
+        },
+        "overlap4": {
+          "joint_rmse_cm": {
+            "mean": 6.212384341630663,
+            "p95": 11.286629315519399,
+            "max": 12.815571164650907
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 12.904597077439023,
+            "p95": 27.509401197049396,
+            "max": 30.98814435702267
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 4.355551327984044,
+            "p95": 9.485880000762164,
+            "max": 11.12724637736813
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 3.051983585439216,
+            "p95": 7.016188818408489,
+            "max": 8.485827986796501
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 4.85183282658355,
+            "p95": 10.533993791631143,
+            "max": 14.374081100472813
+          }
+        },
+        "overlap8": {
+          "joint_rmse_cm": {
+            "mean": 5.8747279410502005,
+            "p95": 10.602869817766763,
+            "max": 11.470939301302526
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 12.52157936526878,
+            "p95": 27.457598747577926,
+            "max": 29.899981282146804
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 2.769695183000407,
+            "p95": 6.702675572823277,
+            "max": 8.96927271943232
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 2.137308081293958,
+            "p95": 4.570057633678529,
+            "max": 6.306930928376447
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 3.086179141120642,
+            "p95": 7.360791456625304,
+            "max": 9.714338967179392
+          }
+        }
+      }
+    },
+    {
+      "category": "Run",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Box_B_LL_Lfoot.M_Neutral_Run_Box_B_LL_Lfoot",
+      "source_frame_start": 20,
+      "source_frame_end": 109,
+      "samples": 90,
+      "source_acceleration_cm_per_frame2": {
+        "mean": 3.869040485097486,
+        "p95": 6.579981530710606,
+        "max": 7.901897905740714
+      },
+      "variants": {
+        "last_frame": {
+          "joint_rmse_cm": {
+            "mean": 9.926726229594392,
+            "p95": 15.947882876597488,
+            "max": 18.98000061265819
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 13.000919673308807,
+            "p95": 17.753426090826856,
+            "max": 19.288502233259916
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 7.795606103299881,
+            "p95": 12.96459211035248,
+            "max": 16.76387257867257
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 5.618182098163585,
+            "p95": 9.824474151899901,
+            "max": 11.42775082761203
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 8.265023888063068,
+            "p95": 15.05521716080469,
+            "max": 23.193503415936302
+          }
+        },
+        "overlap4": {
+          "joint_rmse_cm": {
+            "mean": 8.22063073849149,
+            "p95": 13.165145148606204,
+            "max": 17.08273840755113
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 12.644542209989009,
+            "p95": 18.110323195006796,
+            "max": 19.350755167982026
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 6.297373249033231,
+            "p95": 12.905049854861932,
+            "max": 18.12305839301985
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 4.322415633538957,
+            "p95": 8.208328802861367,
+            "max": 12.035855237841341
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 7.832550650738716,
+            "p95": 16.387904199483827,
+            "max": 24.27166534039823
+          }
+        },
+        "overlap8": {
+          "joint_rmse_cm": {
+            "mean": 7.220673824612615,
+            "p95": 10.80438458008708,
+            "max": 11.61333856794398
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 12.219500065604736,
+            "p95": 17.666599530177752,
+            "max": 20.487859058771456
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 3.9826694943450103,
+            "p95": 6.624340168323102,
+            "max": 10.587392923543053
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 2.753427483567159,
+            "p95": 4.581856932188859,
+            "max": 5.939758865581076
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 4.78824436294171,
+            "p95": 8.138570842081776,
+            "max": 16.34475127669923
+          }
+        }
+      }
+    },
+    {
+      "category": "Crouch",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Box_F_LR_Lfoot.M_Neutral_Crouch_Box_F_LR_Lfoot",
+      "source_frame_start": 20,
+      "source_frame_end": 109,
+      "samples": 90,
+      "source_acceleration_cm_per_frame2": {
+        "mean": 1.707420840069059,
+        "p95": 3.1195673157497255,
+        "max": 4.409153771092345
+      },
+      "variants": {
+        "last_frame": {
+          "joint_rmse_cm": {
+            "mean": 9.083918069685854,
+            "p95": 15.787474108515307,
+            "max": 20.8381079624981
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 12.886342058455721,
+            "p95": 18.025996243576557,
+            "max": 20.55017505514763
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 7.382897036344205,
+            "p95": 11.229072162914738,
+            "max": 15.28656729918796
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 5.038767115711605,
+            "p95": 7.79068406113673,
+            "max": 8.952204169732418
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 5.848043712713513,
+            "p95": 11.25767414051409,
+            "max": 14.100499377368667
+          }
+        },
+        "overlap4": {
+          "joint_rmse_cm": {
+            "mean": 7.916519375554931,
+            "p95": 14.349149719711201,
+            "max": 18.635854155275318
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 12.265310423087428,
+            "p95": 18.082934219846525,
+            "max": 20.53189614845614
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 5.260103087499486,
+            "p95": 10.805808831101698,
+            "max": 19.114686604757782
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 3.973351421466194,
+            "p95": 8.950133948878447,
+            "max": 11.071083576857953
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 6.286983143804333,
+            "p95": 12.134938192491097,
+            "max": 20.898192741240035
+          }
+        },
+        "overlap8": {
+          "joint_rmse_cm": {
+            "mean": 7.547944370920894,
+            "p95": 16.29315235850584,
+            "max": 21.595711363714877
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 12.187222240122537,
+            "p95": 18.946739633290054,
+            "max": 19.933049726053444
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 2.5994424251802473,
+            "p95": 5.769174182760058,
+            "max": 7.399445794746613
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 2.493377115287561,
+            "p95": 4.971099663924928,
+            "max": 6.991468215639344
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 3.9875955305107933,
+            "p95": 7.67635070855121,
+            "max": 9.352982319590806
+          }
+        }
+      }
+    },
+    {
+      "category": "Jump",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Jump/M_Neutral_Jump_B_Land_Run_Heavy.M_Neutral_Jump_B_Land_Run_Heavy",
+      "source_frame_start": 20,
+      "source_frame_end": 93,
+      "samples": 74,
+      "source_acceleration_cm_per_frame2": {
+        "mean": 3.1605291795388077,
+        "p95": 5.8261814243924555,
+        "max": 11.23947080077996
+      },
+      "variants": {
+        "last_frame": {
+          "joint_rmse_cm": {
+            "mean": 11.486994742990827,
+            "p95": 19.446304930447692,
+            "max": 23.271075058682236
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 14.423865289615883,
+            "p95": 23.54085020513042,
+            "max": 26.400666654673614
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 8.683707222934824,
+            "p95": 14.271082664104082,
+            "max": 23.73094105103263
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 6.296100376268097,
+            "p95": 10.522774620353985,
+            "max": 14.734987212926447
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 7.443068233183441,
+            "p95": 14.289494874414762,
+            "max": 21.677494143710128
+          }
+        },
+        "overlap4": {
+          "joint_rmse_cm": {
+            "mean": 10.010716594427533,
+            "p95": 16.26820728046629,
+            "max": 22.109462059057446
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 13.79257476154519,
+            "p95": 23.508057379118668,
+            "max": 26.400666654673614
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 6.953741543248437,
+            "p95": 16.60728054929032,
+            "max": 22.232853388229874
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 5.245876219974717,
+            "p95": 12.552439572390496,
+            "max": 16.28715754104739
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 7.194807263421541,
+            "p95": 14.383478508846,
+            "max": 22.612042748483436
+          }
+        },
+        "overlap8": {
+          "joint_rmse_cm": {
+            "mean": 8.915756954161466,
+            "p95": 16.288815625086617,
+            "max": 16.971944198939443
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 13.19620608642203,
+            "p95": 22.561059235864022,
+            "max": 25.761466845135153
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 3.638778529780587,
+            "p95": 7.163536666362105,
+            "max": 8.116717873956592
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 3.5019350976728574,
+            "p95": 7.08637389960569,
+            "max": 8.40152770316954
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 5.5112621176056455,
+            "p95": 11.011380623013867,
+            "max": 16.868289826059417
+          }
+        }
+      }
+    },
+    {
+      "category": "Traversal",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Traversal/Catch/Hurdle/M_Neutral_Traversal_Catch_Hurdle_low_run.M_Neutral_Traversal_Catch_Hurdle_low_run",
+      "source_frame_start": 20,
+      "source_frame_end": 94,
+      "samples": 75,
+      "source_acceleration_cm_per_frame2": {
+        "mean": 5.350095281641732,
+        "p95": 12.406531375494524,
+        "max": 21.619890404504233
+      },
+      "variants": {
+        "last_frame": {
+          "joint_rmse_cm": {
+            "mean": 15.826194513949877,
+            "p95": 32.67796362718433,
+            "max": 38.55071051297427
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 16.700626861052104,
+            "p95": 26.100432504002907,
+            "max": 30.333156920337185
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 12.125000729390687,
+            "p95": 27.392529751036882,
+            "max": 31.377547844732256
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 9.299930267408493,
+            "p95": 21.78393198813574,
+            "max": 28.2039913701374
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 9.46655277364789,
+            "p95": 23.347001126051122,
+            "max": 43.53106735486738
+          }
+        },
+        "overlap4": {
+          "joint_rmse_cm": {
+            "mean": 14.098581473732557,
+            "p95": 29.412920580440232,
+            "max": 38.55071051297427
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 15.71904940916854,
+            "p95": 26.55710330619666,
+            "max": 28.87911846726761
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 9.90808988398285,
+            "p95": 26.07772910107896,
+            "max": 61.18928698507321
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 7.419592976886111,
+            "p95": 17.508070354013853,
+            "max": 47.25810460015007
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 8.654262796679355,
+            "p95": 15.993912468182645,
+            "max": 52.62481003045686
+          }
+        },
+        "overlap8": {
+          "joint_rmse_cm": {
+            "mean": 12.682521499075323,
+            "p95": 28.767166659500052,
+            "max": 38.21463745836277
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 16.152028491847712,
+            "p95": 31.373730498179118,
+            "max": 34.86967372128178
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 5.597532167037592,
+            "p95": 11.16659355429121,
+            "max": 20.499394250563103
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 4.991668968221191,
+            "p95": 10.243516493621517,
+            "max": 16.089452361087716
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 6.928795583314973,
+            "p95": 15.20692619976775,
+            "max": 18.080464396165244
+          }
+        }
+      }
+    },
+    {
+      "category": "Idle",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Idle/M_Neutral_Idle_turn_left.M_Neutral_Idle_turn_left",
+      "source_frame_start": 20,
+      "source_frame_end": 52,
+      "samples": 33,
+      "source_acceleration_cm_per_frame2": {
+        "mean": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "variants": {
+        "last_frame": {
+          "joint_rmse_cm": {
+            "mean": 2.350891661729774,
+            "p95": 2.599137710326728,
+            "max": 2.980868119017801
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 7.030926676358808,
+            "p95": 7.471820046201725,
+            "max": 7.5126121823072465
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 0.3351199326738247,
+            "p95": 2.008511850373801,
+            "max": 2.1966339913930297
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 0.23097465923157534,
+            "p95": 1.1560982670390136,
+            "max": 1.6973190599992032
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 0.2624608977877677,
+            "p95": 0.756779192759643,
+            "max": 3.54631369184894
+          }
+        },
+        "overlap4": {
+          "joint_rmse_cm": {
+            "mean": 2.527758235206988,
+            "p95": 2.524206092835375,
+            "max": 2.641426791098619
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 5.6968510020822265,
+            "p95": 5.700371063420773,
+            "max": 5.700371063420773
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 0.015993672411725255,
+            "p95": 0.0,
+            "max": 0.49580384476348294
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 0.015493870148858842,
+            "p95": 0.0,
+            "max": 0.49580384476348294
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 0.018343063204516882,
+            "p95": 0.0,
+            "max": 0.5869780225445402
+          }
+        },
+        "overlap8": {
+          "joint_rmse_cm": {
+            "mean": 2.8458797150066704,
+            "p95": 2.838704723831282,
+            "max": 3.075479432619107
+          },
+          "local_rotation_rmse_degrees": {
+            "mean": 5.261449526208661,
+            "p95": 5.263181296715344,
+            "max": 5.263181296715344
+          },
+          "acceleration_cm_per_frame2": {
+            "mean": 0.014125569567022314,
+            "p95": 0.0,
+            "max": 0.4378926565776917
+          },
+          "velocity_error_cm_per_frame": {
+            "mean": 0.013684145518052866,
+            "p95": 0.0,
+            "max": 0.4378926565776917
+          },
+          "foot_velocity_error_cm_per_frame": {
+            "mean": 0.008207114080680051,
+            "p95": 0.0,
+            "max": 0.26262765058176163
+          }
+        }
+      }
+    }
+  ]
+}

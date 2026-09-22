@@ -4,11 +4,11 @@
 
 本项目基于 NVIDIA [GR00T-WholeBodyControl](https://github.com/NVlabs/GR00T-WholeBodyControl) 仓库中的 [MotionBricks](https://nvlabs.github.io/motionbricks/) 开发，由本仓库独立维护。MotionBricks 的模型架构、动作表示、原有训练与推理代码、预训练权重和上游演示属于原项目成果；本项目在其基础上面向游戏动画做裁剪、中文交互界面与 Windows 启动器适配，并添加实验性的 UE 动画导出和自定义骨架训练入口。
 
-> **实验阶段：** 已有 UE 数据、训练与 FP32 导出工具；历史实验见插件说明，本次目录迁移验收见仓库结构文档。UE 运行时推理和 AnimGraph 输出尚未实现。本项目不代表 NVIDIA 官方产品，也不表示获得 NVIDIA 的认可或背书。
+> **实验阶段：** 已有 UE 数据、训练与 FP32 导出工具；`AIAnimation` Inference Lab 已在独立 GASP 对照场景中验证 AnimGraph 节点、动画工作线程 DirectML 推理和连续播放修复。它不是正式游戏运行时，也未完成完整玩法、打包、多角色并发、网络或 CMC / Mover 接入。本项目不代表 NVIDIA 官方产品，也不表示获得 NVIDIA 的认可或背书。
 
 当前先完成 Locomotion、跳跃和蹲伏的数据与动画流程；项目名称覆盖更广泛的角色动画方向，后续动作范围以开发方案与实际验证为准。
 
-[UE 插件与训练](unreal-script/AILocomotionSystem/README.md) · [第一阶段开发方案](unreal-script/AILocomotionSystem/LocomotionPlan.md) · [MotionBricks 演示与技术说明](docs/motionbricks/README.md) · [来源、引用与许可](引用与许可说明.md)
+[UE 插件与训练](unreal-script/AILocomotionSystem/README.md) · [AIAnimation 实验推理](unreal-script/AIAnimation/README.md) · [第一阶段开发方案](unreal-script/AILocomotionSystem/LocomotionPlan.md) · [MotionBricks 演示与技术说明](docs/motionbricks/README.md) · [来源、引用与许可](引用与许可说明.md)
 
 ## 当前进度
 
@@ -19,7 +19,8 @@
 | 自定义 UE 骨架训练 | 已有数据预处理、VQ-VAE / Pose / Root 训练、检查点保存与续训入口 |
 | 已记录的验证 | UE 5.8.2 编译与链接、程序生成动画夹具上的 CPU 小网络训练测试；详见插件说明 |
 | 真实资产与生成质量 | 历史实验见插件的 TrainingResults；本次迁移使用受控夹具验证功能，不重新评定真实动作生成质量 |
-| UE 运行时动画 | 推理、AnimGraph 输出、统一人形重定向，以及 CMC / Mover 与联机接入均为后续工作 |
+| UE 实验推理 | `AIAnimation` 在 GASP 独立对照场景中完成 ONNX 导入、AnimGraph 重建节点、动画工作线程 DirectML 推理、延迟融合播放和性能报告；详见实验说明 |
+| 正式 UE 运行时动画 | 资源生命周期、游戏工具函数、统一人形重定向、CMC / Mover、多人并发与联机接入均为后续工作 |
 
 现有 G1 权重与参考骨架绑定。自定义 UE 训练入口不支持直接加载 G1 权重微调，原 G1 演示也不能直接预览新的 UE 骨架检查点。
 
@@ -35,7 +36,7 @@ git clone https://github.com/Aceared0829/AIAnimationSystem.git
 cd AIAnimationSystem
 ```
 
-当前开发主线为 `codex/game-development-only`，也是默认分支。预训练检查点默认不自动下载；按下面的使用场景准备环境和模型。
+当前默认分支为 `main`。预训练检查点默认不自动下载；按下面的使用场景准备环境和模型。
 
 ### UE 动画导出与训练
 
@@ -44,6 +45,10 @@ cd AIAnimationSystem
 Python 训练环境使用 Python 3.12；完整安装命令、骨架要求、预处理与训练命令见 [UE 插件与训练说明](unreal-script/AILocomotionSystem/README.md)。这条路线使用自己的动画数据，不需要下载 G1 演示权重。
 
 `AILocomotionSystem` 与 `AILocomotionDataset` 目前仍是插件目录和技术标识；仓库对外名称为 **AIAnimationSystem**。
+
+### GASP 实验推理
+
+`unreal-script/AIAnimation/` 提供单独的实验插件和可重复对照场景。它使用已知 `AnimSequence` 作为输入重建 Root 相对身体姿态，当前默认采用固定 4 帧推理步长、8 帧播放延迟和窗口融合。安装、构建、GPU 数值校验、基准测试、连续性图表及边界说明见 [AIAnimation 实验说明](unreal-script/AIAnimation/README.md)。
 
 ### MotionBricks 参考演示
 
