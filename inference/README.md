@@ -11,9 +11,12 @@ python -m inference.export.export_unreal_inference --help
 python -m inference.export.export_unreal_animgraph --help
 python -m inference.profiling.profile_unreal_inference --help
 python -m inference.profiling.evaluate_unreal_streaming --help
+python -m inference.profiling.compare_unreal_streaming --help
 python -m inference.cli.interactive_demo_g1 --help
 ```
 
 `export_unreal_inference` 保留 PyTorch 导出包。`export_unreal_animgraph` 为 `AIAnimation` Inference Lab 导出固定窗口 ONNX、骨架契约和数值验证夹具；它接收 Root 相对的已知源姿态，不是玩家意图驱动的动作生成。`evaluate_unreal_streaming` 在 CPU 数值路径上对齐相同源时间区间，评估末帧与延迟融合播放的姿态和连续性；它不测 UE GPU 性能。完整 UE 导入、DirectML 校验和实验边界见 [AIAnimation 实验说明](../unreal-script/AIAnimation/README.md)。G1 演示仍需安装 `.[demo]` 并准备对应权重。
 
 2026-09-12 已在当前 `.venv` 补齐 MuJoCo 与 G1 权重，并通过实际生成、渲染和中文窗口验收，见 [G1 演示验收](../docs/g1-demo-acceptance.md)。
+
+24 帧候选使用 `export_unreal_animgraph --window_frames 24 --pose-condition endpoints`，仅以历史窗口首尾已知姿态作软条件。导出仍默认 16 帧与 `none`。`compare_unreal_streaming` 对两个导出包使用相同源时间区间评估，并单独记录过短片段；残差加权融合仅用于离线消融。实测结果与 UE 重跑入口见 [候选实验报告](../unreal-script/AIAnimation/docs/candidate24-evaluation.md)。

@@ -247,14 +247,14 @@ namespace
 		return UPackage::SavePackage(Package, Asset, *Filename, Args);
 	}
 
-	bool CreateGaspGraph(UAIAnimationModel* Model)
+	bool CreateGaspGraph(UAIAnimationModel* Model, const FString& AssetRoot)
 	{
 		UAnimBlueprint* Source = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Blueprints/SandboxCharacter_CMC_ABP.SandboxCharacter_CMC_ABP"));
 		if (!Source)
 		{
 			return false;
 		}
-		UPackage* Package = CreatePackage(TEXT("/Game/AIAnimationPreview/ABP_GaspGPU"));
+		UPackage* Package = CreatePackage(*(AssetRoot / TEXT("ABP_GaspGPU")));
 		Package->FullyLoad();
 		UAnimBlueprint* Blueprint = DuplicateObject<UAnimBlueprint>(Source, Package, TEXT("ABP_GaspGPU"));
 		TArray<UEdGraph*> Graphs;
@@ -324,6 +324,17 @@ UAIAnimationPrepareCommandlet::UAIAnimationPrepareCommandlet()
 
 int32 UAIAnimationPrepareCommandlet::Main(const FString& Params)
 {
+	FString Variant;
+	FParse::Value(*Params, TEXT("Variant="), Variant);
+	for (const TCHAR Character : Variant)
+	{
+		if (!FChar::IsAlnum(Character) && Character != TCHAR('_'))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Variant 只能包含字母、数字或下划线。"));
+			return 1;
+		}
+	}
+	const FString AssetRoot = Variant.IsEmpty() ? TEXT("/Game/AIAnimationPreview") : FString(TEXT("/Game/AIAnimationPreview")) / Variant;
 	FString Folder;
 	if (!FParse::Value(*Params, TEXT("ModelFolder="), Folder))
 	{
@@ -352,7 +363,7 @@ int32 UAIAnimationPrepareCommandlet::Main(const FString& Params)
 		UE_LOG(LogTemp, Error, TEXT("导出包 ONNX SHA-256 不匹配。"));
 		return 1;
 	}
-	UPackage* Package = CreatePackage(TEXT("/Game/AIAnimationPreview/DA_Reconstruction"));
+	UPackage* Package = CreatePackage(*(AssetRoot / TEXT("DA_Reconstruction")));
 	Package->FullyLoad();
 	UAIAnimationModel* Model = NewObject<UAIAnimationModel>(Package, TEXT("DA_Reconstruction"), RF_Public | RF_Standalone);
 	Model->ModelData = NewObject<UNNEModelData>(Model, TEXT("Network"));
@@ -371,7 +382,7 @@ int32 UAIAnimationPrepareCommandlet::Main(const FString& Params)
 		UE_LOG(LogTemp, Error, TEXT("DirectML 与 PyTorch 六组数值对照失败。"));
 		return 1;
 	}
-	if (!SaveAsset(Model) || !CreateGaspGraph(Model))
+	if (!SaveAsset(Model) || !CreateGaspGraph(Model, AssetRoot))
 	{
 		UE_LOG(LogTemp, Error, TEXT("模型保存或 GASP 动画图复制编译失败。"));
 		return 1;
@@ -400,7 +411,7 @@ int32 UAIAnimationPrepareCommandlet::Main(const FString& Params)
 	ADirectionalLight* FillLight = World->SpawnActor<ADirectionalLight>();
 	FillLight->SetActorRotation(FRotator(-30, 70, 0));
 	FillLight->GetLightComponent()->SetIntensity(3.0f);
-	const bool bSaved = UEditorLoadingAndSavingUtils::SaveMap(World, TEXT("/Game/AIAnimationPreview/L_ReconstructionBenchmark"));
+	const bool bSaved = UEditorLoadingAndSavingUtils::SaveMap(World, AssetRoot / TEXT("L_ReconstructionBenchmark"));
 	UE_LOG(LogTemp, Display, TEXT("AIAnimation prepared: Model=%s MapSaved=%d"), *Model->GetPathName(), bSaved);
 	return bSaved && Benchmark->CharacterMesh ? 0 : 1;
 }

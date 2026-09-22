@@ -5,6 +5,7 @@ param(
     [ValidateSet('LastFrame', 'Overlap')][string]$Playback = 'Overlap',
     [ValidateSet(4, 8)][int]$DelayFrames = 8,
     [ValidateRange(0, 240)][int]$MaxFPS = 60,
+    [ValidatePattern('^[A-Za-z0-9_]*$')][string]$Variant = '',
     [string]$Output
 )
 $ErrorActionPreference = 'Stop'
@@ -16,6 +17,7 @@ $editor = Join-Path $Engine 'Engine/Binaries/Win64/UnrealEditor-Cmd.exe'
 if (-not (Test-Path -LiteralPath $editor)) { throw "找不到 UE：$editor" }
 if (-not (Test-Path -LiteralPath $Project)) { throw "找不到项目：$Project" }
 $map = '/Game/AIAnimationPreview/L_ReconstructionBenchmark'
+if ($Variant) { $map = "/Game/AIAnimationPreview/$Variant/L_ReconstructionBenchmark" }
 $arguments = @($Project, $map, '-game', '-windowed', '-ResX=1600', '-ResY=900', '-nosplash', '-NoVSync', "-abslog=$Output/runtime.log")
 $streaming = if ($Playback -eq 'Overlap') { 1 } else { 0 }
 $arguments += "-ExecCmds=t.MaxFPS $MaxFPS,AIAnimation.Streaming $streaming,AIAnimation.DelayFrames $DelayFrames"
