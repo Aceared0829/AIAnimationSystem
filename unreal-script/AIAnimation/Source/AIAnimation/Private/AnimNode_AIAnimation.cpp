@@ -59,7 +59,7 @@ void FAnimNode_AIAnimation::PreUpdate(const UAnimInstance* InAnimInstance)
 	if (const USkeletalMeshComponent* Mesh = InAnimInstance->GetSkelMeshComponent())
 	{
 		const FVector Location = Mesh->GetComponentLocation();
-		bResetRequested |= bHasWorldLocation && FVector::DistSquared(Location, PreviousWorldLocation) > FMath::Square(300.0);
+		bResetRequested |= !bAllowGameThreadInference && bHasWorldLocation && FVector::DistSquared(Location, PreviousWorldLocation) > FMath::Square(300.0);
 		PreviousWorldLocation = Location;
 		bHasWorldLocation = true;
 	}
@@ -203,10 +203,16 @@ void FAnimNode_AIAnimation::Evaluate_AnyThread(FPoseContext& Output)
 			return;
 		}
 	}
+	TArray<FTransform> CurrentFullSourcePose;
+	for (FCompactPoseBoneIndex BoneIndex : Output.Pose.ForEachBoneIndex())
+	{
+		CurrentFullSourcePose.Add(Output.Pose[BoneIndex]);
+	}
 	TArray<double> Fractions;
 	if (!bHasPreviousSourcePose)
 	{
 		PreviousSourcePose = CurrentSourcePose;
+		PreviousFullSourcePose = CurrentFullSourcePose;
 		bHasPreviousSourcePose = true;
 		Fractions.Add(1.0);
 	}
@@ -255,7 +261,13 @@ void FAnimNode_AIAnimation::Evaluate_AnyThread(FPoseContext& Output)
 		const double SampleAssetTime = PreviousAssetTimeSeconds < 0.0f ? CurrentAssetTimeSeconds
 			: FMath::Lerp(double(PreviousAssetTimeSeconds), double(CurrentAssetTimeSeconds), Fraction);
 		const int32 AssetFrame = SampleAssetTime >= 0.0 ? FMath::RoundToInt(SampleAssetTime * Session->SampleRate) : INDEX_NONE;
-		Playback->AddSource(++SampleIndex, SampleLocal, AssetFrame, SampleAssetTime);
+		TArray<FTransform> FullSample;
+		FullSample.SetNum(CurrentFullSourcePose.Num());
+		for (int32 Bone = 0; Bone < FullSample.Num(); ++Bone)
+		{
+			FullSample[Bone].Blend(PreviousFullSourcePose[Bone], CurrentFullSourcePose[Bone], Fraction);
+		}
+		Playback->AddSource(++SampleIndex, SampleLocal, AssetFrame, SampleAssetTime, FullSample);
 		if (!bReferenceOnly && NumHistoryFrames == Session->WindowFrames && (!bStreaming || (SampleIndex - Session->WindowFrames + 1) % 4 == 0))
 		{
 			FMemory::Memcpy(History.GetData() + Session->WindowFrames * FrameValues, Sample, FrameValues * sizeof(float));
@@ -268,6 +280,7 @@ void FAnimNode_AIAnimation::Evaluate_AnyThread(FPoseContext& Output)
 		}
 	}
 	PreviousSourcePose = MoveTemp(CurrentSourcePose);
+	PreviousFullSourcePose = MoveTemp(CurrentFullSourcePose);
 	const double RawPosition = bStreaming ? FMath::Clamp(SampleIndex + SampleRemainderSeconds * Session->SampleRate - ActiveDelayFrames, 0.0, double(SampleIndex)) : double(SampleIndex);
 	const double NearestSample = static_cast<double>(FMath::RoundToInt64(RawPosition));
 	// 世界时间累积的微小尾数不应让整帧读取要求尚未到达的下一采样帧。
@@ -301,6 +314,18 @@ void FAnimNode_AIAnimation::Evaluate_AnyThread(FPoseContext& Output)
 		for (int32 Bone = 0; Bone < Display.Num(); ++Bone)
 		{
 			Display[Bone].Blend(TransitionFrom[Bone], Display[Bone], TransitionSeconds / 0.1);
+		}
+	}
+	TArray<FTransform> FullSource;
+	if (Playback->ReadFullSource(Position, FullSource) && FullSource.Num() == Output.Pose.GetNumBones())
+	{
+		for (FCompactPoseBoneIndex BoneIndex : Output.Pose.ForEachBoneIndex())
+		{
+			// Root 始终由源动画驱动，辅助骨骼与生成身体使用相同的显示时刻。
+			if (BoneIndex != RootIndex)
+			{
+				Output.Pose[BoneIndex] = FullSource[BoneIndex.GetInt()];
+			}
 		}
 	}
 	for (int32 Bone = 0; Bone < NumBones; ++Bone)

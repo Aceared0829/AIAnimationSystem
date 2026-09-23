@@ -17,7 +17,7 @@ void FAIAnimationPoseBuffer::Reset()
 	FrozenThrough = -1;
 }
 
-void FAIAnimationPoseBuffer::AddSource(int64 Index, TConstArrayView<FTransform> Pose, int32 AssetFrame, double AssetTimeSeconds)
+void FAIAnimationPoseBuffer::AddSource(int64 Index, TConstArrayView<FTransform> Pose, int32 AssetFrame, double AssetTimeSeconds, TConstArrayView<FTransform> FullSource)
 {
 	check(Frames.IsEmpty() || Frames.Last().Index + 1 == Index);
 	FAIAnimationBufferedPose& Frame = Frames.AddDefaulted_GetRef();
@@ -25,6 +25,7 @@ void FAIAnimationPoseBuffer::AddSource(int64 Index, TConstArrayView<FTransform> 
 	Frame.AssetFrame = AssetFrame;
 	Frame.AssetTimeSeconds = AssetTimeSeconds;
 	Frame.Source.Append(Pose.GetData(), Pose.Num());
+	Frame.FullSource.Append(FullSource.GetData(), FullSource.Num());
 	if (Frames.Num() > 1)
 	{
 		const FAIAnimationBufferedPose& Previous = Frames[Frames.Num() - 2];
@@ -171,6 +172,27 @@ bool FAIAnimationPoseBuffer::Read(double Position, bool bSourceOnly, double Mode
 	return true;
 }
 
+bool FAIAnimationPoseBuffer::ReadFullSource(double Position, TArray<FTransform>& OutPose) const
+{
+	const int64 Lower = FMath::FloorToInt64(Position);
+	const FAIAnimationBufferedPose* A = Find(Lower);
+	const FAIAnimationBufferedPose* B = Find(FMath::CeilToInt64(Position));
+	if (A && !B)
+	{
+		B = A;
+	}
+	if (!A || !B || A->FullSource.IsEmpty() || A->FullSource.Num() != B->FullSource.Num())
+	{
+		return false;
+	}
+	OutPose.SetNum(A->FullSource.Num());
+	for (int32 Bone = 0; Bone < OutPose.Num(); ++Bone)
+	{
+		OutPose[Bone] = BlendPose(A->FullSource[Bone], B->FullSource[Bone], Position - Lower);
+	}
+	return true;
+}
+
 void FAIAnimationPoseBuffer::StabilizeStationary(double Position)
 {
 	const int64 Upper = FMath::CeilToInt64(Position);
@@ -202,7 +224,8 @@ void FAIAnimationPoseBuffer::Commit(double Position)
 	{
 		FrozenThrough = FMath::Max(FrozenThrough, FMath::Min(FMath::CeilToInt64(Position), Frames.Last().Index));
 	}
-	const int64 KeepFrom = FMath::FloorToInt64(Position) - 2;
+	// 保留完整硬参考桥接区间，避免已播放的锚点在过渡完成前被移除。
+	const int64 KeepFrom = FMath::FloorToInt64(Position) - 16;
 	while (!Frames.IsEmpty() && Frames[0].Index < KeepFrom)
 	{
 		Frames.RemoveAt(0, 1, EAllowShrinking::No);

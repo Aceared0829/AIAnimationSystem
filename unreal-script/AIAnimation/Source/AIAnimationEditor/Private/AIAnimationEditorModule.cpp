@@ -24,6 +24,10 @@ class FAIAnimationEditorModule final : public IModuleInterface
 public:
 	virtual void StartupModule() override
 	{
+		if (IsRunningCommandlet())
+		{
+			return;
+		}
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(WorkbenchTabId, FOnSpawnTab::CreateRaw(this, &FAIAnimationEditorModule::SpawnWorkbench))
 			.SetDisplayName(LOCTEXT("WorkbenchTitle", "AIAnimation 预览工作台"))
 			.SetTooltipText(LOCTEXT("WorkbenchTooltip", "选择动画并编辑硬姿态参考"))
@@ -37,6 +41,16 @@ public:
 
 	virtual void ShutdownModule() override
 	{
+		if (IsRunningCommandlet())
+		{
+			return;
+		}
+		if (TSharedPtr<SWindow> Window = StandaloneWindow.Pin())
+		{
+			Window->SetOnWindowClosed(FOnWindowClosed());
+			Window->RequestDestroyWindow();
+		}
+		StandaloneWindow.Reset();
 		UToolMenus::UnRegisterStartupCallback(this);
 		if (UToolMenus* Menus = UToolMenus::TryGet())
 		{

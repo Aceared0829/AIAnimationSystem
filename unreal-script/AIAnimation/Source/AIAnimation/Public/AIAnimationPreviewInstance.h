@@ -32,6 +32,9 @@ public:
 	/** 左侧对照只延迟源姿态，不执行模型。 */
 	bool bReferenceOnly = false;
 
+	/** 仅编辑器手动预览允许同步推理；运行时仍遵守动画工作线程约束。 */
+	bool bAllowGameThreadInference = false;
+
 	/** 预览专用的原始30 Hz动画帧号；仅右侧重建角色读取。 */
 	TArray<int32> HardReferenceFrames;
 

@@ -38,7 +38,7 @@ struct AIANIMATION_API FAIAnimationEvaluationStats
 
 /**
  * 将源姿态的固定历史窗口送入 DirectML，在动画工作线程同步重建身体姿态。
- * Root、曲线和属性沿用源输入；缺骨、初始化失败、非有限输出和 Game Thread 求值均回退源姿态。
+ * Root、曲线和属性沿用源输入；缺骨、初始化失败、非有限输出和未显式允许的 Game Thread 求值均回退源姿态。
  * 每个节点独占模型实例和缓冲，不能把状态共享给多个角色。模型变更仅在 PreUpdate 生效。
  */
 USTRUCT(BlueprintInternalUseOnly)
@@ -120,6 +120,7 @@ private:
 	double AccumulatedSeconds = 0.0;
 	double SampleRemainderSeconds = 0.0;
 	TArray<FTransform> PreviousSourcePose;
+	TArray<FTransform> PreviousFullSourcePose;
 	bool bHasPreviousSourcePose = false;
 	int32 NumHistoryFrames = 0;
 	bool bMapped = false;

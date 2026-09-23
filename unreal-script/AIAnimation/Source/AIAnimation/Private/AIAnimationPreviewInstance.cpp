@@ -27,7 +27,7 @@ public:
 		Reconstruction.Model = Preview->ReconstructionModel;
 		Reconstruction.bEnabled = Preview->bReconstruct || Preview->bReferenceOnly;
 		Reconstruction.bReferenceOnly = Preview->bReferenceOnly;
-		Reconstruction.bAllowGameThreadInference = true;
+		Reconstruction.bAllowGameThreadInference = Preview->bAllowGameThreadInference;
 		Reconstruction.HardReferenceFrames = Preview->HardReferenceFrames;
 		Player.SetPlayRate(Preview->bPaused ? 0.0f : Preview->PlaybackRate);
 		FAnimInstanceProxy::Initialize(Instance);

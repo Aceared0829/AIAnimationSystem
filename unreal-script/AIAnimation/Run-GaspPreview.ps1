@@ -25,7 +25,7 @@ $streaming = if ($Playback -eq 'Overlap') { 1 } else { 0 }
 $arguments += "-ExecCmds=t.MaxFPS $MaxFPS,AIAnimation.Streaming $streaming,AIAnimation.DelayFrames $DelayFrames"
 if ($HardReferences) {
     $arguments += '-AIAnimationReferenceFrames=32/34/44/52/56/59'
-    $arguments += '-AIAnimationAnimationFilter=Catch_Hurdle_low_run'
+    if (-not $AnimationFilter) { $AnimationFilter = 'Catch_Hurdle_low_run' }
 }
 if ($AnimationFilter) { $arguments += "-AIAnimationAnimationFilter=$AnimationFilter" }
 if ($Mode -eq 'Benchmark') {

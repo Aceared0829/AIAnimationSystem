@@ -43,6 +43,7 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Misc/AutomationTest.h"
 
 #define LOCTEXT_NAMESPACE "AIAnimationWorkbench"
 
@@ -88,7 +89,10 @@ namespace
 				LiveAccumulator -= Steps * StepSeconds;
 				for (int32 Step = 0; Step < Steps; ++Step)
 				{
-					PreviewScene->GetWorld()->Tick(LEVELTICK_All, StepSeconds);
+					if (AdvanceAnimation)
+					{
+						AdvanceAnimation(StepSeconds);
+					}
 				}
 			}
 		}
@@ -96,7 +100,7 @@ namespace
 		void SetManualAnimationTick(bool bManual) { bManualAnimationTick = bManual; LiveAccumulator = 0.0f; }
 		void SetAnimationPaused(bool bPaused) { bAnimationPaused = bPaused; LiveAccumulator = 0.0f; }
 		void SetLiveFramesPerSecond(int32 FramesPerSecond) { LiveFramesPerSecond = FMath::Clamp(FramesPerSecond, 1, 240); LiveAccumulator = 0.0f; }
-		void AdvanceAnimationWorld(float DeltaSeconds) { PreviewScene->GetWorld()->Tick(LEVELTICK_All, DeltaSeconds); }
+		TFunction<void(float)> AdvanceAnimation;
 
 		void SetOverlays(USkinnedMeshComponent* InLabelMesh, const TArray<FVector>* InRootTrack, int32 InCurrentRootSample, bool bInShowTrajectory)
 		{
@@ -223,6 +227,8 @@ namespace
 
 		void SetAssets(UAnimSequence* Animation, UAIAnimationModel* Model, TConstArrayView<int32> Frames)
 		{
+			SimulationFrame = INDEX_NONE;
+			DisplayTimeSeconds = 0.0;
 			PreviewAnimation = Animation;
 			PreviewModel = Model;
 			RootTrack.Reset();
@@ -262,10 +268,12 @@ namespace
 				Instance->Sequence = Animation;
 				Instance->ReconstructionModel = Model;
 				Instance->bReferenceOnly = Index == 0;
+				Instance->bAllowGameThreadInference = true;
 				Instance->bReconstruct = Index != 0;
 				Instance->HardReferenceFrames = Index == 2 ? TArray<int32>(Frames) : TArray<int32>();
 				Instance->bPaused = bPaused;
-				Instance->PlaybackRate = PlaybackRate;
+				Instance->PlaybackRate = 1.0f;
+				Instance->bLoopAnimation = false;
 				Instance->InitializeAnimation();
 			}
 			Invalidate();
@@ -318,14 +326,9 @@ namespace
 
 		FAIAnimationCachedFrame CaptureCacheFrame(int32 OutputIndex, int32 FramesPerSecond, float StartSeconds, float Speed)
 		{
-			const float TargetTime = StartSeconds + OutputIndex * Speed / FMath::Max(1, FramesPerSecond);
-			if (OutputIndex > 0)
-			{
-				SetPaused(false);
-				ViewportClient->AdvanceAnimationWorld(1.0f / FMath::Max(1, FramesPerSecond));
-				SetPaused(true);
-			}
-			// World Tick 可能只发起并行动画求值；读取三路姿态前先完成全部骨骼刷新。
+			const double TargetTime = double(StartSeconds) + OutputIndex * double(Speed) / FMath::Max(1, FramesPerSecond);
+			EvaluateAtTime(TargetTime, false);
+			// 读取三路姿态前完成全部骨骼刷新，缓存直接保存实时预览实际显示的结果。
 			for (TStrongObjectPtr<USkeletalMeshComponent>& Mesh : Meshes)
 			{
 				Mesh->RefreshBoneTransforms();
@@ -335,45 +338,6 @@ namespace
 			for (int32 Index = 0; Index < 3; ++Index)
 			{
 				Frame.BoneComponent[Index] = Meshes[Index]->GetComponentSpaceTransforms();
-			}
-			if (PreviewModel.IsValid() && Meshes[0]->GetSkeletalMeshAsset())
-			{
-				const FReferenceSkeleton& Skeleton = Meshes[0]->GetSkeletalMeshAsset()->GetRefSkeleton();
-				const TArray<FTransform>& Source = Frame.BoneComponent[0];
-				if (Source.Num() == Skeleton.GetNum())
-				{
-					for (int32 MeshIndex = 1; MeshIndex < 3; ++MeshIndex)
-					{
-						const TArray<FTransform> ModelPose = MoveTemp(Frame.BoneComponent[MeshIndex]);
-						if (ModelPose.Num() != Source.Num())
-						{
-							Frame.BoneComponent[MeshIndex] = Source;
-							continue;
-						}
-						TArray<FTransform> Local;
-						Local.SetNumUninitialized(Source.Num());
-						Local[0] = Source[0];
-						for (int32 BoneIndex = 1; BoneIndex < Source.Num(); ++BoneIndex)
-						{
-							Local[BoneIndex] = Source[BoneIndex].GetRelativeTransform(Source[Skeleton.GetParentIndex(BoneIndex)]);
-						}
-						for (const FAIAnimationBone& Bone : PreviewModel->Bones)
-						{
-							const int32 BoneIndex = Meshes[MeshIndex]->GetBoneIndex(Bone.Name);
-							if (BoneIndex > 0 && BoneIndex < Local.Num())
-							{
-								Local[BoneIndex] = ModelPose[BoneIndex].GetRelativeTransform(ModelPose[Skeleton.GetParentIndex(BoneIndex)]);
-							}
-						}
-						TArray<FTransform>& Aligned = Frame.BoneComponent[MeshIndex];
-						Aligned.SetNumUninitialized(Local.Num());
-						Aligned[0] = Local[0];
-						for (int32 BoneIndex = 1; BoneIndex < Local.Num(); ++BoneIndex)
-						{
-							Aligned[BoneIndex] = Local[BoneIndex] * Aligned[Skeleton.GetParentIndex(BoneIndex)];
-						}
-					}
-				}
 			}
 			if (OutputIndex % 10 == 0 || (GetInstance(2) && GetInstance(2)->HardReferenceFrames.Contains(FMath::RoundToInt(TargetTime * 30.0f))))
 			{
@@ -412,7 +376,7 @@ namespace
 			{
 				if (UAIAnimationPreviewInstance* Instance = GetInstance(Index))
 				{
-					Instance->bLoopAnimation = true;
+					Instance->bLoopAnimation = false;
 				}
 			}
 			if (ViewportClient.IsValid())
@@ -421,6 +385,34 @@ namespace
 			}
 			SetReplayCache(InCache);
 		}
+
+#if WITH_DEV_AUTOMATION_TESTS
+		TArray<FTransform> ReadReplayPose(int32 Lane) const { return CachedMeshes[Lane]->GetComponentSpaceTransforms(); }
+		TArray<FTransform> ReadLivePose(int32 Lane) const { return Meshes[Lane]->GetComponentSpaceTransforms(); }
+		void AdvanceLiveForTest(float DeltaSeconds) { ViewportClient->AdvanceAnimation(DeltaSeconds); }
+
+		TArray<FTransform> ReadRawSource(float Seconds)
+		{
+			TStrongObjectPtr<USkeletalMeshComponent> Raw(NewObject<USkeletalMeshComponent>(GetTransientPackage()));
+			Raw->SetSkeletalMesh(Meshes[0]->GetSkeletalMeshAsset());
+			Raw->SetForcedLOD(1);
+			Raw->SetDisablePostProcessBlueprint(true);
+			Raw->bSuppressNotifyEventDispatch = true;
+			Scene->AddComponent(Raw.Get(), FTransform::Identity);
+			Raw->SetAnimInstanceClass(UAIAnimationPreviewInstance::StaticClass());
+			UAIAnimationPreviewInstance* Instance = CastChecked<UAIAnimationPreviewInstance>(Raw->GetAnimInstance());
+			Instance->Sequence = PreviewAnimation.Get();
+			Instance->bLoopAnimation = false;
+			Instance->bPaused = true;
+			Instance->InitializeAnimation();
+			Instance->RequestedAssetTimeSeconds = Seconds;
+			Raw->TickAnimation(0.0f, false);
+			Raw->RefreshBoneTransforms();
+			TArray<FTransform> Pose = Raw->GetComponentSpaceTransforms();
+			Scene->RemoveComponent(Raw.Get());
+			return Pose;
+		}
+#endif
 
 		bool IsReplayMode() const { return bReplayMode; }
 		int32 GetPreviewBoneCount() const { return Meshes[0]->GetNumBones(); }
@@ -521,7 +513,8 @@ namespace
 			{
 				if (UAIAnimationPreviewInstance* Instance = GetInstance(Index))
 				{
-					Instance->PlaybackRate = PlaybackRate;
+					Instance->PlaybackRate = 1.0f;
+					Instance->bLoopAnimation = false;
 				}
 			}
 		}
@@ -601,38 +594,62 @@ namespace
 			{
 				return;
 			}
-			const FAIAnimationEvaluationStats* Stats = GetHardStats();
-			const float SourceSeconds = FMath::Clamp(Seconds + (Stats ? Stats->DelayFrames / 30.0f : 0.0f), 0.0f, FMath::Max(0.0f, PreviewAnimation->GetPlayLength() - 0.001f));
-			const float CurrentSourceSeconds = GetSourceTime();
-			const bool bCanContinue = !bForceWarmup && SourceSeconds >= CurrentSourceSeconds && SourceSeconds - CurrentSourceSeconds <= 0.25f;
-			const float WarmupStartSeconds = bCanContinue ? CurrentSourceSeconds : FMath::Max(0.0f, SourceSeconds - 1.5f);
-			const float RestoredPlaybackRate = PlaybackRate;
-			bPaused = false;
+			EvaluateAtTime(Seconds, bForceWarmup);
+			SetPaused(true);
+			ApplyRootMotion();
+			Invalidate();
+		}
+
+		void EvaluateAtTime(double Seconds, bool bReset)
+		{
+			if (!PreviewAnimation.IsValid() || !GetInstance(0))
+			{
+				return;
+			}
+			static const IConsoleVariable* Enabled = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.Enabled"));
+			static const IConsoleVariable* Hard = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.HardReferences"));
+			const int32 Settings = FMath::RoundToInt(GetDisplayDelay() * 30.0f) + (Enabled && Enabled->GetInt() == 0 ? 32 : 0)
+				+ (Hard && Hard->GetInt() == 0 ? 64 : 0);
+			bReset |= Settings != LastSamplingSettings;
+			LastSamplingSettings = Settings;
+			DisplayTimeSeconds = FMath::Clamp(Seconds, 0.0, double(PreviewAnimation->GetPlayLength()));
+			// 时间轴输入可能经过 float；半帧边界在万分之一帧内统一向上选样。
+			const int32 DisplayFrame = FMath::FloorToInt(DisplayTimeSeconds * 30.0 + 0.5001);
 			for (int32 Index = 0; Index < 3; ++Index)
 			{
 				if (UAIAnimationPreviewInstance* Instance = GetInstance(Index))
 				{
 					Instance->bPaused = false;
 					Instance->PlaybackRate = 1.0f;
-					if (!bCanContinue)
-					{
-						Instance->RequestedAssetTimeSeconds = WarmupStartSeconds;
-					}
+					Instance->bLoopAnimation = false;
 				}
 			}
-			if (!bCanContinue)
+			// 每次跳转都沿同一 30 Hz 源时间网格构建历史；倍速与输出 FPS 只选择显示帧。
+			if (bReset || SimulationFrame == INDEX_NONE || DisplayFrame + FMath::RoundToInt(GetDisplayDelay() * 30.0f) < SimulationFrame)
 			{
+				for (int32 Index = 0; Index < 3; ++Index)
+				{
+					if (UAIAnimationPreviewInstance* Instance = GetInstance(Index))
+					{
+						Instance->RequestedAssetTimeSeconds = 0.0f;
+					}
+				}
 				AdvancePreview(0.0f);
+				SimulationFrame = 0;
 			}
-			for (int32 Step = 0; Step < 96 && GetSourceTime() < SourceSeconds - 0.005f; ++Step)
+			const int32 TargetFrame = DisplayFrame + FMath::RoundToInt(GetDisplayDelay() * 30.0f);
+			while (SimulationFrame < TargetFrame)
 			{
-				const float Remaining = SourceSeconds - GetSourceTime();
-				AdvancePreview(FMath::Clamp(Remaining, 0.001f, 1.0f / 30.0f));
+				AdvancePreview(1.0f / 30.0f);
+				++SimulationFrame;
 			}
-			SetPaused(true);
-			SetPlaybackRate(RestoredPlaybackRate);
-			ApplyRootMotion();
-			Invalidate();
+			for (int32 Index = 0; Index < 3; ++Index)
+			{
+				if (UAIAnimationPreviewInstance* Instance = GetInstance(Index))
+				{
+					Instance->bPaused = true;
+				}
+			}
 		}
 
 		float GetCurrentTime() const
@@ -641,9 +658,7 @@ namespace
 			{
 				return ReplayCache->Frames[ReplayIndex].SourceTimeSeconds;
 			}
-			const UAIAnimationPreviewInstance* Instance = GetInstance(1) ? GetInstance(1) : GetInstance(0);
-			const FAIAnimationEvaluationStats* Stats = GetHardStats();
-			return Instance ? FMath::Max(0.0f, Instance->CurrentAssetTimeSeconds - (Stats ? Stats->DelayFrames / 30.0f : 0.0f)) : 0.0f;
+			return static_cast<float>(DisplayTimeSeconds);
 		}
 
 		float GetSourceTime() const
@@ -654,8 +669,15 @@ namespace
 
 		float GetDisplayDelay() const
 		{
-			const FAIAnimationEvaluationStats* Stats = GetHardStats();
-			return Stats ? Stats->DelayFrames / 30.0f : 0.0f;
+			static const IConsoleVariable* Enabled = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.Enabled"));
+			static const IConsoleVariable* Streaming = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.Streaming"));
+			static const IConsoleVariable* Delay = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.DelayFrames"));
+			if (!PreviewModel.IsValid() || (Enabled && Enabled->GetInt() == 0) || (Streaming && Streaming->GetInt() == 0))
+			{
+				return 0.0f;
+			}
+			const int32 RequestedDelay = Delay ? Delay->GetInt() : 8;
+			return (RequestedDelay <= 4 ? 4 : RequestedDelay <= 8 ? 8 : 12) / 30.0f;
 		}
 
 		const FAIAnimationEvaluationStats* GetHardStats() const
@@ -672,6 +694,14 @@ namespace
 		virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
 		{
 			ViewportClient = MakeShared<FAIAnimationViewportClient>(*Scene, StaticCastSharedRef<SEditorViewport>(SharedThis(this)));
+			const TWeakPtr<SAIAnimationPreviewViewport> WeakViewport = StaticCastSharedRef<SAIAnimationPreviewViewport>(SharedThis(this));
+			ViewportClient->AdvanceAnimation = [WeakViewport](float DeltaSeconds)
+			{
+				if (const TSharedPtr<SAIAnimationPreviewViewport> Viewport = WeakViewport.Pin())
+				{
+					Viewport->EvaluateAtTime(Viewport->DisplayTimeSeconds + double(DeltaSeconds) * Viewport->PlaybackRate, false);
+				}
+			};
 			UpdateOverlays();
 			return ViewportClient.ToSharedRef();
 		}
@@ -767,6 +797,9 @@ namespace
 		double RootTrackLength = 0.0;
 		bool bPaused = false;
 		float PlaybackRate = 1.0f;
+		double DisplayTimeSeconds = 0.0;
+		int32 SimulationFrame = INDEX_NONE;
+		int32 LastSamplingSettings = INDEX_NONE;
 		bool bShowRootMotion = false;
 		bool bShowBoneNames = true;
 		bool bShowTrajectory = true;
@@ -935,6 +968,10 @@ namespace
 
 		virtual ~SAIAnimationWorkbench() override
 		{
+			if (Viewport.IsValid())
+			{
+				Viewport->FinishCacheBuild(nullptr);
+			}
 			if (IConsoleVariable* MaxFpsVariable = IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS")))
 			{
 				MaxFpsVariable->Set(PreviousMaxFps, ECVF_SetByConsole);
@@ -950,13 +987,13 @@ namespace
 				{
 					UpdateReplay(InDeltaTime);
 				}
-				else if (!bPaused && bLoopRange && Animation.IsValid())
+				else if (!bPaused && Animation.IsValid())
 				{
-					const float SourceTime = Viewport->GetSourceTime();
-					const float EndTime = FMath::Min(Animation->GetPlayLength() - 0.001f, RangeEndFrame / 30.0f + Viewport->GetDisplayDelay());
-					if (SourceTime + 0.05f < LastSourceTime || SourceTime >= EndTime)
+					const float SourceTime = Viewport->GetCurrentTime();
+					const float EndTime = ActiveEndFrame() / 30.0f;
+					if (SourceTime >= EndTime - 0.0001f)
 					{
-						Seek(RangeStartFrame / 30.0f);
+						Seek(ActiveStartFrame() / 30.0f);
 						bPaused = false;
 						Viewport->SetPaused(false);
 					}
@@ -975,6 +1012,119 @@ namespace
 			}
 		}
 
+#if WITH_DEV_AUTOMATION_TESTS
+		void ValidatePlayback(FAutomationTestBase& Test)
+		{
+			if (!Test.TestTrue(TEXT("工作台测试需要 GASP 动画与模型"), Animation.IsValid() && Model.IsValid() && Viewport->GetPreviewBoneCount() > 0))
+			{
+				return;
+			}
+			bPaused = true;
+			Viewport->SetPaused(true);
+			const auto Compare = [&Test](const TArray<FTransform>& A, const TArray<FTransform>& B, const FString& Label)
+			{
+				if (!Test.TestEqual(Label + TEXT(" 骨骼数"), A.Num(), B.Num()))
+				{
+					return;
+				}
+				double PositionError = 0.0;
+				double AngleError = 0.0;
+				for (int32 Bone = 0; Bone < A.Num(); ++Bone)
+				{
+					PositionError = FMath::Max(PositionError, FVector::Dist(A[Bone].GetTranslation(), B[Bone].GetTranslation()));
+					AngleError = FMath::Max(AngleError, A[Bone].GetRotation().AngularDistance(B[Bone].GetRotation()));
+				}
+				Test.TestTrue(Label + FString::Printf(TEXT(" 最大位移误差 %.6f cm"), PositionError), PositionError < 0.01);
+				Test.TestTrue(Label + FString::Printf(TEXT(" 最大旋转误差 %.6f rad"), AngleError), AngleError < 0.001);
+			};
+			TArray<FAIAnimationCachedFrame> Baseline;
+			Viewport->BeginCacheBuild(0.0f);
+			const int32 LastFrame = GetSourceFrameCount();
+			for (int32 Frame = 0; Frame <= LastFrame; ++Frame)
+			{
+				Baseline.Add(Viewport->CaptureCacheFrame(Frame, 30, 0.0f, 1.0f));
+			}
+			Test.TestTrue(TEXT("确实执行 GPU 推理"), Baseline.Last().NumInferences > 0);
+			for (int32 Frame : { 0, FMath::Min(44, LastFrame), LastFrame })
+			{
+				Compare(Baseline[Frame].BoneComponent[0], Viewport->ReadRawSource(Frame / 30.0f), FString::Printf(TEXT("原始源帧 %d"), Frame));
+				Viewport->Seek(Frame / 30.0f, true);
+				const FAIAnimationCachedFrame SeekFrame = Viewport->CaptureCacheFrame(0, 30, Frame / 30.0f, 1.0f);
+				for (int32 Lane = 0; Lane < 3; ++Lane)
+				{
+					Compare(Baseline[Frame].BoneComponent[Lane], SeekFrame.BoneComponent[Lane], FString::Printf(TEXT("随机跳帧 %d 通道 %d"), Frame, Lane));
+				}
+			}
+			for (float Speed : { 0.5f, 2.0f })
+			{
+				for (int32 Fps : { 15, 60 })
+				{
+					Viewport->BeginCacheBuild(0.0f);
+					Viewport->SetPlaybackRate(Speed);
+					const int32 Count = FMath::FloorToInt(LastFrame / 30.0f * Fps / Speed);
+					for (int32 Index = 0; Index <= Count; ++Index)
+					{
+						const FAIAnimationCachedFrame Frame = Viewport->CaptureCacheFrame(Index, Fps, 0.0f, Speed);
+						const int32 SourceFrame = FMath::Clamp(FMath::RoundToInt(Index * Speed * 30.0f / Fps), 0, LastFrame);
+						for (int32 Lane = 0; Lane < 3; ++Lane)
+						{
+							Compare(Baseline[SourceFrame].BoneComponent[Lane], Frame.BoneComponent[Lane], FString::Printf(TEXT("倍速 %.1f FPS %d 帧 %d 通道 %d"), Speed, Fps, Index, Lane));
+						}
+					}
+				}
+			}
+			Viewport->SetPlaybackRate(0.5f);
+			Viewport->Seek(0.0f, true);
+			for (int32 Index = 1; Index <= LastFrame * 4; ++Index)
+			{
+				Viewport->AdvanceLiveForTest(1.0f / 60.0f);
+				const int32 Frame = FMath::Clamp(FMath::RoundToInt(Index / 4.0), 0, LastFrame);
+				for (int32 Lane = 0; Lane < 3; ++Lane)
+				{
+					Compare(Baseline[Frame].BoneComponent[Lane], Viewport->ReadLivePose(Lane), FString::Printf(TEXT("实时推进 %d 通道 %d"), Index, Lane));
+				}
+			}
+			Viewport->SetPlaybackRate(1.0f);
+			Viewport->Seek(44.0f / 30.0f, true);
+			Viewport->SetRootMotion(true);
+			Viewport->AdvanceLiveForTest(1.0f / 30.0f);
+			for (int32 Lane = 0; Lane < 3; ++Lane)
+			{
+				Compare(Baseline[45].BoneComponent[Lane], Viewport->ReadLivePose(Lane), TEXT("显示 Root 位移不重置身体历史"));
+			}
+			Viewport->SetRootMotion(false);
+			IConsoleVariable* Enabled = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.Enabled"));
+			const int32 PreviousEnabled = Enabled->GetInt();
+			Enabled->Set(0, ECVF_SetByConsole);
+			Viewport->Seek(44.0f / 30.0f);
+			Compare(Viewport->ReadRawSource(44.0f / 30.0f), Viewport->ReadLivePose(0), TEXT("禁用推理不多走延迟帧"));
+			Enabled->Set(PreviousEnabled, ECVF_SetByConsole);
+			Viewport->Seek(44.0f / 30.0f);
+			Compare(Baseline[44].BoneComponent[1], Viewport->ReadLivePose(1), TEXT("重新启用推理重建同一历史"));
+			Viewport->FinishCacheBuild(nullptr);
+			Cache.Key = BuildReplayKey();
+			Cache.Frames = MoveTemp(Baseline);
+			for (int32 Iteration = 0; Iteration < 2; ++Iteration)
+			{
+				SwitchPreviewMode(false);
+				SwitchPreviewMode(true);
+				Test.TestTrue(TEXT("重复进入回放重新挂载已有缓存"), Viewport->IsReplayMode());
+				Viewport->Seek(FMath::Min(44, LastFrame) / 30.0f);
+				for (int32 Lane = 0; Lane < 3; ++Lane)
+				{
+					Compare(Cache.Frames[FMath::Min(44, LastFrame)].BoneComponent[Lane], Viewport->ReadReplayPose(Lane), TEXT("缓存还原"));
+				}
+			}
+			bBuildingCache = true;
+			SwitchPreviewMode(false);
+			Test.TestTrue(TEXT("中断生成丢弃半成品缓存"), Cache.Key.IsEmpty() && Cache.Frames.IsEmpty());
+			bBuildingCache = true;
+			OutputFrames = 12001;
+			StartReplayBuild();
+			Test.TestFalse(TEXT("超长输出取消旧生成状态"), bBuildingCache);
+		}
+#endif
+
 	private:
 		int32 ActiveStartFrame() const { return bLoopRange ? RangeStartFrame : 0; }
 		int32 ActiveEndFrame() const { return bLoopRange ? RangeEndFrame : GetSourceFrameCount(); }
@@ -990,11 +1140,10 @@ namespace
 				const FString Filename = FPackageName::LongPackageNameToFilename(Asset->GetOutermost()->GetName(), TEXT(".uasset"));
 				return IFileManager::Get().GetTimeStamp(*Filename).GetTicks();
 			};
-			auto CVarValue = [](const TCHAR* Name) -> int32
-			{
-				const IConsoleVariable* Variable = IConsoleManager::Get().FindConsoleVariable(Name);
-				return Variable ? Variable->GetInt() : 0;
-			};
+			static const IConsoleVariable* Streaming = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.Streaming"));
+			static const IConsoleVariable* Delay = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.DelayFrames"));
+			static const IConsoleVariable* Enabled = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.Enabled"));
+			static const IConsoleVariable* Hard = IConsoleManager::Get().FindConsoleVariable(TEXT("AIAnimation.HardReferences"));
 			FString ReferenceFrames;
 			for (const int32 Frame : DraftFrames)
 			{
@@ -1003,13 +1152,13 @@ namespace
 			const FString RuntimeModule = FModuleManager::Get().GetModuleFilename(TEXT("AIAnimation"));
 			const FString EditorModule = FModuleManager::Get().GetModuleFilename(TEXT("AIAnimationEditor"));
 			const USkeletalMesh* PreviewMesh = Animation->GetSkeleton() ? Animation->GetSkeleton()->GetPreviewMesh(true) : nullptr;
-			return FString::Printf(TEXT("v5|%s|%lld|%s|%lld|%s|%s|%lld|%lld|%lld|%d|%d|%d|%.9g|%d|%d|%d|%d|%s"),
+			return FString::Printf(TEXT("v6|%s|%lld|%s|%lld|%s|%s|%lld|%lld|%lld|%d|%d|%d|%.9g|%d|%d|%d|%d|%s"),
 				*Animation->GetPathName(), AssetTime(Animation.Get()), PreviewMesh ? *PreviewMesh->GetPathName() : TEXT(""), PreviewMesh ? AssetTime(PreviewMesh) : 0,
 				*Model->GetPathName(), *Model->ModelSha256,
 				AssetTime(Model.Get()), IFileManager::Get().GetTimeStamp(*RuntimeModule).GetTicks(), IFileManager::Get().GetTimeStamp(*EditorModule).GetTicks(),
 				ActiveStartFrame(), ActiveEndFrame(), OutputFps, static_cast<double>(SelectedSpeed),
-				CVarValue(TEXT("AIAnimation.Streaming")), CVarValue(TEXT("AIAnimation.DelayFrames")),
-				CVarValue(TEXT("AIAnimation.Enabled")), CVarValue(TEXT("AIAnimation.HardReferences")), *ReferenceFrames);
+				Streaming ? Streaming->GetInt() : 0, Delay ? Delay->GetInt() : 0,
+				Enabled ? Enabled->GetInt() : 0, Hard ? Hard->GetInt() : 0, *ReferenceFrames);
 		}
 
 		void SwitchPreviewMode(bool bUseReplay)
@@ -1020,8 +1169,12 @@ namespace
 			Viewport->SetPaused(true);
 			if (!bUseReplay)
 			{
-				bBuildingCache = false;
 				Viewport->FinishCacheBuild(nullptr);
+				if (bBuildingCache)
+				{
+					Cache.Reset(FString());
+				}
+				bBuildingCache = false;
 				if (Animation.IsValid())
 				{
 					Viewport->Seek(SwitchTime, true);
@@ -1040,6 +1193,8 @@ namespace
 			}
 			if (OutputFrames > 12000)
 			{
+				bBuildingCache = false;
+				NextCacheFrame = 0;
 				Cache.Reset(BuildReplayKey());
 				Viewport->FinishCacheBuild(nullptr);
 				ReplayMessage = LOCTEXT("ReplayTooLong", "结果超过 12000 帧；请缩短区间或提高倍速。");
@@ -1099,6 +1254,12 @@ namespace
 			}
 			else
 			{
+				if (!Viewport->IsReplayMode() && !Cache.Frames.IsEmpty())
+				{
+					Viewport->FinishCacheBuild(&Cache);
+					Viewport->Seek(PendingReplayTimeSeconds);
+					bPaused = true;
+				}
 				Viewport->TickReplay(DeltaSeconds, OutputFps);
 			}
 		}
@@ -1197,9 +1358,15 @@ namespace
 
 		void InvalidateReplayCache()
 		{
+			PendingReplayTimeSeconds = Viewport->GetCurrentTime();
 			bBuildingCache = false;
 			Viewport->FinishCacheBuild(nullptr);
 			Cache.Reset(FString());
+			if (!bReplayRequested)
+			{
+				Viewport->Seek(PendingReplayTimeSeconds, true);
+				Viewport->SetPaused(bPaused);
+			}
 		}
 
 		void FramesChanged()
@@ -1389,7 +1556,7 @@ namespace
 				return LOCTEXT("NoAnimation", "选择动画以开始预览");
 			}
 			const float SourceTime = Viewport->GetCurrentTime();
-			const int32 OutputFrame = FMath::Clamp(FMath::RoundToInt((SourceTime - RangeStartFrame / 30.0f) * OutputFps / SelectedSpeed), 0, OutputFrames);
+			const int32 OutputFrame = FMath::Clamp(FMath::RoundToInt((SourceTime - ActiveStartFrame() / 30.0f) * OutputFps / SelectedSpeed), 0, OutputFrames);
 			return FText::Format(LOCTEXT("TimeFormat", "源第 {0} / {1} 帧 · {2} 秒    预览第 {3} / {4} 帧"), FText::AsNumber(FMath::RoundToInt(SourceTime * 30.0f)),
 				FText::AsNumber(GetSourceFrameCount()), FText::AsNumber(SourceTime), FText::AsNumber(OutputFrame), FText::AsNumber(OutputFrames));
 		}
@@ -1459,5 +1626,16 @@ TSharedRef<SWidget> CreateAIAnimationWorkbench()
 {
 	return SNew(SAIAnimationWorkbench);
 }
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAIAnimationWorkbenchTest, "AIAnimation.Preview.Workbench", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAIAnimationWorkbenchTest::RunTest(const FString& Parameters)
+{
+	TSharedRef<SAIAnimationWorkbench> Workbench = SNew(SAIAnimationWorkbench);
+	Workbench->ValidatePlayback(*this);
+	return true;
+}
+#endif
 
 #undef LOCTEXT_NAMESPACE

@@ -10,12 +10,12 @@ if (-not (Test-Path -LiteralPath $editor)) { throw "找不到 UnrealEditor：$ed
 if (-not (Test-Path -LiteralPath $Project)) { throw "找不到 UE 项目：$Project" }
 
 $arguments = @(
-    [IO.Path]::GetFullPath($Project),
+    ('"{0}"' -f [IO.Path]::GetFullPath($Project)),
     '-NoSplash',
     '-NoSound',
     '-NoLoadStartupPackages',
     '-ini:EditorPerProjectUserSettings:[/Script/UnrealEd.EditorLoadingSavingSettings]:LoadLevelAtStartup=None',
-    "-ExecCmds=AIAnimation.OpenWorkbenchOnly,t.MaxFPS $MaxFPS"
+    ('"-ExecCmds=AIAnimation.OpenWorkbenchOnly,t.MaxFPS {0}"' -f $MaxFPS)
 )
 
 $process = Start-Process -FilePath $editor -ArgumentList $arguments -PassThru

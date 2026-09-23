@@ -135,6 +135,7 @@ void AAIAnimationBenchmark::SetAnimation(int32 Index)
 	ActiveAnimation = Index;
 	LastInferenceCount = 0;
 	LastQualityCount = 0;
+	LastSoftQualityCount = 0;
 	const bool bRunReconstruction = FPlatformTime::Seconds() - StartSeconds >= 5.0;
 	for (USkeletalMeshComponent* Mesh : { ReferenceMesh.Get(), SoftMesh.Get(), ReconstructedMesh.Get() })
 	{
@@ -189,10 +190,14 @@ void AAIAnimationBenchmark::Tick(float DeltaSeconds)
 		SetAnimation(Index);
 	}
 	UAIAnimationPreviewInstance* Instance = CastChecked<UAIAnimationPreviewInstance>(ReconstructedMesh->GetAnimInstance());
-	UAIAnimationPreviewInstance* SoftInstance = CastChecked<UAIAnimationPreviewInstance>(SoftMesh->GetAnimInstance());
+	UAIAnimationPreviewInstance* SoftInstance = Cast<UAIAnimationPreviewInstance>(SoftMesh->GetAnimInstance());
 	Instance->bReconstruct = Elapsed >= 5.0;
 	const FAIAnimationEvaluationStats& Stats = Instance->EvaluationStats;
-	const FAIAnimationEvaluationStats& SoftStats = SoftInstance->EvaluationStats;
+	if (SoftInstance)
+	{
+		SoftInstance->bReconstruct = Instance->bReconstruct;
+	}
+	const FAIAnimationEvaluationStats SoftStats = SoftInstance ? SoftInstance->EvaluationStats : FAIAnimationEvaluationStats{};
 	FClipResult& Clip = ClipResults[Index];
 	// 换动作的这个 Tick 尚未得到新动画任务结果，不能把上一个动作的快照记入新动作。
 	const bool bFresh = Stats.NumInferences > LastInferenceCount && Stats.bInferredThisEvaluation;
