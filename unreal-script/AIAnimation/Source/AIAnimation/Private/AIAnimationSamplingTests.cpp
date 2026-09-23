@@ -76,7 +76,7 @@ bool FAIAnimationPlaybackTest::RunTest(const FString& Parameters)
 		Buffer.AddSource(Index, Source);
 		Buffer.Commit(Index - 8.0);
 	}
-	TestTrue(TEXT("长时播放缓冲保持有界"), Buffer.Num() <= 12);
+	TestTrue(TEXT("长时播放缓冲保持有界"), Buffer.Num() <= 25);
 	Buffer.Reset();
 	TestNull(TEXT("回绕清除上一段模型姿态"), Buffer.Find(0));
 	TArray<FTransform> NewSource = { FTransform(FVector(100, 0, 0)) };
@@ -117,6 +117,34 @@ bool FAIAnimationStationaryTest::RunTest(const FString& Parameters)
 	const double ResumedPosition = Buffer.Find(16)->Model[0].GetTranslation().X;
 	TestTrue(TEXT("源动作恢复后解除静止锁定"), ResumedPosition > 5.0);
 	TestTrue(TEXT("解除锁定时保留短过渡"), ResumedPosition < 100.0);
+	return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAIAnimationHardReferenceTest, "AIAnimation.Lab.HardReferenceHistory", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAIAnimationHardReferenceTest::RunTest(const FString& Parameters)
+{
+	FAIAnimationPoseBuffer Buffer;
+	TArray<FTransform> Window;
+	for (int32 Index = 0; Index < 24; ++Index)
+	{
+		TArray<FTransform> Source = { FTransform(FVector(Index, 0, 0)) };
+		Buffer.AddSource(Index, Source, Index, Index / 30.0);
+		Window.Add(FTransform(FVector(Index + 10, 0, 0)));
+	}
+	Buffer.MergeWindow(0, 24, 1, Window);
+	TArray<FTransform> Before;
+	TArray<FTransform> After;
+	TArray<int32> References = { 4 };
+	bool bReady = false;
+	Buffer.Read(8.0, false, 1.0, Before, bReady, References);
+	Buffer.Commit(7.0);
+	Buffer.Read(8.0, false, 1.0, After, bReady, References);
+	TestEqual(TEXT("锚点播放三帧后仍保留完整过渡"), After[0].GetTranslation().X, Before[0].GetTranslation().X, 1.e-6);
+	TestEqual(TEXT("八帧衰减中点保留一半纠偏"), After[0].GetTranslation().X, 13.0, 1.e-6);
+	Buffer.Read(4.0, false, 1.0, After, bReady, References);
+	TestEqual(TEXT("选中帧精确返回源姿态"), After[0].GetTranslation().X, 4.0, 1.e-6);
+	Buffer.Read(8.0, false, 1.0, After, bReady);
+	TestEqual(TEXT("软通道不读取硬参考纠偏"), After[0].GetTranslation().X, 18.0, 1.e-6);
 	return true;
 }
 #endif

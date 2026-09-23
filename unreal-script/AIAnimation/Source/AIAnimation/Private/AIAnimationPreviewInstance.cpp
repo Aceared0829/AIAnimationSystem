@@ -21,22 +21,35 @@ public:
 	{
 		UAIAnimationPreviewInstance* Preview = CastChecked<UAIAnimationPreviewInstance>(Instance);
 		Player.SetSequence(Preview->Sequence);
-		Player.SetLoopAnimation(true);
+		Player.SetLoopAnimation(Preview->bLoopAnimation);
 		PreviousAssetTime = -1.0f;
 		Reconstruction.Source.SetLinkNode(&Player);
 		Reconstruction.Model = Preview->ReconstructionModel;
-		Reconstruction.bEnabled = Preview->bReconstruct;
+		Reconstruction.bEnabled = Preview->bReconstruct || Preview->bReferenceOnly;
 		Reconstruction.bReferenceOnly = Preview->bReferenceOnly;
+		Reconstruction.bAllowGameThreadInference = Preview->bAllowGameThreadInference;
+		Reconstruction.HardReferenceFrames = Preview->HardReferenceFrames;
+		Player.SetPlayRate(Preview->bPaused ? 0.0f : Preview->PlaybackRate);
 		FAnimInstanceProxy::Initialize(Instance);
 	}
 
 	virtual void PreUpdate(UAnimInstance* Instance, float DeltaSeconds) override
 	{
-		const UAIAnimationPreviewInstance* Preview = CastChecked<UAIAnimationPreviewInstance>(Instance);
+		UAIAnimationPreviewInstance* Preview = CastChecked<UAIAnimationPreviewInstance>(Instance);
 		Player.SetSequence(Preview->Sequence);
+		Player.SetLoopAnimation(Preview->bLoopAnimation);
 		Reconstruction.Model = Preview->ReconstructionModel;
-		Reconstruction.bEnabled = Preview->bReconstruct;
+		Reconstruction.bEnabled = Preview->bReconstruct || Preview->bReferenceOnly;
 		Reconstruction.bReferenceOnly = Preview->bReferenceOnly;
+		Reconstruction.HardReferenceFrames = Preview->HardReferenceFrames;
+		Player.SetPlayRate(Preview->bPaused ? 0.0f : Preview->PlaybackRate);
+		if (Preview->RequestedAssetTimeSeconds >= 0.0f)
+		{
+			Player.SetAccumulatedTime(Preview->RequestedAssetTimeSeconds);
+			PreviousAssetTime = -1.0f;
+			Reconstruction.ResetSamplingHistory();
+			Preview->RequestedAssetTimeSeconds = -1.0f;
+		}
 		// 自定义根节点也必须登记，基类才会在 Game Thread 调用其 PreUpdate。
 		FAnimInstanceProxy::PreUpdate(Instance, DeltaSeconds);
 	}
@@ -47,7 +60,9 @@ public:
 		if (PreviousAssetTime >= 0.0f && AssetTime < PreviousAssetTime)
 		{
 			Reconstruction.ResetSamplingHistory();
+			PreviousAssetTime = -1.0f;
 		}
+		Reconstruction.SetSourceAssetTime(AssetTime, PreviousAssetTime);
 		PreviousAssetTime = AssetTime;
 		Reconstruction.Evaluate_AnyThread(Output);
 		// 对照台固定 Root，避免长距离源轨迹走出镜头；身体相对姿态和重建输入不变。
@@ -58,7 +73,9 @@ public:
 	virtual void PostEvaluate(UAnimInstance* Instance) override
 	{
 		FAnimInstanceProxy::PostEvaluate(Instance);
-		CastChecked<UAIAnimationPreviewInstance>(Instance)->EvaluationStats = Reconstruction.GetStats();
+		UAIAnimationPreviewInstance* Preview = CastChecked<UAIAnimationPreviewInstance>(Instance);
+		Preview->EvaluationStats = Reconstruction.GetStats();
+		Preview->CurrentAssetTimeSeconds = Player.GetCurrentAssetTime();
 	}
 
 private:

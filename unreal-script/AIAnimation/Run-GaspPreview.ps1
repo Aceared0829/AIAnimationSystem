@@ -3,9 +3,11 @@ param(
     [string]$Project = 'D:/GameAnimationSample/GameAnimationSample.uproject',
     [ValidateSet('Benchmark', 'Interactive')][string]$Mode = 'Benchmark',
     [ValidateSet('LastFrame', 'Overlap')][string]$Playback = 'Overlap',
-    [ValidateSet(4, 8)][int]$DelayFrames = 8,
+    [ValidateSet(4, 8, 12)][int]$DelayFrames = 8,
     [ValidateRange(0, 240)][int]$MaxFPS = 60,
     [ValidatePattern('^[A-Za-z0-9_]*$')][string]$Variant = '',
+    [switch]$HardReferences,
+    [string]$AnimationFilter = '',
     [string]$Output
 )
 $ErrorActionPreference = 'Stop'
@@ -21,6 +23,11 @@ if ($Variant) { $map = "/Game/AIAnimationPreview/$Variant/L_ReconstructionBenchm
 $arguments = @($Project, $map, '-game', '-windowed', '-ResX=1600', '-ResY=900', '-nosplash', '-NoVSync', "-abslog=$Output/runtime.log")
 $streaming = if ($Playback -eq 'Overlap') { 1 } else { 0 }
 $arguments += "-ExecCmds=t.MaxFPS $MaxFPS,AIAnimation.Streaming $streaming,AIAnimation.DelayFrames $DelayFrames"
+if ($HardReferences) {
+    $arguments += '-AIAnimationReferenceFrames=32/34/44/52/56/59'
+    if (-not $AnimationFilter) { $AnimationFilter = 'Catch_Hurdle_low_run' }
+}
+if ($AnimationFilter) { $arguments += "-AIAnimationAnimationFilter=$AnimationFilter" }
 if ($Mode -eq 'Benchmark') {
     $arguments += "-AIAnimationBenchmarkOutput=$Output"
 }

@@ -26,7 +26,7 @@ public:
 	AAIAnimationBenchmark();
 	virtual void Tick(float DeltaSeconds) override;
 
-	/** 两个角色使用同一模型骨架的 Mesh。 */
+	/** 三个对照角色使用同一模型骨架的 Mesh。 */
 	UPROPERTY(EditAnywhere, Category = "Benchmark")
 	TObjectPtr<USkeletalMesh> CharacterMesh;
 
@@ -48,11 +48,15 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Preview")
 	TObjectPtr<USkeletalMeshComponent> ReferenceMesh;
 	UPROPERTY(VisibleAnywhere, Category = "Preview")
+	TObjectPtr<USkeletalMeshComponent> SoftMesh;
+	UPROPERTY(VisibleAnywhere, Category = "Preview")
 	TObjectPtr<USkeletalMeshComponent> ReconstructedMesh;
 	UPROPERTY(VisibleAnywhere, Category = "Preview")
 	TObjectPtr<UCameraComponent> Camera;
 	UPROPERTY(VisibleAnywhere, Category = "Preview")
 	TObjectPtr<UTextRenderComponent> ReferenceLabel;
+	UPROPERTY(VisibleAnywhere, Category = "Preview")
+	TObjectPtr<UTextRenderComponent> SoftLabel;
 	UPROPERTY(VisibleAnywhere, Category = "Preview")
 	TObjectPtr<UTextRenderComponent> ReconstructedLabel;
 	UPROPERTY(VisibleAnywhere, Category = "Preview")
@@ -62,10 +66,12 @@ private:
 	{
 		TArray<double> InferenceTimes;
 		TArray<double> JointErrors;
+		TArray<double> SoftJointErrors;
 		TArray<double> ModelAccelerations;
 		TArray<double> SourceAccelerations;
 		TArray<double> VelocityErrors;
 		TArray<double> RotationErrors;
+		TArray<double> HardReferenceErrors;
 		uint64 Failures = 0;
 		uint64 Fallbacks = 0;
 		uint64 GameThreadSkips = 0;
@@ -73,11 +79,13 @@ private:
 	};
 	TArray<FClipResult> ClipResults;
 	FString OutputDirectory;
+	TArray<int32> PreviewReferenceFrames;
 	double StartSeconds = 0.0;
 	int32 ActiveAnimation = INDEX_NONE;
 	int32 CapturedAnimation = INDEX_NONE;
 	uint64 LastInferenceCount = 0;
 	uint64 LastQualityCount = 0;
+	uint64 LastSoftQualityCount = 0;
 	TArray<double> InferenceTimes;
 	TArray<double> EvaluationTimes;
 	TArray<double> JointErrors;

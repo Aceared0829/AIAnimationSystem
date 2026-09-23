@@ -10,7 +10,8 @@ class FAIAnimationGpuSession final
 {
 public:
 	static TSharedPtr<FAIAnimationGpuSession> Create(const UAIAnimationModel& Asset, FString& OutError, bool bCreateInference = true);
-	bool Run(TConstArrayView<float> Input, double& OutMilliseconds);
+	/** 普通运行时仅动画工作线程调用；编辑器预览预热可显式允许 Game Thread。 */
+	bool Run(TConstArrayView<float> Input, double& OutMilliseconds, bool bAllowGameThread = false);
 
 	TArray<FAIAnimationBone> Bones;
 	FName RootBone;
