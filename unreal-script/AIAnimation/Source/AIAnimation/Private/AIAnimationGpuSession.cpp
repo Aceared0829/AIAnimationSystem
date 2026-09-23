@@ -68,10 +68,10 @@ TSharedPtr<FAIAnimationGpuSession> FAIAnimationGpuSession::Create(const UAIAnima
 	return Session;
 }
 
-bool FAIAnimationGpuSession::Run(TConstArrayView<float> Input, double& OutMilliseconds)
+bool FAIAnimationGpuSession::Run(TConstArrayView<float> Input, double& OutMilliseconds, bool bAllowGameThread)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(AIAnimation_GPU_RunSync);
-	if (!Instance || IsInGameThread() || Input.Num() != (WindowFrames + 1) * Bones.Num() * 12)
+	if (!Instance || (IsInGameThread() && !bAllowGameThread) || Input.Num() != (WindowFrames + 1) * Bones.Num() * 12)
 	{
 		return false;
 	}

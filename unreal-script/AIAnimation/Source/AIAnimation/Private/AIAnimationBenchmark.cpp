@@ -27,31 +27,38 @@ AAIAnimationBenchmark::AAIAnimationBenchmark()
 	PrimaryActorTick.TickGroup = TG_PostUpdateWork;
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
 	ReferenceMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Reference"));
+	SoftMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Soft"));
 	ReconstructedMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Reconstructed"));
 	ReferenceMesh->SetupAttachment(RootComponent);
+	SoftMesh->SetupAttachment(RootComponent);
 	ReconstructedMesh->SetupAttachment(RootComponent);
-	ReferenceMesh->SetRelativeLocation(FVector(-120, 0, 0));
-	ReconstructedMesh->SetRelativeLocation(FVector(120, 0, 0));
+	ReferenceMesh->SetRelativeLocation(FVector(-180, 0, 0));
+	SoftMesh->SetRelativeLocation(FVector(0, 0, 0));
+	ReconstructedMesh->SetRelativeLocation(FVector(180, 0, 0));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(RootComponent);
-	Camera->SetRelativeLocation(FVector(330, 650, 230));
+	Camera->SetRelativeLocation(FVector(390, 850, 230));
 	Camera->SetRelativeRotation((FVector(0, 0, 100) - Camera->GetRelativeLocation()).Rotation());
-	Camera->FieldOfView = 45.0f;
+	Camera->FieldOfView = 55.0f;
 	ReferenceLabel = CreateDefaultSubobject<UTextRenderComponent>(TEXT("ReferenceLabel"));
+	SoftLabel = CreateDefaultSubobject<UTextRenderComponent>(TEXT("SoftLabel"));
 	ReconstructedLabel = CreateDefaultSubobject<UTextRenderComponent>(TEXT("ReconstructedLabel"));
 	StatusLabel = CreateDefaultSubobject<UTextRenderComponent>(TEXT("StatusLabel"));
-	for (UTextRenderComponent* Label : { ReferenceLabel.Get(), ReconstructedLabel.Get(), StatusLabel.Get() })
+	for (UTextRenderComponent* Label : { ReferenceLabel.Get(), SoftLabel.Get(), ReconstructedLabel.Get(), StatusLabel.Get() })
 	{
 		Label->SetupAttachment(RootComponent);
 		Label->SetHorizontalAlignment(EHTA_Center);
 		Label->SetWorldSize(14.0f);
 		Label->SetRelativeRotation(FRotator(0, 70, 0));
 	}
-	ReferenceLabel->SetRelativeLocation(FVector(-120, 0, 190));
+	ReferenceLabel->SetRelativeLocation(FVector(-180, 0, 190));
 	ReferenceLabel->SetText(FText::FromString(TEXT("SOURCE (TIME ALIGNED)")));
 	ReferenceLabel->SetTextRenderColor(FColor(80, 200, 255));
-	ReconstructedLabel->SetRelativeLocation(FVector(120, 0, 190));
-	ReconstructedLabel->SetText(FText::FromString(TEXT("GPU VQ RECONSTRUCTION")));
+	SoftLabel->SetRelativeLocation(FVector(0, 0, 190));
+	SoftLabel->SetText(FText::FromString(TEXT("GPU SOFT")));
+	SoftLabel->SetTextRenderColor(FColor(255, 170, 100));
+	ReconstructedLabel->SetRelativeLocation(FVector(180, 0, 190));
+	ReconstructedLabel->SetText(FText::FromString(TEXT("GPU + HARD REFERENCES")));
 	ReconstructedLabel->SetTextRenderColor(FColor(80, 255, 170));
 	StatusLabel->SetRelativeLocation(FVector(0, 0, 230));
 	StatusLabel->SetWorldSize(9.0f);
@@ -61,12 +68,47 @@ void AAIAnimationBenchmark::BeginPlay()
 {
 	Super::BeginPlay();
 	FParse::Value(FCommandLine::Get(), TEXT("AIAnimationBenchmarkOutput="), OutputDirectory);
+	FString AnimationFilter;
+	FParse::Value(FCommandLine::Get(), TEXT("AIAnimationAnimationFilter="), AnimationFilter);
+	if (!AnimationFilter.IsEmpty())
+	{
+		Animations.RemoveAll([&AnimationFilter](const TObjectPtr<UAnimSequence>& Animation) { return !Animation || !Animation->GetName().Contains(AnimationFilter); });
+	}
+	FString ReferenceList;
+	if (FParse::Value(FCommandLine::Get(), TEXT("AIAnimationReferenceFrames="), ReferenceList))
+	{
+		TArray<FString> Parts;
+		ReferenceList.ParseIntoArray(Parts, TEXT("/"), true);
+		for (const FString& Part : Parts)
+		{
+			if (Part.IsNumeric())
+			{
+				PreviewReferenceFrames.AddUnique(FCString::Atoi(*Part));
+			}
+		}
+		PreviewReferenceFrames.Sort();
+	}
+	if (PreviewReferenceFrames.IsEmpty())
+	{
+		SoftMesh->SetVisibility(false);
+		SoftMesh->SetComponentTickEnabled(false);
+		SoftLabel->SetVisibility(false);
+		ReferenceMesh->SetRelativeLocation(FVector(-120, 0, 0));
+		ReconstructedMesh->SetRelativeLocation(FVector(120, 0, 0));
+		ReconstructedLabel->SetRelativeLocation(FVector(120, 0, 190));
+		ReconstructedLabel->SetText(FText::FromString(TEXT("GPU RECONSTRUCTION")));
+		ReferenceLabel->SetRelativeLocation(FVector(-120, 0, 190));
+	}
 	if (!OutputDirectory.IsEmpty())
 	{
 		IFileManager::Get().MakeDirectory(*OutputDirectory, true);
 	}
-	for (USkeletalMeshComponent* Mesh : { ReferenceMesh.Get(), ReconstructedMesh.Get() })
+	for (USkeletalMeshComponent* Mesh : { ReferenceMesh.Get(), SoftMesh.Get(), ReconstructedMesh.Get() })
 	{
+		if (Mesh == SoftMesh && PreviewReferenceFrames.IsEmpty())
+		{
+			continue;
+		}
 		Mesh->SetSkeletalMesh(CharacterMesh);
 		Mesh->SetAnimInstanceClass(UAIAnimationPreviewInstance::StaticClass());
 		Mesh->SetForcedLOD(1);
@@ -94,12 +136,17 @@ void AAIAnimationBenchmark::SetAnimation(int32 Index)
 	LastInferenceCount = 0;
 	LastQualityCount = 0;
 	const bool bRunReconstruction = FPlatformTime::Seconds() - StartSeconds >= 5.0;
-	for (USkeletalMeshComponent* Mesh : { ReferenceMesh.Get(), ReconstructedMesh.Get() })
+	for (USkeletalMeshComponent* Mesh : { ReferenceMesh.Get(), SoftMesh.Get(), ReconstructedMesh.Get() })
 	{
+		if (Mesh == SoftMesh && PreviewReferenceFrames.IsEmpty())
+		{
+			continue;
+		}
 		UAIAnimationPreviewInstance* Instance = CastChecked<UAIAnimationPreviewInstance>(Mesh->GetAnimInstance());
 		Instance->Sequence = Animations[Index];
 		Instance->ReconstructionModel = Model.Get();
 		Instance->bReferenceOnly = Mesh == ReferenceMesh;
+		Instance->HardReferenceFrames = Mesh == ReconstructedMesh ? PreviewReferenceFrames : TArray<int32>();
 		Instance->bReconstruct = bRunReconstruction;
 		Instance->InitializeAnimation();
 		Instance->EvaluationStats = {};
@@ -142,8 +189,10 @@ void AAIAnimationBenchmark::Tick(float DeltaSeconds)
 		SetAnimation(Index);
 	}
 	UAIAnimationPreviewInstance* Instance = CastChecked<UAIAnimationPreviewInstance>(ReconstructedMesh->GetAnimInstance());
+	UAIAnimationPreviewInstance* SoftInstance = CastChecked<UAIAnimationPreviewInstance>(SoftMesh->GetAnimInstance());
 	Instance->bReconstruct = Elapsed >= 5.0;
 	const FAIAnimationEvaluationStats& Stats = Instance->EvaluationStats;
+	const FAIAnimationEvaluationStats& SoftStats = SoftInstance->EvaluationStats;
 	FClipResult& Clip = ClipResults[Index];
 	// 换动作的这个 Tick 尚未得到新动画任务结果，不能把上一个动作的快照记入新动作。
 	const bool bFresh = Stats.NumInferences > LastInferenceCount && Stats.bInferredThisEvaluation;
@@ -181,7 +230,16 @@ void AAIAnimationBenchmark::Tick(float DeltaSeconds)
 			Clip.VelocityErrors.Add(Stats.LastVelocityError);
 		}
 	}
+	if (Elapsed >= 5.0 && ClipTime > 2.0 && SoftStats.NumQualitySamples > LastSoftQualityCount)
+	{
+		Clip.SoftJointErrors.Add(SoftStats.LastJointErrorCm);
+	}
+	if (Elapsed >= 5.0 && Stats.NumQualitySamples > LastQualityCount && Stats.bLastQualityIsHardReference)
+	{
+		Clip.HardReferenceErrors.Add(Stats.LastJointErrorCm);
+	}
 	LastQualityCount = Stats.NumQualitySamples;
+	LastSoftQualityCount = SoftStats.NumQualitySamples;
 	LastInferenceCount = Stats.NumInferences;
 	StatusLabel->SetText(FText::FromString(FString::Printf(TEXT("%s\nGPU %.2f ms | error %.2f cm | %llu runs"), *Animations[Index]->GetName(), Stats.LastInferenceMs, Stats.LastJointErrorCm, Stats.NumInferences)));
 	if (!OutputDirectory.IsEmpty() && Elapsed >= 5.0 && ClipTime > 3.0 && CapturedAnimation != Index)
@@ -194,7 +252,13 @@ void AAIAnimationBenchmark::Tick(float DeltaSeconds)
 void AAIAnimationBenchmark::SaveReport()
 {
 	TSharedRef<FJsonObject> Report = MakeShared<FJsonObject>();
-	Report->SetStringField(TEXT("scope"), TEXT("GASP assets, two rendered characters, one DirectML reconstruction on animation worker; not conditional generation"));
+	Report->SetStringField(TEXT("scope"), TEXT("GASP source animation and DirectML reconstruction on animation worker; reference anchors use the source pose in this controlled preview"));
+	TArray<TSharedPtr<FJsonValue>> ReferenceFramesJson;
+	for (int32 ReferenceFrame : PreviewReferenceFrames)
+	{
+		ReferenceFramesJson.Add(MakeShared<FJsonValueNumber>(ReferenceFrame));
+	}
+	Report->SetArrayField(TEXT("hard_reference_frames"), ReferenceFramesJson);
 	Report->SetStringField(TEXT("model"), GetPathNameSafe(Model));
 	Report->SetStringField(TEXT("gpu"), GRHIAdapterName);
 	Report->SetNumberField(TEXT("game_thread_id"), FPlatformTLS::GetCurrentThreadId());
@@ -247,6 +311,8 @@ void AAIAnimationBenchmark::SaveReport()
 		};
 		AddClipMetric(TEXT("gpu_sync_ms"), Clip.InferenceTimes);
 		AddClipMetric(TEXT("joint_rmse_cm"), Clip.JointErrors);
+		AddClipMetric(TEXT("soft_joint_rmse_cm"), Clip.SoftJointErrors);
+		AddClipMetric(TEXT("hard_reference_rmse_cm"), Clip.HardReferenceErrors);
 		AddClipMetric(TEXT("model_acceleration"), Clip.ModelAccelerations);
 		AddClipMetric(TEXT("source_acceleration"), Clip.SourceAccelerations);
 		AddClipMetric(TEXT("velocity_error"), Clip.VelocityErrors);

@@ -31,6 +31,8 @@ struct AIANIMATION_API FAIAnimationEvaluationStats
 	double LastInferenceMs = 0.0;
 	double LastEvaluationMs = 0.0;
 	double LastJointErrorCm = 0.0;
+	int32 LastQualityAssetFrame = INDEX_NONE;
+	bool bLastQualityIsHardReference = false;
 	uint32 LastThreadId = 0;
 };
 
@@ -63,6 +65,9 @@ struct AIANIMATION_API FAnimNode_AIAnimation : public FAnimNode_Base
 	/** 对照台左侧仅执行相同的延迟采样，不创建 GPU 推理实例。初始化前设置。 */
 	bool bReferenceOnly = false;
 
+	/** 仅编辑器预览实例允许 Game Thread 求值（跳帧预热与调试）；运行时仍要求动画工作线程执行推理。 */
+	bool bAllowGameThreadInference = false;
+
 	virtual void Initialize_AnyThread(const FAnimationInitializeContext& Context) override;
 	virtual void CacheBones_AnyThread(const FAnimationCacheBonesContext& Context) override;
 	virtual void Update_AnyThread(const FAnimationUpdateContext& Context) override;
@@ -76,6 +81,12 @@ struct AIANIMATION_API FAnimNode_AIAnimation : public FAnimNode_Base
 
 	/** 动画任务内在源时间回绕时调用，丢弃跨断点历史并重新预热。 */
 	void ResetSamplingHistory();
+
+	/** 预览专用：源动画时间用于对齐人工标记的原始帧号，回绕由调用方重置历史。 */
+	void SetSourceAssetTime(float CurrentSeconds, float PreviousSeconds) { CurrentAssetTimeSeconds = CurrentSeconds; PreviousAssetTimeSeconds = PreviousSeconds; }
+
+	/** 预览专用：选中的源动画帧；空列表保持原始软模型输出。 */
+	TArray<int32> HardReferenceFrames;
 
 private:
 	bool MapBones(const FBoneContainer& RequiredBones);
@@ -98,6 +109,8 @@ private:
 	bool bStreaming = true;
 	bool bLoadedReferenceOnly = false;
 	int32 ActiveDelayFrames = 8;
+	float CurrentAssetTimeSeconds = -1.0f;
+	float PreviousAssetTimeSeconds = -1.0f;
 	TSharedPtr<FAIAnimationGpuSession> Session;
 	TWeakObjectPtr<UAIAnimationModel> LoadedModel;
 	TArray<FCompactPoseBoneIndex> BoneIndices;

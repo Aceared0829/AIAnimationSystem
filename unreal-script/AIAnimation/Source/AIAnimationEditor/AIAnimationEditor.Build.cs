@@ -8,7 +8,7 @@ public class AIAnimationEditor : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "AIAnimation", "AnimGraph" });
-		PrivateDependencyModuleNames.AddRange(new[] { "UnrealEd", "BlueprintGraph", "Kismet", "AssetRegistry", "Json", "NNE" });
+		PrivateDependencyModuleNames.AddRange(new[] { "UnrealEd", "BlueprintGraph", "Kismet", "AssetRegistry", "Json", "NNE", "Slate", "SlateCore", "PropertyEditor", "AdvancedPreviewScene", "InputCore", "ToolMenus", "MainFrame" });
 		AddEngineThirdPartyPrivateStaticDependencies(Target, "OpenSSL");
 	}
 }

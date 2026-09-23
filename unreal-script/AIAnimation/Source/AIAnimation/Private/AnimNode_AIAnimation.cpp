@@ -15,8 +15,10 @@
 
 CSV_DEFINE_CATEGORY(AIAnimation, true);
 static TAutoConsoleVariable<int32> CVarAIAnimationStreaming(TEXT("AIAnimation.Streaming"), 1, TEXT("0 为末帧对照，1 为固定步长重叠播放。"));
-static TAutoConsoleVariable<int32> CVarAIAnimationDelay(TEXT("AIAnimation.DelayFrames"), 8, TEXT("重叠播放延迟，支持 4 或 8 个 30 Hz 采样帧。"));
+static TAutoConsoleVariable<int32> CVarAIAnimationDelay(TEXT("AIAnimation.DelayFrames"), 8, TEXT("重叠播放延迟，支持 4、8 或 12 个 30 Hz 采样帧。"));
 static TAutoConsoleVariable<int32> CVarAIAnimationEnabled(TEXT("AIAnimation.Enabled"), 1, TEXT("0 回退源姿态，1 启用模型重建。"));
+static TAutoConsoleVariable<int32> CVarAIAnimationHardReferences(TEXT("AIAnimation.HardReferences"), 1, TEXT("预览台：1 将手选源帧作为硬约束，0 查看同一窗口模型软输出。"));
+static TAutoConsoleVariable<int32> CVarAIAnimationDebugTime(TEXT("AIAnimation.DebugTime"), 0, TEXT("1 记录预览硬参考附近的源采样时间与播放位置。"));
 
 void FAnimNode_AIAnimation::Initialize_AnyThread(const FAnimationInitializeContext& Context)
 {
@@ -68,7 +70,8 @@ void FAnimNode_AIAnimation::Update_AnyThread(const FAnimationUpdateContext& Cont
 	GetEvaluateGraphExposedInputs().Execute(Context);
 	Source.Update(Context);
 	const bool bNewStreaming = CVarAIAnimationStreaming.GetValueOnAnyThread() != 0;
-	const int32 NewDelay = CVarAIAnimationDelay.GetValueOnAnyThread() <= 4 ? 4 : 8;
+	const int32 RequestedDelay = CVarAIAnimationDelay.GetValueOnAnyThread();
+	const int32 NewDelay = RequestedDelay <= 4 ? 4 : RequestedDelay <= 8 ? 8 : 12;
 	if (bNewStreaming != bStreaming || NewDelay != ActiveDelayFrames)
 	{
 		bStreaming = bNewStreaming;
@@ -98,8 +101,10 @@ void FAnimNode_AIAnimation::ResetHistory()
 	OlderModelPositions.Reset();
 	PreviousSourcePositions.Reset();
 	OlderSourcePositions.Reset();
-	TransitionFrom = LastDisplayed;
-	TransitionSeconds = TransitionFrom.IsEmpty() ? 1.0 : 0.0;
+	// 跳帧、换动作和循环回绕都经过这里；旧动作的显示姿态不能混入新时间段。
+	LastDisplayed.Reset();
+	TransitionFrom.Reset();
+	TransitionSeconds = 1.0;
 	if (Playback)
 	{
 		Playback->Reset();
@@ -147,6 +152,10 @@ bool FAnimNode_AIAnimation::MapBones(const FBoneContainer& RequiredBones)
 		BoneIndices.Add(Index);
 	}
 	History.SetNumZeroed((Session->WindowFrames + 1) * BoneIndices.Num() * 12);
+	if (CVarAIAnimationDebugTime.GetValueOnAnyThread() != 0 && !HardReferenceFrames.IsEmpty())
+	{
+		UE_LOG(LogTemp, Display, TEXT("AIAnimationBoneMap bones=%d required=%d"), BoneIndices.Num(), RequiredBones.GetNumBones());
+	}
 	bMapped = true;
 	return true;
 }
@@ -167,7 +176,7 @@ void FAnimNode_AIAnimation::Evaluate_AnyThread(FPoseContext& Output)
 		++Stats.NumFallbacks;
 		return;
 	}
-	if (IsInGameThread())
+	if (IsInGameThread() && !bAllowGameThreadInference)
 	{
 		++Stats.NumGameThreadSkips;
 		return;
@@ -206,8 +215,9 @@ void FAnimNode_AIAnimation::Evaluate_AnyThread(FPoseContext& Output)
 		AIAnimationSampling::Advance(AccumulatedSeconds, Session->SampleRate, SampleRemainderSeconds, Fractions);
 	}
 	AccumulatedSeconds = 0.0;
-	for (double Fraction : Fractions)
+	for (int32 FractionIndex = 0; FractionIndex < Fractions.Num(); ++FractionIndex)
 	{
+		const double Fraction = Fractions[FractionIndex];
 		if (NumHistoryFrames == Session->WindowFrames)
 		{
 			FMemory::Memmove(History.GetData(), History.GetData() + FrameValues, (Session->WindowFrames - 1) * FrameValues * sizeof(float));
@@ -242,7 +252,10 @@ void FAnimNode_AIAnimation::Evaluate_AnyThread(FPoseContext& Output)
 		}
 		TArray<FTransform> SampleLocal;
 		ToLocal(SampleComponent, SampleLocal);
-		Playback->AddSource(++SampleIndex, SampleLocal);
+		const double SampleAssetTime = PreviousAssetTimeSeconds < 0.0f ? CurrentAssetTimeSeconds
+			: FMath::Lerp(double(PreviousAssetTimeSeconds), double(CurrentAssetTimeSeconds), Fraction);
+		const int32 AssetFrame = SampleAssetTime >= 0.0 ? FMath::RoundToInt(SampleAssetTime * Session->SampleRate) : INDEX_NONE;
+		Playback->AddSource(++SampleIndex, SampleLocal, AssetFrame, SampleAssetTime);
 		if (!bReferenceOnly && NumHistoryFrames == Session->WindowFrames && (!bStreaming || (SampleIndex - Session->WindowFrames + 1) % 4 == 0))
 		{
 			FMemory::Memcpy(History.GetData() + Session->WindowFrames * FrameValues, Sample, FrameValues * sizeof(float));
@@ -255,20 +268,33 @@ void FAnimNode_AIAnimation::Evaluate_AnyThread(FPoseContext& Output)
 		}
 	}
 	PreviousSourcePose = MoveTemp(CurrentSourcePose);
-	const double Position = bStreaming ? FMath::Clamp(SampleIndex + SampleRemainderSeconds * Session->SampleRate - ActiveDelayFrames, 0.0, double(SampleIndex)) : double(SampleIndex);
+	const double RawPosition = bStreaming ? FMath::Clamp(SampleIndex + SampleRemainderSeconds * Session->SampleRate - ActiveDelayFrames, 0.0, double(SampleIndex)) : double(SampleIndex);
+	const double NearestSample = static_cast<double>(FMath::RoundToInt64(RawPosition));
+	// 世界时间累积的微小尾数不应让整帧读取要求尚未到达的下一采样帧。
+	const double Position = FMath::Abs(RawPosition - NearestSample) < 0.0001 ? NearestSample : RawPosition;
 	if (bStreaming)
 	{
 		Playback->StabilizeStationary(Position);
 	}
 	bool bReady = false;
 	TArray<FTransform> Display;
-	if (!Playback->Read(Position, bReferenceOnly, ModelBlend, Display, bReady))
+	const TConstArrayView<int32> ActiveReferences = CVarAIAnimationHardReferences.GetValueOnAnyThread() != 0 ? TConstArrayView<int32>(HardReferenceFrames) : TConstArrayView<int32>();
+	if (!Playback->Read(Position, bReferenceOnly, ModelBlend, Display, bReady, ActiveReferences))
 	{
 		++Stats.NumFallbacks;
 		return;
 	}
+	if (CVarAIAnimationDebugTime.GetValueOnAnyThread() != 0 && !HardReferenceFrames.IsEmpty())
+	{
+		const FAIAnimationBufferedPose* DisplaySample = Playback->Find(FMath::FloorToInt64(Position));
+		if (DisplaySample && (DisplaySample->Index == 0 || HardReferenceFrames.Contains(DisplaySample->AssetFrame)))
+		{
+			UE_LOG(LogTemp, Display, TEXT("AIAnimationTime source=%.6f displaySample=%lld asset=%.6f frame=%d position=%.6f ready=%d blend=%.3f"),
+				CurrentAssetTimeSeconds, DisplaySample->Index, DisplaySample->AssetTimeSeconds, DisplaySample->AssetFrame, Position, bReady, ModelBlend);
+		}
+	}
 	ModelBlend = bReady ? FMath::Min(1.0, ModelBlend + DeltaSeconds / 0.15) : 0.0;
-	Playback->Read(Position, bReferenceOnly, bStreaming ? ModelBlend : 1.0, Display, bReady);
+	Playback->Read(Position, bReferenceOnly, bStreaming ? ModelBlend : 1.0, Display, bReady, ActiveReferences);
 	TransitionSeconds += DeltaSeconds;
 	if (bStreaming && TransitionSeconds < 0.1 && TransitionFrom.Num() == Display.Num())
 	{
@@ -313,7 +339,7 @@ bool FAnimNode_AIAnimation::InferWindow(int64 LastSample)
 			return false;
 		}
 	}
-	if (!Session->Run(History, Stats.LastInferenceMs))
+	if (!Session->Run(History, Stats.LastInferenceMs, bAllowGameThreadInference))
 	{
 		return false;
 	}
@@ -379,7 +405,14 @@ void FAnimNode_AIAnimation::MeasureQuality(int64 Index)
 	}
 	TArray<FVector> ModelPositions;
 	TArray<FVector> SourcePositions;
-	ToPositions(Frame->Model, ModelPositions);
+	TArray<FTransform> CorrectedModel;
+	bool bCorrectedReady = false;
+	const TConstArrayView<int32> ActiveReferences = CVarAIAnimationHardReferences.GetValueOnAnyThread() != 0 ? TConstArrayView<int32>(HardReferenceFrames) : TConstArrayView<int32>();
+	if (!Playback->Read(double(Index), false, 1.0, CorrectedModel, bCorrectedReady, ActiveReferences) || !bCorrectedReady)
+	{
+		return;
+	}
+	ToPositions(CorrectedModel, ModelPositions);
 	ToPositions(Frame->Source, SourcePositions);
 	double SquaredError = 0.0;
 	double SquaredRotation = 0.0;
@@ -391,7 +424,7 @@ void FAnimNode_AIAnimation::MeasureQuality(int64 Index)
 	for (int32 Bone = 0; Bone < ModelPositions.Num(); ++Bone)
 	{
 		SquaredError += FVector::DistSquared(ModelPositions[Bone], SourcePositions[Bone]);
-		SquaredRotation += FMath::Square(FMath::RadiansToDegrees(Frame->Model[Bone].GetRotation().AngularDistance(Frame->Source[Bone].GetRotation())));
+		SquaredRotation += FMath::Square(FMath::RadiansToDegrees(CorrectedModel[Bone].GetRotation().AngularDistance(Frame->Source[Bone].GetRotation())));
 		if (Stats.bTemporalMetricValid)
 		{
 			ModelAcceleration += (ModelPositions[Bone] - 2.0 * PreviousModelPositions[Bone] + OlderModelPositions[Bone]).SizeSquared();
@@ -401,6 +434,8 @@ void FAnimNode_AIAnimation::MeasureQuality(int64 Index)
 	}
 	const double Count = ModelPositions.Num();
 	Stats.LastJointErrorCm = FMath::Sqrt(SquaredError / Count);
+	Stats.LastQualityAssetFrame = Frame->AssetFrame;
+	Stats.bLastQualityIsHardReference = ActiveReferences.Contains(Frame->AssetFrame);
 	Stats.LastRotationErrorDegrees = FMath::Sqrt(SquaredRotation / Count);
 	Stats.LastModelAcceleration = FMath::Sqrt(ModelAcceleration / Count);
 	Stats.LastSourceAcceleration = FMath::Sqrt(SourceAcceleration / Count);

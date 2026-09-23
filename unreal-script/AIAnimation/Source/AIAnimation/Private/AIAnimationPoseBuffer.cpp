@@ -17,11 +17,13 @@ void FAIAnimationPoseBuffer::Reset()
 	FrozenThrough = -1;
 }
 
-void FAIAnimationPoseBuffer::AddSource(int64 Index, TConstArrayView<FTransform> Pose)
+void FAIAnimationPoseBuffer::AddSource(int64 Index, TConstArrayView<FTransform> Pose, int32 AssetFrame, double AssetTimeSeconds)
 {
 	check(Frames.IsEmpty() || Frames.Last().Index + 1 == Index);
 	FAIAnimationBufferedPose& Frame = Frames.AddDefaulted_GetRef();
 	Frame.Index = Index;
+	Frame.AssetFrame = AssetFrame;
+	Frame.AssetTimeSeconds = AssetTimeSeconds;
 	Frame.Source.Append(Pose.GetData(), Pose.Num());
 	if (Frames.Num() > 1)
 	{
@@ -74,18 +76,86 @@ void FAIAnimationPoseBuffer::MergeWindow(int64 Start, int32 WindowFrames, int32 
 	}
 }
 
-bool FAIAnimationPoseBuffer::Read(double Position, bool bSourceOnly, double ModelAlpha, TArray<FTransform>& OutPose, bool& bOutModelReady) const
+bool FAIAnimationPoseBuffer::Read(double Position, bool bSourceOnly, double ModelAlpha, TArray<FTransform>& OutPose, bool& bOutModelReady, TConstArrayView<int32> HardReferenceFrames) const
 {
 	const int64 Lower = FMath::FloorToInt64(Position);
 	const int64 Upper = FMath::CeilToInt64(Position);
 	const FAIAnimationBufferedPose* A = Find(Lower);
 	const FAIAnimationBufferedPose* B = Find(Upper);
+	// 并行动画求值偶尔比下一采样帧更早读取；保持最近已采样姿态，避免回退到当前源帧产生跳变。
+	if (A && !B && Upper == Lower + 1)
+	{
+		B = A;
+	}
 	if (!A || !B)
 	{
 		bOutModelReady = false;
 		return false;
 	}
 	bOutModelReady = A->Weight > 0.0 && B->Weight > 0.0;
+	const auto CorrectModel = [this, HardReferenceFrames](const FAIAnimationBufferedPose& Frame, int32 Bone)
+	{
+		const FAIAnimationBufferedPose* Left = nullptr;
+		const FAIAnimationBufferedPose* Right = nullptr;
+		for (const FAIAnimationBufferedPose& Candidate : Frames)
+		{
+			if (Candidate.AssetFrame == INDEX_NONE || Candidate.Weight <= 0.0 || Candidate.Source.Num() <= Bone || Candidate.Model.Num() <= Bone)
+			{
+				continue;
+			}
+			bool bSelected = false;
+			for (int32 ReferenceFrame : HardReferenceFrames)
+			{
+				bSelected |= ReferenceFrame == Candidate.AssetFrame;
+			}
+			if (!bSelected)
+			{
+				continue;
+			}
+			if (Candidate.Index <= Frame.Index && (!Left || Candidate.Index > Left->Index))
+			{
+				Left = &Candidate;
+			}
+			if (Candidate.Index >= Frame.Index && (!Right || Candidate.Index < Right->Index))
+			{
+				Right = &Candidate;
+			}
+		}
+		if (Left == &Frame || Right == &Frame)
+		{
+			return Frame.Source[Bone];
+		}
+		const auto AnchorDelta = [Bone](const FAIAnimationBufferedPose& Anchor)
+		{
+			return FTransform((Anchor.Source[Bone].GetRotation() * Anchor.Model[Bone].GetRotation().Inverse()).GetNormalized(),
+				Anchor.Source[Bone].GetTranslation() - Anchor.Model[Bone].GetTranslation());
+		};
+		FTransform Delta = FTransform::Identity;
+		double Weight = 0.0;
+		if (Left && Right && Right->Index - Left->Index <= 16)
+		{
+			const double Fraction = double(Frame.Index - Left->Index) / double(Right->Index - Left->Index);
+			const FTransform L = AnchorDelta(*Left);
+			const FTransform R = AnchorDelta(*Right);
+			Delta = FTransform(FQuat::Slerp(L.GetRotation(), R.GetRotation(), Fraction).GetNormalized(), FMath::Lerp(L.GetTranslation(), R.GetTranslation(), Fraction));
+			Weight = 1.0;
+		}
+		else
+		{
+			const FAIAnimationBufferedPose* Nearest = !Left ? Right : !Right ? Left : Frame.Index - Left->Index <= Right->Index - Frame.Index ? Left : Right;
+			if (Nearest)
+			{
+				const double Distance = FMath::Abs(Frame.Index - Nearest->Index);
+				const double T = FMath::Clamp(1.0 - Distance / 8.0, 0.0, 1.0);
+				Weight = T * T * (3.0 - 2.0 * T);
+				Delta = AnchorDelta(*Nearest);
+			}
+		}
+		FTransform Corrected = Frame.Model[Bone];
+		Corrected.SetTranslation(Corrected.GetTranslation() + Weight * Delta.GetTranslation());
+		Corrected.SetRotation((FQuat::Slerp(FQuat::Identity, Delta.GetRotation(), Weight) * Corrected.GetRotation()).GetNormalized());
+		return Corrected;
+	};
 	OutPose.SetNum(A->Source.Num());
 	for (int32 Bone = 0; Bone < OutPose.Num(); ++Bone)
 	{
@@ -93,7 +163,8 @@ bool FAIAnimationPoseBuffer::Read(double Position, bool bSourceOnly, double Mode
 		OutPose[Bone] = Source;
 		if (!bSourceOnly && bOutModelReady)
 		{
-			const FTransform Model = BlendPose(A->Model[Bone], B->Model[Bone], Position - Lower);
+			const FTransform Model = HardReferenceFrames.IsEmpty() ? BlendPose(A->Model[Bone], B->Model[Bone], Position - Lower)
+				: BlendPose(CorrectModel(*A, Bone), CorrectModel(*B, Bone), Position - Lower);
 			OutPose[Bone] = BlendPose(Source, Model, ModelAlpha);
 		}
 	}
@@ -127,7 +198,10 @@ void FAIAnimationPoseBuffer::StabilizeStationary(double Position)
 
 void FAIAnimationPoseBuffer::Commit(double Position)
 {
-	FrozenThrough = FMath::Max(FrozenThrough, FMath::CeilToInt64(Position));
+	if (!Frames.IsEmpty())
+	{
+		FrozenThrough = FMath::Max(FrozenThrough, FMath::Min(FMath::CeilToInt64(Position), Frames.Last().Index));
+	}
 	const int64 KeepFrom = FMath::FloorToInt64(Position) - 2;
 	while (!Frames.IsEmpty() && Frames[0].Index < KeepFrom)
 	{

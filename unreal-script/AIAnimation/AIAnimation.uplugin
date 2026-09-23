@@ -12,6 +12,6 @@
   "Plugins": [{ "Name": "NNERuntimeORT", "Enabled": true }],
   "Modules": [
     { "Name": "AIAnimation", "Type": "Runtime", "LoadingPhase": "Default" },
-    { "Name": "AIAnimationEditor", "Type": "UncookedOnly", "LoadingPhase": "Default" }
+    { "Name": "AIAnimationEditor", "Type": "Editor", "LoadingPhase": "Default" }
   ]
 }

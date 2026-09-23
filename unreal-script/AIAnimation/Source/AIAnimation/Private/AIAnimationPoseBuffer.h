@@ -8,6 +8,8 @@
 struct FAIAnimationBufferedPose
 {
 	int64 Index = 0;
+	int32 AssetFrame = INDEX_NONE;
+	double AssetTimeSeconds = -1.0;
 	TArray<FTransform> Source;
 	TArray<FTransform> Model;
 	double Weight = 0.0;
@@ -22,11 +24,11 @@ public:
 	/** 清空当前时间段，包括已播放边界。 */
 	void Reset();
 	/** 追加连续编号的源姿态，调用方保证局部骨骼顺序一致。 */
-	void AddSource(int64 Index, TConstArrayView<FTransform> Pose);
+	void AddSource(int64 Index, TConstArrayView<FTransform> Pose, int32 AssetFrame = INDEX_NONE, double AssetTimeSeconds = -1.0);
 	/** 合并按帧平铺的局部模型输出；已播放或曾用于插值的端点不再修改。 */
 	void MergeWindow(int64 Start, int32 WindowFrames, int32 NumBones, TConstArrayView<FTransform> Poses);
 	/** 按小数采样编号插值。缺模型时返回源姿态；缺时间点返回 false，OutPose 保持不变。 */
-	bool Read(double Position, bool bSourceOnly, double ModelAlpha, TArray<FTransform>& OutPose, bool& bOutModelReady) const;
+	bool Read(double Position, bool bSourceOnly, double ModelAlpha, TArray<FTransform>& OutPose, bool& bOutModelReady, TConstArrayView<int32> HardReferenceFrames = {}) const;
 	/** 源骨架连续六个采样间隔静止时锁定预测；恢复动作的四个采样点逐步释放，不改已使用端点。 */
 	void StabilizeStationary(double Position);
 	/** 冻结当前插值的左右端点；只保留所需历史与尚未播放的输出。 */
