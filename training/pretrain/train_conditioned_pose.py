@@ -260,7 +260,8 @@ def train(args):
         if (previous["contract_sha256"] != lock["artifacts_sha256"]["contract/contract.json"]
                 or previous["width"] != args.width or previous["batch_size"] != args.batch_size):
             raise ValueError("续训检查点与封版契约或模型配置不匹配")
-        for key, expected in (("sampling", args.sampling), ("reference_sampling", args.reference_sampling),
+        for key, expected in (("seed", args.seed), ("sampling", args.sampling),
+                              ("reference_sampling", args.reference_sampling),
                               ("category_power", args.category_power), ("clip_power", args.clip_power),
                               ("learning_rate", args.lr), ("contact_weight", args.contact_weight)):
             if previous.get(key, "uniform" if key == "sampling" else "random" if key == "reference_sampling"
