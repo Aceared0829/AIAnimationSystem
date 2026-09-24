@@ -112,13 +112,16 @@ class ReviewStore:
         p[:,hips:]-=np.einsum('tij,j->ti',r[:,0],bvh.offsets[hips])[:,None]
         basis=np.array([[1.,0,0],[0,0,1],[0,1,0]])
         p=p@basis.T
-        def pack(positions,names,parents,pelvis):
+        def pack(positions,names,parents,pelvis,root_positions):
             if not np.isfinite(positions).all():
                 raise ValueError('非有限坐标')
-            return dict(names=names,parents=parents,pelvis=pelvis,positions=np.round(positions,4).reshape(-1).tolist())
+            if not np.isfinite(root_positions).all():
+                raise ValueError('非有限 Root 坐标')
+            return dict(names=names,parents=parents,pelvis=pelvis,positions=np.round(positions,4).reshape(-1).tolist(),
+                        root_positions=np.round(root_positions,4).reshape(-1).tolist())
         if self.exception_mode:
             data=dict(id=mid,name=name,fps=round(1/bvh.frame_time),frames=len(p),package=metadata.get('package'),description=metadata.get('content_natural_desc_1',''),
-                      source=pack(p,bvh.names,bvh.parents,hips),target=None,target_root=None,source_sha256=entry['source_sha256'],output_sha256=None,
+                      source=pack(p,bvh.names,bvh.parents,hips,p[:,0]),target=None,target_root=None,source_sha256=entry['source_sha256'],output_sha256=None,
                       review_note='该动作在 UE 重定向前被隔离，右侧没有 UEFN 输出可供对比。')
         else:
             with np.load(output,allow_pickle=False) as archive:
@@ -131,7 +134,7 @@ class ReviewStore:
             world=np.einsum('tij,tkj->tki',rr,f[:,:,:3])+roots[:,None,:3]
             bones=json.loads((output.parent/'skeleton.json').read_text())['bones']
             data=dict(id=mid,name=name,fps=fps,frames=len(f),package=metadata.get('package'),description=metadata.get('content_natural_desc_1',''),
-                      source=pack(p,bvh.names,bvh.parents,hips),target=pack(world,[b['name'] for b in bones],[b['parent'] for b in bones],0),
+                      source=pack(p,bvh.names,bvh.parents,hips,p[:,0]),target=pack(world,[b['name'] for b in bones],[b['parent'] for b in bones],0,roots[:,:3]),
                       target_root=np.round(roots[:,:3],4).tolist(),source_sha256=json.loads(event[0])['source_sha256'],output_sha256=expected)
         return gzip.compress(json.dumps(data,separators=(',',':')).encode(),compresslevel=3)
 
@@ -159,19 +162,32 @@ def main():
     parser.add_argument('--source',default='D:/BONES-SEED')
     parser.add_argument('--port',type=int,default=8765)
     parser.add_argument('--exception-triage',action='store_true',help='审核 needs_segmentation 与 needs_skeleton_review；每页最多 50 条')
+    parser.add_argument('--conditioned-contract',help='prepared 条件动作契约目录')
+    parser.add_argument('--conditioned-audit',help='对应审计目录（report.json、review_queue.json）')
     args=parser.parse_args()
+    prepared_mode=bool(args.conditioned_contract or args.conditioned_audit)
+    if prepared_mode and (not args.conditioned_contract or not args.conditioned_audit or args.exception_triage):
+        parser.error('prepared 模式须同时指定 --conditioned-contract 与 --conditioned-audit，且不能与 --exception-triage 共用')
     library=Path(args.library).resolve()
     source=Path(args.source).resolve()
-    exception_entries,exception_digest=(exception_manifest(library,source) if args.exception_triage else (None,None))
-    page_count=max(1,math.ceil(len(exception_entries)/MAX_REVIEW_ITEMS)) if exception_entries is not None else 1
+    if prepared_mode:
+        from data.tools.conditioned_review_store import ConditionedReviewStore, load_review_inputs
+        contract, report, prepared_entries, queue_digest = load_review_inputs(args.conditioned_contract,args.conditioned_audit)
+        exception_entries,exception_digest=None,None
+    else:
+        prepared_entries=None
+        exception_entries,exception_digest=(exception_manifest(library,source) if args.exception_triage else (None,None))
+    paged_entries=prepared_entries if prepared_mode else exception_entries
+    page_count=max(1,math.ceil(len(paged_entries)/MAX_REVIEW_ITEMS)) if paged_entries is not None else 1
     stores={}
     def store_for(page):
-        if exception_entries is None:
+        if paged_entries is None:
             page=1
         elif not 1<=page<=page_count:
             raise ValueError(f'页码必须在 1 到 {page_count} 之间')
         if page not in stores:
-            stores[page]=ReviewStore(library,source,exception_entries,exception_digest,page)
+            stores[page]=(ConditionedReviewStore(library,contract,report,prepared_entries,queue_digest,page)
+                          if prepared_mode else ReviewStore(library,source,exception_entries,exception_digest,page))
         return stores[page]
     class Handler(BaseHTTPRequestHandler):
         def reply(self,data,kind='application/json',code=200,gz=False):
@@ -190,7 +206,7 @@ def main():
             try:
                 page=int(parse_qs(parsed.query).get('page',['1'])[0])
                 store=store_for(page)
-                if path=='/api/catalog':return self.reply(dict(store.cohort,decisions=store.decisions(),token=store.token,page=page,page_count=page_count,exception_mode=args.exception_triage))
+                if path=='/api/catalog':return self.reply(dict(store.cohort,decisions=store.decisions(),token=store.token,page=page,page_count=page_count,exception_mode=args.exception_triage,prepared_mode=prepared_mode))
                 if path.startswith('/api/clip/'):return self.reply(store.clip(path.rsplit('/',1)[-1]),gz=True)
                 if path=='/api/export':return self.reply(dict(cohort=store.cohort,decisions=store.decisions(),note='人工记录不会自动发布、入库或删除数据'))
                 files={'/':('index.html','text/html'),'/app.js':('app.js','text/javascript'),'/style.css':('style.css','text/css')}
@@ -212,7 +228,7 @@ def main():
                 self.reply(dict(ok=True))
             except Exception as exc:self.reply(dict(error=str(exc)),code=400)
     first=store_for(1)
-    print(f'Motion review: http://127.0.0.1:{args.port} | {len(exception_entries) if exception_entries is not None else len(first.ids)} clips | {page_count} pages | {first.cohort_path}',flush=True)
+    print(f'Motion review: http://127.0.0.1:{args.port} | {len(paged_entries) if paged_entries is not None else len(first.ids)} clips | {page_count} pages | {first.cohort_path}',flush=True)
     ThreadingHTTPServer(('127.0.0.1',args.port),Handler).serve_forever()
 
 
