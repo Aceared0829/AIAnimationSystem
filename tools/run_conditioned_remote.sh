@@ -11,6 +11,11 @@ lock="$code/data/freezes/reference_guided_root_pose_v1_20260924.json"
 
 cd "$code"
 export PYTHONPATH="$code${PYTHONPATH:+:$PYTHONPATH}"
+# 精简代码包不包含上游 setup.py 声明的空兼容目录；补齐后安装模块映射。
+for package_dir in training/models/vqvae training/models/backbone inference/runtime/backbone inference/demo inference/runtime/experiment; do
+  mkdir -p "$code/$package_dir"
+done
+python -m pip install --no-deps -e "$code"
 python -m unittest discover -s tests -p 'test_conditioned_pose_training.py' -v
 python -m training.pretrain.train_conditioned_pose \
   --release "$release" --lock "$lock" --source-override "$source" \
