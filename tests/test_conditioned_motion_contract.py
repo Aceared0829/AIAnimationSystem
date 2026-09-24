@@ -65,6 +65,12 @@ class ConditionedMotionContractTests(unittest.TestCase):
             self.assertEqual(clip["fps"], 30)
             self.assertEqual(clip["frames"], entries[0]["frames"])
             self.assertEqual(len(clip["source"]["positions"]), clip["frames"] * contract["bone_count"] * 3)
+            raw_file = prepared / contract["clips"][int(entries[0]["id"])]["raw_file"]
+            with np.load(raw_file, allow_pickle=False) as raw:
+                root = raw["root_track"][:, :3]
+            expected_root = np.stack((root[:, 2], -root[:, 0], root[:, 1]), axis=-1) * 100
+            np.testing.assert_allclose(np.asarray(clip["source"]["root_positions"]).reshape(-1, 3),
+                                       expected_root, atol=0.001)
             self.assertIsNone(clip["target"])
             store.save({"id": entries[0]["id"], "status": "unsure", "note": "复核中"})
             reopened = ConditionedReviewStore(library, contract, report, entries, queue_hash)

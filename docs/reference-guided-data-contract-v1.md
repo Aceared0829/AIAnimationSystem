@@ -77,7 +77,7 @@ flowchart LR
   --conditioned-audit 'output\conditioned_data_audit_20260924_complete'
 ```
 
-浏览器访问 `http://127.0.0.1:8765/`。人工结论保存到 `D:\MotionDataLibrary\reviews\decisions.sqlite3`，导出功能生成含队列与结论的 JSON。此处展示的是 Root 合成骨架；蒙皮、碰撞、脚接触和场景落点仍需后续 UE 验收。
+浏览器访问 `http://127.0.0.1:8765/`。人工结论保存到 `D:\MotionDataLibrary\reviews\decisions.sqlite3`，导出功能生成含队列与结论的 JSON。prepared 模式默认展示世界位移和三维 Root 轨迹，`F` 聚焦当前角色，右键加 WASD/QE 可按 UE 习惯移动相机；“姿态跟随”可单独切换。此处展示的是 Root 合成骨架；蒙皮、碰撞、脚接触和场景落点仍需后续 UE 验收。
 
 ## 非学习基线
 
