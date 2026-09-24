@@ -27,7 +27,10 @@ def evaluate(checkpoint_path, release, lock_path, baseline_path, output):
     if config["contract_sha256"] != lock["artifacts_sha256"]["contract/contract.json"]:
         raise ValueError("检查点与封版数据不匹配")
     baseline = json.loads(Path(baseline_path).read_text(encoding="utf-8"))
-    if baseline["contract_sha256"] != config["contract_sha256"] or baseline["split"] != "test":
+    if (baseline["contract_sha256"] != config["contract_sha256"]
+            or baseline["split"] != "test"
+            or baseline["selection"] != "middle_window_per_clip"
+            or not baseline["oracle_root_condition"]):
         raise ValueError("非学习基线与封版测试集不匹配")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ReferenceGuidedPose(contract["bone_count"], config["width"]).to(device)
