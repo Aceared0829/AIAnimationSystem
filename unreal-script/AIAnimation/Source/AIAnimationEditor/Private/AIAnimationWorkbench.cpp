@@ -18,6 +18,7 @@
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
+#include "Engine/SkeletalMesh.h"
 #include "FileHelpers.h"
 #include "Misc/Crc.h"
 #include "HAL/IConsoleManager.h"
@@ -51,11 +52,25 @@ namespace
 {
 	const FLinearColor Background(0.035f, 0.051f, 0.072f);
 	const FLinearColor Panel(0.073f, 0.095f, 0.124f);
+	// 用高饱和冷、暖与荧光色相区分三条比较通道。
 	const FLinearColor Mint(0.32f, 0.87f, 0.68f);
 	const FLinearColor Orange(1.0f, 0.63f, 0.35f);
 	const FLinearColor Blue(0.37f, 0.69f, 1.0f);
+	const FLinearColor SourceLaneColor(0.08f, 0.68f, 1.0f);
+	const FLinearColor SoftLaneColor(1.0f, 0.18f, 0.55f);
+	const FLinearColor HardLaneColor(0.68f, 1.0f, 0.12f);
 	const FSlateRoundedBoxBrush BackgroundBrush(Background, 10.0f);
 	const FSlateRoundedBoxBrush PanelBrush(Panel, 10.0f);
+
+	FLinearColor GetLaneColor(int32 LaneIndex)
+	{
+		switch (LaneIndex)
+		{
+		case 0: return SourceLaneColor;
+		case 1: return SoftLaneColor;
+		default: return HardLaneColor;
+		}
+	}
 
 	FString ReferencePackagePath(const UAnimSequence* Animation)
 	{
@@ -102,12 +117,18 @@ namespace
 		void SetLiveFramesPerSecond(int32 FramesPerSecond) { LiveFramesPerSecond = FMath::Clamp(FramesPerSecond, 1, 240); LiveAccumulator = 0.0f; }
 		TFunction<void(float)> AdvanceAnimation;
 
-		void SetOverlays(USkinnedMeshComponent* InLabelMesh, const TArray<FVector>* InRootTrack, int32 InCurrentRootSample, bool bInShowTrajectory)
+		void SetOverlays(USkinnedMeshComponent* InSourceMesh, USkinnedMeshComponent* InSoftMesh, USkinnedMeshComponent* InHardMesh, bool bInShowBoneNames, const TArray<FVector>* InRootTrack, int32 InCurrentRootSample, bool bInShowTrajectory, bool bInComparisonOverlay, int32 InHighlightLane, float InOverlayOpacity)
 		{
-			LabelMesh = InLabelMesh;
+			LaneMeshes[0] = InSourceMesh;
+			LaneMeshes[1] = InSoftMesh;
+			LaneMeshes[2] = InHardMesh;
+			bShowBoneNames = bInShowBoneNames;
 			RootTrack = InRootTrack;
 			CurrentRootSample = InCurrentRootSample;
 			bShowTrajectory = bInShowTrajectory;
+			bComparisonOverlay = bInComparisonOverlay;
+			HighlightLane = FMath::Clamp(InHighlightLane, 0, 2);
+			OverlayOpacity = FMath::Clamp(InOverlayOpacity, 0.05f, 0.8f);
 		}
 
 		void SetBoneLabelOptions(const FString& InFilter, bool bInShowAll)
@@ -119,6 +140,33 @@ namespace
 		virtual void Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI) override
 		{
 			FEditorViewportClient::Draw(View, PDI);
+			if (bComparisonOverlay)
+			{
+				for (int32 LaneIndex = 0; LaneIndex < 3; ++LaneIndex)
+				{
+					USkinnedMeshComponent* Mesh = LaneMeshes[LaneIndex].Get();
+					const USkeletalMesh* SkeletalMesh = Mesh ? Cast<USkeletalMesh>(Mesh->GetSkinnedAsset()) : nullptr;
+					if (!SkeletalMesh)
+					{
+						continue;
+					}
+					const TArray<FTransform>& BoneTransforms = Mesh->GetComponentSpaceTransforms();
+					const FReferenceSkeleton& Skeleton = SkeletalMesh->GetRefSkeleton();
+					const FTransform ComponentToWorld = Mesh->GetComponentTransform();
+					FLinearColor Color = GetLaneColor(LaneIndex);
+					Color.A = LaneIndex == HighlightLane ? 0.88f : OverlayOpacity;
+					const float Thickness = LaneIndex == HighlightLane ? 0.95f : 0.65f;
+					for (int32 BoneIndex = 1; BoneIndex < FMath::Min(BoneTransforms.Num(), Skeleton.GetNum()); ++BoneIndex)
+					{
+						const int32 ParentIndex = Skeleton.GetParentIndex(BoneIndex);
+						if (ParentIndex < 0 || ParentIndex >= BoneTransforms.Num())
+						{
+							continue;
+						}
+						PDI->DrawTranslucentLine(ComponentToWorld.TransformPosition(BoneTransforms[ParentIndex].GetLocation()), ComponentToWorld.TransformPosition(BoneTransforms[BoneIndex].GetLocation()), Color, SDPG_Foreground, Thickness);
+					}
+				}
+			}
 			if (!bShowTrajectory || !RootTrack || RootTrack->IsEmpty())
 			{
 				return;
@@ -140,53 +188,73 @@ namespace
 		virtual void DrawCanvas(FViewport& InViewport, FSceneView& View, FCanvas& Canvas) override
 		{
 			FEditorViewportClient::DrawCanvas(InViewport, View, Canvas);
-			if (!LabelMesh.IsValid() || !LabelMesh->GetSkinnedAsset())
+			if (!bShowBoneNames || !GEngine || !GEngine->GetSmallFont())
 			{
 				return;
 			}
 			int32 DrawnCount = 0;
+			int32 TotalBones = 0;
 			TArray<FIntRect> OccupiedLabels;
-			for (int32 BoneIndex = 0; BoneIndex < LabelMesh->GetNumBones(); ++BoneIndex)
+			for (int32 LaneIndex = 0; LaneIndex < 3; ++LaneIndex)
 			{
-				const FString BoneName = LabelMesh->GetBoneName(BoneIndex).ToString();
-				if (!BoneFilter.IsEmpty() && !BoneName.Contains(BoneFilter, ESearchCase::IgnoreCase))
+				if (bComparisonOverlay && LaneIndex != HighlightLane)
 				{
 					continue;
 				}
-				FVector2D Pixel;
-				if (!View.WorldToPixel(LabelMesh->GetBoneTransform(BoneIndex).GetLocation(), Pixel) || Pixel.X < 0.0f || Pixel.Y < 0.0f || Pixel.X >= InViewport.GetSizeXY().X || Pixel.Y >= InViewport.GetSizeXY().Y)
+				USkinnedMeshComponent* Mesh = LaneMeshes[LaneIndex].Get();
+				if (!Mesh || !Mesh->GetSkinnedAsset())
 				{
 					continue;
 				}
-				const FVector2D CanvasPixel = Pixel / GetDPIScale();
-				int32 TextHeight = 0;
-				int32 TextWidth = 0;
-				GEngine->GetSmallFont()->GetStringHeightAndWidth(BoneName, TextHeight, TextWidth);
-				const FIntPoint TopLeft(FMath::FloorToInt(CanvasPixel.X + 5.0f), FMath::FloorToInt(CanvasPixel.Y - 11.0f));
-				const FIntRect LabelRect(TopLeft, TopLeft + FIntPoint(TextWidth + 5, TextHeight + 3));
-				if (!bShowAllBoneLabels && OccupiedLabels.ContainsByPredicate([&LabelRect](const FIntRect& Existing) { return Existing.Intersect(LabelRect); }))
+				TotalBones += Mesh->GetNumBones();
+				FLinearColor Color = GetLaneColor(LaneIndex);
+				Color.A = bComparisonOverlay ? 1.0f : 0.94f;
+				for (int32 BoneIndex = 0; BoneIndex < Mesh->GetNumBones(); ++BoneIndex)
 				{
-					continue;
+					const FString BoneName = Mesh->GetBoneName(BoneIndex).ToString();
+					if (!BoneFilter.IsEmpty() && !BoneName.Contains(BoneFilter, ESearchCase::IgnoreCase))
+					{
+						continue;
+					}
+					FVector2D Pixel;
+					if (!View.WorldToPixel(Mesh->GetBoneTransform(BoneIndex).GetLocation(), Pixel) || Pixel.X < 0.0f || Pixel.Y < 0.0f || Pixel.X >= InViewport.GetSizeXY().X || Pixel.Y >= InViewport.GetSizeXY().Y)
+					{
+						continue;
+					}
+					const FVector2D CanvasPixel = Pixel / GetDPIScale();
+					int32 TextHeight = 0;
+					int32 TextWidth = 0;
+					GEngine->GetSmallFont()->GetStringHeightAndWidth(BoneName, TextHeight, TextWidth);
+					const FIntPoint TopLeft(FMath::FloorToInt(CanvasPixel.X + 5.0f), FMath::FloorToInt(CanvasPixel.Y - 11.0f));
+					const FIntRect LabelRect(TopLeft, TopLeft + FIntPoint(TextWidth + 5, TextHeight + 3));
+					if (!bShowAllBoneLabels && OccupiedLabels.ContainsByPredicate([&LabelRect](const FIntRect& Existing) { return Existing.Intersect(LabelRect); }))
+					{
+						continue;
+					}
+					OccupiedLabels.Add(LabelRect);
+					FCanvasTileItem Joint(CanvasPixel - FVector2D(2.0f, 2.0f), FVector2D(4.0f, 4.0f), Color);
+					Canvas.DrawItem(Joint);
+					FCanvasTextItem Name(CanvasPixel + FVector2D(5.0f, -11.0f), FText::FromString(BoneName), GEngine->GetSmallFont(), Color);
+					Name.EnableShadow(FLinearColor::Black);
+					Canvas.DrawItem(Name);
+					++DrawnCount;
 				}
-				OccupiedLabels.Add(LabelRect);
-				FCanvasTileItem Joint(CanvasPixel - FVector2D(2.0f, 2.0f), FVector2D(4.0f, 4.0f), Mint);
-				Canvas.DrawItem(Joint);
-				FCanvasTextItem Name(CanvasPixel + FVector2D(5.0f, -11.0f), FText::FromString(BoneName), GEngine->GetSmallFont(), FLinearColor::White);
-				Name.EnableShadow(FLinearColor::Black);
-				Canvas.DrawItem(Name);
-				++DrawnCount;
 			}
-			FCanvasTextItem LabelCount(FVector2D(16.0f, 16.0f), FText::FromString(FString::Printf(TEXT("可见骨骼名 %d/%d  ·  缩放或搜索查看"), DrawnCount, LabelMesh->GetNumBones())), GEngine->GetSmallFont(), Mint);
+			FCanvasTextItem LabelCount(FVector2D(16.0f, 16.0f), FText::FromString(FString::Printf(TEXT("可见骨骼名 %d/%d  ·  源、软输出、硬参考"), DrawnCount, TotalBones)), GEngine->GetSmallFont(), Mint);
 			LabelCount.EnableShadow(FLinearColor::Black);
 			Canvas.DrawItem(LabelCount);
 		}
 
 	private:
-		TWeakObjectPtr<USkinnedMeshComponent> LabelMesh;
+		TWeakObjectPtr<USkinnedMeshComponent> LaneMeshes[3];
 		const TArray<FVector>* RootTrack = nullptr;
 		int32 CurrentRootSample = 0;
 		bool bShowTrajectory = true;
-		bool bShowAllBoneLabels = false;
+		bool bShowBoneNames = true;
+		bool bComparisonOverlay = false;
+		int32 HighlightLane = 1;
+		float OverlayOpacity = 0.35f;
+		bool bShowAllBoneLabels = true;
 		FString BoneFilter;
 		bool bManualAnimationTick = false;
 		bool bAnimationPaused = false;
@@ -292,12 +360,7 @@ namespace
 			ReplayCache = bValid ? InCache : nullptr;
 			bReplayMode = ReplayCache && !ReplayCache->Frames.IsEmpty();
 			ReplayAccumulator = 0.0f;
-			for (int32 Index = 0; Index < 3; ++Index)
-			{
-				Meshes[Index]->SetVisibility(!bReplayMode);
-				Meshes[Index]->SetComponentTickEnabled(!bReplayMode);
-				CachedMeshes[Index]->SetVisibility(bReplayMode);
-			}
+			UpdateMeshVisibility();
 			if (bReplayMode)
 			{
 				SetPaused(true);
@@ -469,9 +532,24 @@ namespace
 			UpdateOverlays();
 		}
 
-		void SetBoneLabelTarget(int32 Index)
+		void SetHighlightLane(int32 Index)
 		{
-			BoneLabelTarget = FMath::Clamp(Index, 0, 2);
+			HighlightLane = FMath::Clamp(Index, 0, 2);
+			UpdateOverlays();
+		}
+
+		void SetComparisonOverlay(bool bEnabled)
+		{
+			bComparisonOverlay = bEnabled;
+			UpdateMeshVisibility();
+			ApplyRootMotion();
+		}
+
+		bool IsComparisonOverlay() const { return bComparisonOverlay; }
+
+		void SetOverlayOpacity(float InOpacity)
+		{
+			OverlayOpacity = FMath::Clamp(InOpacity, 0.05f, 0.8f);
 			UpdateOverlays();
 		}
 
@@ -538,7 +616,8 @@ namespace
 			const FTransform Motion = bShowRootMotion && PreviewAnimation.IsValid() ? PreviewAnimation->ExtractRootMotionFromRange(0.0, GetCurrentTime(), FAnimExtractContext(GetCurrentTime(), true)) : FTransform::Identity;
 			for (int32 Index = 0; Index < 3; ++Index)
 			{
-				const FVector Location = FVector((Index - 1) * 190.0, 0.0, 0.0) + Motion.GetTranslation();
+				const FVector LaneOffset(bComparisonOverlay ? 0.0 : (Index - 1) * 190.0, 0.0, 0.0);
+				const FVector Location = LaneOffset + Motion.GetTranslation();
 				Meshes[Index]->SetWorldLocation(Location);
 				Meshes[Index]->SetWorldRotation(Motion.GetRotation());
 				CachedMeshes[Index]->SetWorldLocation(Location);
@@ -709,6 +788,16 @@ namespace
 		virtual TSharedPtr<SWidget> BuildViewportToolbar() override { return SNullWidget::NullWidget; }
 
 	private:
+		void UpdateMeshVisibility()
+		{
+			for (int32 Index = 0; Index < 3; ++Index)
+			{
+				Meshes[Index]->SetVisibility(!bReplayMode && !bComparisonOverlay);
+				Meshes[Index]->SetComponentTickEnabled(!bReplayMode);
+				CachedMeshes[Index]->SetVisibility(bReplayMode && !bComparisonOverlay);
+			}
+		}
+
 		void SeekReplay(float Seconds)
 		{
 			if (!bReplayMode || !ReplayCache || ReplayCache->Frames.IsEmpty())
@@ -771,7 +860,10 @@ namespace
 			{
 				const int32 CurrentSample = RootTrack.Num() > 1 && PreviewAnimation.IsValid() && PreviewAnimation->GetPlayLength() > 0.0f
 					? FMath::Clamp(FMath::RoundToInt(GetCurrentTime() / PreviewAnimation->GetPlayLength() * (RootTrack.Num() - 1)), 0, RootTrack.Num() - 1) : 0;
-			ViewportClient->SetOverlays(bShowBoneNames ? (bReplayMode ? static_cast<USkinnedMeshComponent*>(CachedMeshes[BoneLabelTarget].Get()) : static_cast<USkinnedMeshComponent*>(Meshes[BoneLabelTarget].Get())) : nullptr, &RootTrack, CurrentSample, bShowTrajectory);
+				USkinnedMeshComponent* SourceMesh = bReplayMode ? static_cast<USkinnedMeshComponent*>(CachedMeshes[0].Get()) : static_cast<USkinnedMeshComponent*>(Meshes[0].Get());
+				USkinnedMeshComponent* SoftMesh = bReplayMode ? static_cast<USkinnedMeshComponent*>(CachedMeshes[1].Get()) : static_cast<USkinnedMeshComponent*>(Meshes[1].Get());
+				USkinnedMeshComponent* HardMesh = bReplayMode ? static_cast<USkinnedMeshComponent*>(CachedMeshes[2].Get()) : static_cast<USkinnedMeshComponent*>(Meshes[2].Get());
+				ViewportClient->SetOverlays(SourceMesh, SoftMesh, HardMesh, bShowBoneNames, &RootTrack, CurrentSample, bShowTrajectory, bComparisonOverlay, HighlightLane, OverlayOpacity);
 				ViewportClient->SetBoneLabelOptions(BoneFilter, bShowAllBoneLabels);
 				Invalidate();
 			}
@@ -803,8 +895,10 @@ namespace
 		bool bShowRootMotion = false;
 		bool bShowBoneNames = true;
 		bool bShowTrajectory = true;
-		int32 BoneLabelTarget = 2;
-		bool bShowAllBoneLabels = false;
+		bool bComparisonOverlay = false;
+		int32 HighlightLane = 1;
+		float OverlayOpacity = 0.35f;
+		bool bShowAllBoneLabels = true;
 		FString BoneFilter;
 	};
 
@@ -861,9 +955,9 @@ namespace
 							+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 5)
 							[
 								SNew(SHorizontalBox)
-								+ SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(LOCTEXT("SourceView", "● 源动画")).ColorAndOpacity(Blue)]
-								+ SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(LOCTEXT("SoftView", "● GPU 软输出")).ColorAndOpacity(Orange)]
-								+ SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(LOCTEXT("HardView", "● GPU + 硬参考")).ColorAndOpacity(Mint)]
+								+ SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(LOCTEXT("SourceView", "● 源动画")).ColorAndOpacity(GetLaneColor(0))]
+								+ SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(LOCTEXT("SoftView", "● GPU 软输出")).ColorAndOpacity(GetLaneColor(1))]
+								+ SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(LOCTEXT("HardView", "● GPU + 硬参考")).ColorAndOpacity(GetLaneColor(2))]
 							]
 							+ SVerticalBox::Slot().FillHeight(1)
 							[
@@ -918,11 +1012,27 @@ namespace
 								+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 14, 0)[SNew(SCheckBox).IsChecked_Lambda([this] { return bRootMotion ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { bRootMotion = State == ECheckBoxState::Checked; Viewport->SetRootMotion(bRootMotion); })[SNew(STextBlock).Text(LOCTEXT("RootMotion", "应用根运动"))]]
 								+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 14, 0)[SNew(SCheckBox).IsChecked_Lambda([this] { return bTrajectory ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { bTrajectory = State == ECheckBoxState::Checked; Viewport->SetTrajectoryVisible(bTrajectory); })[SNew(STextBlock).Text(LOCTEXT("RootPath", "Root 轨迹"))]]
 								+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 12, 0)[SNew(SCheckBox).IsChecked_Lambda([this] { return bBoneNames ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { bBoneNames = State == ECheckBoxState::Checked; Viewport->SetBoneNamesVisible(bBoneNames); })[SNew(STextBlock).Text(LOCTEXT("BoneNames", "骨骼名称"))]]
-								+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)[SNew(STextBlock).Text(LOCTEXT("LabelTarget", "标注:"))]
-								+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 4, 0)[SNew(SCheckBox).Style(FAppStyle::Get(), "RadioButton").IsChecked_Lambda([this] { return BoneLabelTarget == 0 ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { if (State == ECheckBoxState::Checked) { BoneLabelTarget = 0; Viewport->SetBoneLabelTarget(0); } })[SNew(STextBlock).Text(LOCTEXT("LabelSource", "源"))]]
-								+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 4, 0)[SNew(SCheckBox).Style(FAppStyle::Get(), "RadioButton").IsChecked_Lambda([this] { return BoneLabelTarget == 1 ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { if (State == ECheckBoxState::Checked) { BoneLabelTarget = 1; Viewport->SetBoneLabelTarget(1); } })[SNew(STextBlock).Text(LOCTEXT("LabelSoft", "软"))]]
 								+ SHorizontalBox::Slot().AutoWidth().Padding(12, 0, 0, 0)[SNew(SCheckBox).IsChecked_Lambda([this] { return bShowAllBoneLabels ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { bShowAllBoneLabels = State == ECheckBoxState::Checked; Viewport->SetBoneLabelOptions(BoneFilter, bShowAllBoneLabels); })[SNew(STextBlock).Text(LOCTEXT("AllBoneNames", "显示全部"))]]
 								+ SHorizontalBox::Slot().AutoWidth().Padding(12, 0, 0, 0)[SNew(SBox).WidthOverride(155.0f)[SNew(SSearchBox).HintText(LOCTEXT("BoneSearch", "搜索骨骼名")).OnTextChanged_Lambda([this](const FText& Value) { BoneFilter = Value.ToString(); Viewport->SetBoneLabelOptions(BoneFilter, bShowAllBoneLabels); })]]
+							]
+							+ SVerticalBox::Slot().AutoHeight().Padding(0, 5, 0, 0)
+							[
+								SNew(SHorizontalBox)
+								+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 16, 0)[SNew(SCheckBox).IsChecked_Lambda([this] { return Viewport->IsComparisonOverlay() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { Viewport->SetComparisonOverlay(State == ECheckBoxState::Checked); })[SNew(STextBlock).Text(LOCTEXT("ComparisonOverlay", "三路叠加"))]]
+								+ SHorizontalBox::Slot().AutoWidth()
+								[
+									SNew(SBox).Visibility_Lambda([this] { return Viewport->IsComparisonOverlay() ? EVisibility::Visible : EVisibility::Collapsed; })
+									[
+										SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)[SNew(STextBlock).Text(LOCTEXT("HighlightLane", "高亮:"))]
+										+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 3, 0)[SNew(SCheckBox).Style(FAppStyle::Get(), "RadioButton").IsChecked_Lambda([this] { return HighlightLane == 0 ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { if (State == ECheckBoxState::Checked) { HighlightLane = 0; Viewport->SetHighlightLane(0); } })[SNew(STextBlock).Text(LOCTEXT("HighlightSource", "源")).ColorAndOpacity(GetLaneColor(0))]]
+										+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 3, 0)[SNew(SCheckBox).Style(FAppStyle::Get(), "RadioButton").IsChecked_Lambda([this] { return HighlightLane == 1 ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { if (State == ECheckBoxState::Checked) { HighlightLane = 1; Viewport->SetHighlightLane(1); } })[SNew(STextBlock).Text(LOCTEXT("HighlightSoft", "软")).ColorAndOpacity(GetLaneColor(1))]]
+										+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 12, 0)[SNew(SCheckBox).Style(FAppStyle::Get(), "RadioButton").IsChecked_Lambda([this] { return HighlightLane == 2 ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State) { if (State == ECheckBoxState::Checked) { HighlightLane = 2; Viewport->SetHighlightLane(2); } })[SNew(STextBlock).Text(LOCTEXT("HighlightHard", "硬")).ColorAndOpacity(GetLaneColor(2))]]
+										+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)[SNew(STextBlock).Text(LOCTEXT("OverlayOpacity", "透明度"))]
+										+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)[SNew(SBox).WidthOverride(120.0f)[SNew(SSlider).Value_Lambda([this] { return (OverlayOpacity - 0.05f) / 0.75f; }).OnValueChanged_Lambda([this](float Value) { OverlayOpacity = 0.05f + Value * 0.75f; Viewport->SetOverlayOpacity(OverlayOpacity); })]]
+										+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text_Lambda([this] { return FText::FromString(FString::Printf(TEXT("%d%%"), FMath::RoundToInt(OverlayOpacity * 100.0f))); })]
+									]
+								]
 							]
 							+ SVerticalBox::Slot().AutoHeight().Padding(0, 8, 0, 0)
 							[
@@ -1597,8 +1707,9 @@ namespace
 		bool bRootMotion = false;
 		bool bTrajectory = true;
 		bool bBoneNames = true;
-		int32 BoneLabelTarget = 2;
-		bool bShowAllBoneLabels = false;
+		int32 HighlightLane = 1;
+		float OverlayOpacity = 0.35f;
+		bool bShowAllBoneLabels = true;
 		FString BoneFilter;
 		bool bScrubbing = false;
 		float ScrubValue = 0.0f;
