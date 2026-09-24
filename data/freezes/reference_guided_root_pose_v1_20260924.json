@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "release_id": "reference_guided_root_pose_v1_20260924",
+  "source_dataset": "E:\\AIAnimationSystemData\\prepared\\native30_traversal_semantic_v1",
+  "source_manifest_sha256": "9a6c10fa2cd906c47f7f137cf5a83361e86fbbb40d2a7182d8e87c631145483a",
+  "source_training_signature": "53c35d43d599e29bcc04bdb22667263d00664bcbb8ebe0936d35b84e7f458ae0",
+  "skeleton_sha256": "1a799ca14585ce18edcfce3bb755dc7adcffa84d5111ac3afa2aa71238b8b547",
+  "raw_clip_count": 1722,
+  "windows": {
+    "train": 26861,
+    "validation": 4052,
+    "test": 3820
+  },
+  "excluded_train_clip_indices": [
+    620,
+    660,
+    672
+  ],
+  "review_queue_sha256": "a189cab6fd1d9343b1ff9a8f94043f066af67b538bfcc7c4bab4fc681852a9fb",
+  "review": {
+    "approved": 107,
+    "groups": {
+      "issue": 95,
+      "sample": 12
+    },
+    "bulk_marked_notes": 58,
+    "scope": "review_queue_only; approval_does_not_prove_every_clip_was_individually_watched"
+  },
+  "baseline": {
+    "split": "test",
+    "selection": "middle_window_per_clip",
+    "oracle_root_condition": true
+  },
+  "artifacts_sha256": {
+    "audit/clips.csv": "bf873f43ccd3f57f6de59985b6fcc7cc1b3b0d1044938ed7220bf428ed453bd8",
+    "audit/report.json": "0b6869f6773434ad6e4d583a89ba032cc82ea6cb3101a015c61b21505a4ae21b",
+    "audit/review_queue.json": "a189cab6fd1d9343b1ff9a8f94043f066af67b538bfcc7c4bab4fc681852a9fb",
+    "baseline/report.json": "c95c2763537566d6f1a46784db534055e139b36374a830aafd35d4ca72f6e30b",
+    "contract/contract.json": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+    "contract/stats/pose_mean.npy": "02ba9ba9229dd03e8a7e279982b9a9e01be98a9d1f17da7e9ed5e0559a7acf95",
+    "contract/stats/pose_std.npy": "2fdf86c0baeeeff6643d2c7a00875547b85da2873c371b6da05eb02c73e07ece",
+    "contract/stats/root_velocity_mean.npy": "6f7c801d2276ac85ecbaabed9cd0f59fed531f12617b32a8d144f78f63ee6382",
+    "contract/stats/root_velocity_std.npy": "d899c32752601144b4956637a3d338797e967fccff7e1d0170cac04fab94593a",
+    "contract/windows.jsonl": "48e6e86df75fa0d0056aaa8876f989dc92dfcb98e6979ae3e12718c76d0c97b2",
+    "review_decisions.json": "34e58d415741f2675ea2a19df12ab18d695a8444a49999ae9e04f2c004a4bb3f"
+  },
+  "training_authorized": false
+}

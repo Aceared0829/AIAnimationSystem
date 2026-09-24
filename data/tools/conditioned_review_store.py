@@ -106,7 +106,10 @@ class ConditionedReviewStore:
         ue_world = np.stack((world[..., 2], -world[..., 0], world[..., 1]), axis=-1) * 100
         motion_root = raw["root_track"][:, :3]
         ue_root = np.stack((motion_root[:, 2], -motion_root[:, 0], motion_root[:, 1]), axis=-1) * 100
-        skeleton = read_json(source / "skeleton.json")
+        skeleton_path = source / "skeleton.json"
+        if hashlib.sha256(skeleton_path.read_bytes()).hexdigest() != self.contract["skeleton_sha256"]:
+            raise ValueError("来源骨架已改变，拒绝沿用旧契约")
+        skeleton = read_json(skeleton_path)
         bones = skeleton["bones"]
         source_rig = {"names": [bone["name"] for bone in bones],
                       "parents": [bone["parent"] for bone in bones], "pelvis": 0,

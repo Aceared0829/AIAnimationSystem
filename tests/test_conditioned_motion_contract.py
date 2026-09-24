@@ -12,6 +12,7 @@ import numpy as np
 from data.runtime.conditioned_motion import build_index, load_window, with_references
 from data.tools.audit_conditioned_dataset import audit
 from data.tools.conditioned_review_store import ConditionedReviewStore, load_review_inputs
+from data.tools.freeze_conditioned_dataset import freeze
 from data.tools.prepare_unreal_dataset import asset_family, prepare
 from test_unreal_dataset import pose_only_fixture
 from training.evaluation.evaluate_conditioned_baselines import evaluate, predict
@@ -27,7 +28,7 @@ def named_asset(bucket, prefix):
     raise AssertionError("未找到测试分区资产")
 
 
-def prepared_fixture(folder, with_short=True):
+def prepared_fixture(folder, with_short=True, distinct_train=False):
     source = folder / "source"
     source.mkdir()
     definitions = [("train.json", named_asset(5, "Train"), 100),
@@ -39,6 +40,9 @@ def prepared_fixture(folder, with_short=True):
         clip["asset"] = asset
         clip["frames"] = clip["frames"][:length]
         clip["root_frames"] = clip["root_frames"][:length]
+        if distinct_train and filename == "train.json":
+            for index, root in enumerate(clip["root_frames"]):
+                root[0] += index * 0.1
         (source / filename).write_text(json.dumps(clip), encoding="utf-8")
     (source / "manifest.json").write_text(json.dumps({"schema_version": 2,
         "training_contract": "pose_only_root_authoritative",
@@ -140,6 +144,33 @@ class ConditionedMotionContractTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "独立 Root"):
                 build_index(prepared, output)
             self.assertFalse((output / "contract.json").exists())
+
+    def test_freeze_requires_complete_approved_cohort_and_fixed_skeleton(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            prepared = prepared_fixture(folder, with_short=False, distinct_train=True)
+            index = folder / "conditional"
+            build_index(prepared, index)
+            audit_folder = folder / "audit"
+            audit(index, audit_folder)
+            baseline_folder = folder / "baseline"
+            evaluate(index, baseline_folder, split="test")
+            contract, report, entries, queue_hash = load_review_inputs(index, audit_folder)
+            store = ConditionedReviewStore(folder / "library", contract, report, entries, queue_hash)
+            for entry in entries:
+                store.save({"id": entry["id"], "status": "approved", "note": "checked"})
+            summary = freeze(index, audit_folder, baseline_folder / "report.json", folder / "library",
+                             folder / "release", folder / "release-lock.json")
+            self.assertEqual(summary["review"]["approved"], len(entries))
+            self.assertEqual(summary["artifacts_sha256"]["review_decisions.json"],
+                             hashlib.sha256((folder / "release" / "review_decisions.json").read_bytes()).hexdigest())
+            store.save({"id": entries[0]["id"], "status": "rejected", "note": "bad"})
+            with self.assertRaisesRegex(ValueError, "未通过结论"):
+                freeze(index, audit_folder, baseline_folder / "report.json", folder / "library",
+                       folder / "release2", folder / "release-lock2.json")
+            (prepared / "skeleton.json").write_text((prepared / "skeleton.json").read_text() + " ")
+            with self.assertRaisesRegex(ValueError, "来源骨架已改变"):
+                store.clip(entries[0]["id"])
 
 
 if __name__ == "__main__":
