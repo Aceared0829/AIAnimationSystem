@@ -20,7 +20,7 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def verify_release(release, lock):
+def verify_release(release, lock, source_override=None):
     release = Path(release).resolve()
     lock = json.loads(Path(lock).read_text(encoding="utf-8"))
     if json.loads((release / "freeze_manifest.json").read_text(encoding="utf-8")) != lock:
@@ -29,14 +29,15 @@ def verify_release(release, lock):
         if digest(release / name) != expected:
             raise ValueError(f"封版文件哈希不匹配：{name}")
     contract = json.loads((release / "contract" / "contract.json").read_text(encoding="utf-8"))
-    source = Path(contract["source_dataset"])
+    source = Path(source_override if source_override is not None else contract["source_dataset"]).resolve()
     if digest(source / "dataset.json") != contract["source_manifest_sha256"]:
         raise ValueError("来源清单已改变")
     if digest(source / "skeleton.json") != contract["skeleton_sha256"]:
         raise ValueError("来源骨架已改变")
     if contract["window"]["history_frames"] != 24 or contract["window"]["future_frames"] != 24:
         raise ValueError("当前模型要求 24+24 帧契约")
-    return contract, lock
+    # 位置可迁移，内容仍由冻结清单、骨架与逐条 NPZ 哈希约束。
+    return dict(contract, source_dataset=str(source)), lock
 
 
 class MotionWindows(Dataset):
@@ -148,7 +149,7 @@ def validate(model, loader, device, pose_std):
 def train(args):
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
-    contract, lock = verify_release(args.release, args.lock)
+    contract, lock = verify_release(args.release, args.lock, args.source_override)
     output = Path(args.output).resolve()
     if output.exists():
         raise FileExistsError(f"训练输出已存在：{output}")
@@ -182,6 +183,7 @@ def train(args):
     config = {"release_id": lock["release_id"], "contract_sha256": lock["artifacts_sha256"]["contract/contract.json"],
               "seed": args.seed, "batch_size": args.batch_size, "width": args.width, "epochs": args.epochs,
               "learning_rate": args.lr, "train_windows": len(train_data), "validation_windows": len(valid_data),
+              "source_dataset_runtime": contract["source_dataset"],
               "model": "GRU history + temporal Transformer; Root path and sparse full-pose references",
               "rotation_representation": "first_two_matrix_columns_6d", "control_mode": "oracle_future_root_plan",
               "validation_references": [12, 23],
@@ -232,6 +234,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--release", required=True)
     parser.add_argument("--lock", required=True)
+    parser.add_argument("--source-override", help="跨系统迁移后的来源数据目录；逐文件哈希仍按封版契约校验")
     parser.add_argument("--output", required=True)
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=8)
