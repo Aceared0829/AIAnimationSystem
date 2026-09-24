@@ -35,3 +35,5 @@
 - `--contact-weight 0.01`：以封版中的启发式脚部接触标签，约束真实 Root 合成后的接触脚速度。仅用于受控实验，权重不应直接视为最优值。
 
 每轮保存 Python、NumPy、Torch、CUDA 和采样器随机状态；新检查点续训可以复现采样顺序。旧检查点没有这些状态，续训时会提示无法逐步复现。可用 `python -m training.evaluation.evaluate_conditioned_quality --split validation ...` 在验证集每条动作的中心窗口评估无参考、单参考、双参考和非固定时点参考，并按类别输出位置、旋转、速度与接触脚速度。该评估仍使用源动画未来 Root，接触标签也由源动作启发式派生；测试集仅在候选方案确定后运行一次。
+
+2026-09-25 的云端对照、选定权重及冻结测试结果见 [conditioned_optimization_20260925.md](conditioned_optimization_20260925.md)。
