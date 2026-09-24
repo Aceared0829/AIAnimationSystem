@@ -31,6 +31,7 @@
 
 - `--sampling balanced`：按类别窗口数及片段窗口数的平方根倒数加权，仍从原有训练窗口抽取，不增加数据，不改变验证/测试集。`--category-power`、`--clip-power` 控制加权强度。
 - `--reference-sampling diverse`：训练时采样 0–3 个不同时间的全身硬参考帧；输出依然精确覆盖参考帧。单帧局部骨骼参考尚未由本模型支持。
+- `--reference-sampling hybrid`：一半窗口维持旧版固定时点参考采样，另一半采用分散时点采样；用于检验非固定时点收益能否与旧场景质量兼得。
 - `--contact-weight 0.01`：以封版中的启发式脚部接触标签，约束真实 Root 合成后的接触脚速度。仅用于受控实验，权重不应直接视为最优值。
 
 每轮保存 Python、NumPy、Torch、CUDA 和采样器随机状态；新检查点续训可以复现采样顺序。旧检查点没有这些状态，续训时会提示无法逐步复现。可用 `python -m training.evaluation.evaluate_conditioned_quality --split validation ...` 在验证集每条动作的中心窗口评估无参考、单参考、双参考和非固定时点参考，并按类别输出位置、旋转、速度与接触脚速度。该评估仍使用源动画未来 Root，接触标签也由源动作启发式派生；测试集仅在候选方案确定后运行一次。

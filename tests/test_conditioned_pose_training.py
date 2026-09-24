@@ -8,7 +8,7 @@ import torch
 
 from inference.runtime.conditioned_pose import rotation_6d_to_matrix
 from training.evaluation.evaluate_conditioned_pose import center_indices
-from training.pretrain.train_conditioned_pose import (ReferenceGuidedPose, balanced_window_weights,
+from training.pretrain.train_conditioned_pose import (MotionWindows, ReferenceGuidedPose, balanced_window_weights,
                                                     capture_random_state, losses, restore_random_state,
                                                     root_world_positions)
 
@@ -80,6 +80,26 @@ class ConditionedPoseTrainingTests(unittest.TestCase):
                       foot_indices=[0], contact_weight=0.01)[0]
         loss.backward()
         self.assertGreater(float(pose.grad.abs().sum()), 0)
+
+    def test_hybrid_references_cover_fixed_and_off_grid_times(self):
+        data = object.__new__(MotionWindows)
+        data.rows = [{"clip_index": 0, "start": 0}]
+        root = np.tile(np.array([0, 0, 0, 0, 0, 0, 1], dtype=np.float32), (48, 1))
+        data.raw = {0: (np.zeros((48, 1, 3), dtype=np.float32),
+                        np.zeros((48, 1, 6), dtype=np.float32), root)}
+        data.mean = np.zeros((1, 3), dtype=np.float32)
+        data.std = np.ones((1, 3), dtype=np.float32)
+        data.scenario = "hybrid"
+        data.seed = 42
+        data.include_contacts = False
+        offsets = set()
+        for epoch in range(128):
+            data.epoch = epoch
+            mask = data[0][3].numpy()[:, 0]
+            offsets.update(np.flatnonzero(mask).tolist())
+        self.assertIn(12, offsets)
+        self.assertIn(23, offsets)
+        self.assertTrue(any(index not in (12, 23) for index in offsets))
 
 
 if __name__ == "__main__":

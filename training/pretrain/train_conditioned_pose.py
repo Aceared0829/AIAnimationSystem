@@ -94,13 +94,14 @@ class MotionWindows(Dataset):
         future_root = root_local(root[middle:end], origin)
         history = np.concatenate((combined[:24], history_root), axis=-1)
         target = combined[24:]
-        if self.scenario == "random":
+        if self.scenario in ("random", "diverse", "hybrid"):
             rng = np.random.default_rng(self.seed + self.epoch * 1000003 + item)
-            offsets = ((), (12,), (23,), (12, 23))[int(rng.integers(4))]
-        elif self.scenario == "diverse":
-            rng = np.random.default_rng(self.seed + self.epoch * 1000003 + item)
-            count = int(rng.choice(4, p=(0.25, 0.35, 0.35, 0.05)))
-            offsets = tuple(sorted(rng.choice(24, count, replace=False).tolist()))
+            legacy = self.scenario == "random" or (self.scenario == "hybrid" and rng.random() < 0.5)
+            if legacy:
+                offsets = ((), (12,), (23,), (12, 23))[int(rng.integers(4))]
+            else:
+                count = int(rng.choice(4, p=(0.25, 0.35, 0.35, 0.05)))
+                offsets = tuple(sorted(rng.choice(24, count, replace=False).tolist()))
         elif self.scenario == "one_ref":
             offsets = (12,)
         elif self.scenario == "two_refs":
@@ -358,7 +359,7 @@ def main():
     parser.add_argument("--sampling", choices=("uniform", "balanced"), default="uniform")
     parser.add_argument("--category-power", type=float, default=0.5)
     parser.add_argument("--clip-power", type=float, default=0.5)
-    parser.add_argument("--reference-sampling", choices=("random", "diverse"), default="random")
+    parser.add_argument("--reference-sampling", choices=("random", "diverse", "hybrid"), default="random")
     parser.add_argument("--contact-weight", type=float, default=0.0)
     parser.add_argument("--resume", help="相同封版契约与模型配置的上次检查点")
     parser.add_argument("--log-every", type=int, default=100)
