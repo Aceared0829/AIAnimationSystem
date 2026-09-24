@@ -20,8 +20,8 @@ def center_indices(rows):
 
 
 @torch.no_grad()
-def evaluate(checkpoint_path, release, lock_path, baseline_path, output):
-    contract, lock = verify_release(release, lock_path)
+def evaluate(checkpoint_path, release, lock_path, baseline_path, output, source_override=None):
+    contract, lock = verify_release(release, lock_path, source_override)
     checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     config = checkpoint["config"]
     if config["contract_sha256"] != lock["artifacts_sha256"]["contract/contract.json"]:
@@ -73,10 +73,12 @@ def main():
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--release", required=True)
     parser.add_argument("--lock", required=True)
+    parser.add_argument("--source-override", help="跨系统迁移后的来源数据目录")
     parser.add_argument("--baseline", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
-    print(json.dumps(evaluate(args.checkpoint, args.release, args.lock, args.baseline, args.output),
+    print(json.dumps(evaluate(args.checkpoint, args.release, args.lock, args.baseline, args.output,
+                              args.source_override),
                      ensure_ascii=False, indent=2))
 
 
