@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw
 
 
 ROOT = Path(__file__).resolve().parents[4]
-CONTRACT = json.loads(Path(r"E:\AIAnimationSystemData\prepared\reference_guided_root_pose_v1_20260924_audited\contract.json").read_text(encoding="utf-8"))
+CONTRACT = json.loads(Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924\contract\contract.json").read_text(encoding="utf-8"))
 SOURCE = Path(CONTRACT["source_dataset"])
 SKELETON = json.loads((SOURCE / "skeleton.json").read_text(encoding="utf-8"))
 OUT = ROOT / "output/p0_20260925/stance_filmstrips"

@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[4]
-QUEUE = ROOT / "output/conditioned_data_audit_20260924_complete/review_queue.json"
+QUEUE = Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924\audit\review_queue.json")
 DATABASE = Path(r"D:\MotionDataLibrary\reviews\decisions.sqlite3")
 OUTPUT = Path(__file__).resolve().parent / "restart_2026-09-25"
 
