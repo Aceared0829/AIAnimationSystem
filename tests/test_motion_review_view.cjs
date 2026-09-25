@@ -44,6 +44,13 @@ const visibility = vm.runInContext(`(() => {
 assert(visibility.every(Boolean), 'all frames remain inside the overview');
 vm.runInContext('frame=1;updateTime()', context);
 assert.match(element('rootLocation').textContent, /导出 Root.*X 100\.0.*Z 100\.0.*ΔX 100\.0.*ΔZ 100\.0/);
+vm.runInContext(`catalog={exception_mode:false};data.target={...data.source,
+  root_positions:Float32Array.from([0,0,0,250,0,-75])};updateTime()`, context);
+assert.match(element('rootLocation').textContent, /导出 Root.*X 250\.0.*Z -75\.0.*ΔX 250\.0.*ΔZ -75\.0/,
+  'the dual-rig review reports the UE export rather than the source BVH');
+vm.runInContext('data.target=null;catalog.exception_mode=true;updateTime()', context);
+assert.match(element('rootLocation').textContent, /源动作 Root（UE 轴）/,
+  'exception triage labels the converted source coordinate accurately');
 element('view').value = 'side';
 const vertical = vm.runInContext('projection(800,600)([100,0,100])[1]-projection(800,600)([100,0,0])[1]', context);
 assert(Math.abs(vertical) > 1, 'orthographic side view preserves Root height');
