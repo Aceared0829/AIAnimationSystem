@@ -111,6 +111,7 @@ tests/              单元、训练、导出与目录回归测试
 | [动作表示](docs/motionbricks/motion_representation.md) | 骨架、Root Motion、姿态特征和坐标约定 |
 | [接入自有数据集](docs/motionbricks/adding_your_own_dataset.md) | MotionBricks 通用数据集接入；UE 资产优先使用上面的插件说明 |
 | [学习与项目历史](docs/project-background.md) | 源码阅读顺序、游戏动画裁剪范围与上游关系 |
+| [实验记录](docs/experiments/README.md) | 可提交的逐次数据、训练、评估与 UE 验证记录及证据索引 |
 | [launcher](launcher) | Windows 参考演示启动器源码 |
 
 ## 来源与许可
