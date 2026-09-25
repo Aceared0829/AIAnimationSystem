@@ -6,9 +6,10 @@
 
 ## 索引
 
-目前没有按本规范新建的实验记录。已有历史结果仍保留在 [Root 驱动与硬参考姿态数据契约](../reference-guided-data-contract-v1.md)、[UE 插件与训练说明](../../unreal-script/AILocomotionSystem/README.md) 和 [跑酷参考姿态实验](../../inference/profiling/pose-reference-lab.md) 中；它们不因本索引建立而变成统一口径的对照实验。
+已有历史结果仍保留在 [Root 驱动与硬参考姿态数据契约](../reference-guided-data-contract-v1.md)、[UE 插件与训练说明](../../unreal-script/AILocomotionSystem/README.md) 和 [跑酷参考姿态实验](../../inference/profiling/pose-reference-lab.md) 中；它们不因本索引建立而变成统一口径的对照实验。
 
 新记录在这里新增一行，注明日期、类型、状态和主要证据：
 
 | 日期 | 实验 | 类型 | 状态 | 主要证据 |
 | --- | --- | --- | --- | --- |
+| 2026-09-25 | [P0 站蹲数据与审核基线审计](2026-09-25-p0-stance-data-audit.md) | 数据审计 / 离线视觉复核 | 完成；107 条按用户决定全部通过 | 4 条逐帧图、窗口跨度、13 组家族表、[107 条确认清单](assets/2026-09-25-p0-stance-data-audit/restart_2026-09-25/review_acceptance.csv) |
