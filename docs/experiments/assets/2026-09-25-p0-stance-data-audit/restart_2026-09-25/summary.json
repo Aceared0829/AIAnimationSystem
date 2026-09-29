@@ -1,0 +1,31 @@
+{
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "audit_report_sha256": "0b6869f6773434ad6e4d583a89ba032cc82ea6cb3101a015c61b21505a4ae21b",
+  "family_groups": 13,
+  "active_comparable_cross_split_pairs": 258,
+  "mean_joint_distance_cm_le": {
+    "1": 3,
+    "2": 5,
+    "3": 8,
+    "5": 14
+  },
+  "family_assessments": {
+    "no_generation_windows": 2,
+    "confirmed_near_duplicate_review_split": 4,
+    "review_semantic_family_before_resplit": 6,
+    "exact_duplicate_already_excluded": 1
+  },
+  "excluded_train_indices": [
+    620,
+    660,
+    672
+  ],
+  "review_queue_sha256": "a189cab6fd1d9343b1ff9a8f94043f066af67b538bfcc7c4bab4fc681852a9fb",
+  "review_queue_count": 107,
+  "review_decision_evidence_counts": {
+    "individual_mark_no_detailed_note": 49,
+    "bulk_mark_no_individual_view_claim": 58
+  },
+  "stance_windows_total": 32,
+  "stance_windows_with_future_pelvis_span_ge_10_cm": 0
+}

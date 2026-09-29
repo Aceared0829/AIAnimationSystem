@@ -1,0 +1,14 @@
+﻿family_id,group_number,all_indices,active_indices,splits,categories,active_windows,active_comparable_cross_split_pairs,nearest_pair_indices,nearest_mean_joint_distance_cm,assessment
+aim_offset_and_static_pose_shared_root,1,0;1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20;21;22;23;24;25;26;683;684;685;686;687;688;689;690,0;1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20;21;22;23;24;25;26;683;684;685;686;687;688;689;690,test;train;validation,AimOffset;Poses,0,231,19;20,1.896213,no_generation_windows
+stand_crouch_transition,2,226;227;429;430,226;227;429;430,test;train,Crouch,32,3,227;430,1.082459,confirmed_near_duplicate_review_split
+relaxed_crouch_loop_left_variants,3,304;305,304;305,test;train,Crouch,42,1,304;305,14.497763,review_semantic_family_before_resplit
+idle_turn_and_ragdoll_reach_shared_root,4,438;439;720;721;722;723;724;725;726;727;728,438;439;720;721;722;723;724;725;726;727;728,test;train,Idle;Ragdoll,55,10,438;439,2.474993,review_semantic_family_before_resplit
+relaxed_idle_and_look_at_poi,5,466;680,466;680,test;train,Idle;LookAtPOI,154,1,466;680,14.597641,review_semantic_family_before_resplit
+ragdoll_shove_direction_variants,6,490;492;494;496,490;492;494;496,train;validation,Interactions,60,3,492;494,10.697545,review_semantic_family_before_resplit
+jump_backward_start_left_style_variants,7,547;619,547;619,test;train,Jump,8,1,547;619,0.002138,confirmed_near_duplicate_review_split
+jump_backward_start_off_right_style_variants,8,548;618;620,548;618,test;train,Jump,8,1,548;618,0.001905,confirmed_near_duplicate_review_split
+jump_lateral_start_off_left_duplicate,9,660;661,661,validation,Jump,7,0,,,exact_duplicate_already_excluded
+relaxed_walk_loop_and_look_at_poi,10,682;1590,682;1590,test;train,LookAtPOI;Walk,40,1,682;1590,0.001341,confirmed_near_duplicate_review_split
+relaxed_static_pose_variants,11,691;692;693;694;695,691;692;693;694;695,test;train,Poses,0,4,691;692,6.517132,no_generation_windows
+relaxed_run_start_left_right,12,1096;1097,1096;1097,test;train,Run,24,1,1096;1097,26.273863,review_semantic_family_before_resplit
+relaxed_slide_loop_variants,13,1145;1157,1145;1157,train;validation,Slide,166,1,1145;1157,28.069891,review_semantic_family_before_resplit

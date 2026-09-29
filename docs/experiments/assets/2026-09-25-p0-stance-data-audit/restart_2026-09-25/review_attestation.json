@@ -1,0 +1,19 @@
+{
+  "attested_at_utc": "2026-09-25T07:32:48Z",
+  "attestation_source": "user message in the current Codex task",
+  "user_statement": "这107段动作是全验收通过的，就当我是一个一个全部标记了",
+  "meaning": "User directs treating all 107 queued clips as individually approved decisions.",
+  "assistant_observation": "The agent verified stored approvals and data identities; it did not witness 107 individual playbacks.",
+  "review_queue_sha256": "a189cab6fd1d9343b1ff9a8f94043f066af67b538bfcc7c4bab4fc681852a9fb",
+  "queue_count": 107,
+  "stored_status_counts": {
+    "approved": 107
+  },
+  "legacy_mark_method_counts": {
+    "single_mark": 49,
+    "bulk_marker": 58
+  },
+  "decision_records_sha256": "52cfe631bc5ec8c7ec82dd962e1d37bbef2bf8dc588b4a94a512342b97b65453",
+  "review_acceptance_csv_sha256": "f2c8ca85fa7a58e2d16f51c625ccb5a38e238ece5e933d1621b712e2d65bc1de",
+  "sqlite_modified": false
+}
