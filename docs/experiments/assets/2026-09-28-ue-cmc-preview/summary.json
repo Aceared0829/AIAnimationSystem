@@ -1,0 +1,22 @@
+{
+  "experiment_id": "2026-09-28-ue-cmc-preview",
+  "run_id": "cmc_preview_20260928T110529Z",
+  "engine": "Unreal Engine 5.8.2",
+  "host": "D:/GameAnimationSample/GameAnimationSample.uproject",
+  "map": "/MotionWeaverCMCPreview/Maps/L_CMCPreview",
+  "pawn": "/Game/Blueprints/SandboxCharacter_CMC",
+  "root_executor": "GASP CharacterMovementComponent",
+  "root_plan": "current_velocity_times_0.75_seconds_diagnostic_only",
+  "pose_source": "GASP sample animation, not MotionWeaver model",
+  "test": "crouch_then_attempt_uncrouch_under_low_ceiling_then_leave_and_stand",
+  "result": "pass",
+  "samples": 119,
+  "samples_with_cmc_wants_stand_but_actual_crouch": 39,
+  "first_rejected_sample_seconds": 2.0363,
+  "last_rejected_sample_seconds": 3.7731,
+  "first_accepted_stand_root_x_cm": -315.925,
+  "csv_sha256": "e8ae6f63c7e36979bb3e1ae6ec13bf6694b66ae0ab91ffca32e50f93a9516c14",
+  "blocked_screenshot_sha256": "d42894f3d7acb6c444f2a14b81145aec1571083c2e9db9c1bfaec21bbb83db0e",
+  "standing_screenshot_sha256": "d954cfbb443a9ca3eec2b8f8a7b2e8ecceb43a198d6440b58ae3513e0c8afde8",
+  "sampling_note": "At most one sample per game tick after a nominal 1/30-second interval; timestamps are not a fixed-rate training grid."
+}

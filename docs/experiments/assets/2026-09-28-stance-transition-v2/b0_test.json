@@ -1,0 +1,61 @@
+{
+  "checkpoint_sha256": "fc5cb84b737d0bb0e9e87fd2bad423388cb52aa03822fe657627a9f9b4fcd436",
+  "stance_contract_sha256": "41436aaa999486212ae1bb1d955578f7cb5618ff59e95219cef13152a2a110a9",
+  "base_contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "split": "test",
+  "selection": "all_windows_whose_future_intersects_provisional_transition",
+  "root_condition": "source_future_oracle",
+  "references": "none",
+  "device": "cuda",
+  "metric": "mean_of_per_window_joint_euclidean_rmse_cm_then_equal_clip_average",
+  "clips": [
+    {
+      "clip_index": 430,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Relaxed_Transition_Stand_to_Crouch.M_Relaxed_Transition_Stand_to_Crouch",
+      "windows": 5,
+      "model_joint_rmse_cm": 28.047624588012695,
+      "hold_joint_rmse_cm": 28.715572929382326,
+      "details": [
+        {
+          "start": -23,
+          "model_joint_rmse_cm": 31.861268997192383,
+          "hold_joint_rmse_cm": 32.286258697509766,
+          "transition_frames": 12
+        },
+        {
+          "start": -19,
+          "model_joint_rmse_cm": 35.12882995605469,
+          "hold_joint_rmse_cm": 33.95124053955078,
+          "transition_frames": 12
+        },
+        {
+          "start": -15,
+          "model_joint_rmse_cm": 35.49003219604492,
+          "hold_joint_rmse_cm": 33.151344299316406,
+          "transition_frames": 9
+        },
+        {
+          "start": -11,
+          "model_joint_rmse_cm": 32.805274963378906,
+          "hold_joint_rmse_cm": 30.994007110595703,
+          "transition_frames": 5
+        },
+        {
+          "start": -7,
+          "model_joint_rmse_cm": 4.952716827392578,
+          "hold_joint_rmse_cm": 13.195013999938965,
+          "transition_frames": 1
+        }
+      ]
+    }
+  ],
+  "clip_count": 1,
+  "window_count": 5,
+  "model_joint_rmse_cm": 28.047624588012695,
+  "hold_joint_rmse_cm": 28.715572929382326,
+  "limitations": [
+    "过渡区间是骨盆高度代理边界；仅四条已知方向动作。",
+    "目标状态从旧动画推定；不存在真实玩家按键或 CMC 批准记录。",
+    "使用原动作未来 Root；不衡量在线规划、碰撞或脚部接触。"
+  ]
+}

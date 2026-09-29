@@ -2,6 +2,8 @@
 
 `runtime/`：可安装的数据加载器、骨架与交换契约，保留 `motionbricks.data` 导入名称。
 
+`runtime/stance_motion.py` 和 `tools/build_stance_motion_index.py` 在既有 v1 条件契约上建立站蹲 v2 试验索引。只有历史允许首帧补齐，未来始终取真实帧；旧动画方向标注的目标状态是推定代理条件，不是玩家输入或 CMC 批准。当前 P0 标注见 `annotations/stance_transition_p0_provisional.json`，仅四条明确过渡动作，边界尚为 `provisional`。结果与实际命令见 `docs/experiments/2026-09-28-stance-transition-v2.md`。
+
 `tools/`：数据准备、格式校验、批次调度、人工审核服务和入库工具。`review_web/` 随审核服务归档。`validate_seed_training.py` 校验训练数据格式，属于数据验收，不执行梯度训练。
 
 `raw/` 与 `prepared/`：本地数据，忽略提交。当前大数据物理目录为 `E:/AIAnimationSystemData/`，包括 `BONES-SEED/`、`MotionDataLibrary/`、`UE/AILocomotionDataset/` 和 `prepared/`；旧 D 盘入口可能是兼容 Junction，不能视为第二份数据。
