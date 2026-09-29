@@ -236,6 +236,9 @@ output/playwright/
 
 # Model checkpoints directory
 models/
+!/training/models/
+!/training/models/backbone/
+!/training/models/vqvae/
 
 # Downloaded from HuggingFace (hf download)
 sample_data/
