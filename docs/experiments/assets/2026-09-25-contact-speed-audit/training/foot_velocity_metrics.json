@@ -1,0 +1,26 @@
+[
+  {
+    "epoch": 1,
+    "loss": 0.09370341339408716,
+    "pose_axis_rmse_cm": 6.960350520244909,
+    "rotation_6d_mse": 0.03585659947667295,
+    "foot_velocity_smooth_l1_mps": 0.6703561519000576,
+    "seconds": 2.8910000000032596
+  },
+  {
+    "epoch": 2,
+    "loss": 0.09616217072775114,
+    "pose_axis_rmse_cm": 7.087146146755201,
+    "rotation_6d_mse": 0.03665439499768494,
+    "foot_velocity_smooth_l1_mps": 0.6641854946293048,
+    "seconds": 2.8430000000007567
+  },
+  {
+    "epoch": 3,
+    "loss": 0.09219401992206126,
+    "pose_axis_rmse_cm": 6.932484426677023,
+    "rotation_6d_mse": 0.03499251724417403,
+    "foot_velocity_smooth_l1_mps": 0.6542010181494105,
+    "seconds": 2.811999999998079
+  }
+]

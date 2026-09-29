@@ -1,0 +1,270 @@
+{
+  "schema_version": 1,
+  "split": "validation",
+  "conditions": {
+    "reference": "none",
+    "oracle_root": "source future Root",
+    "causal_root": "past 6 Root increments constant translation and local yaw extrapolation",
+    "rollout_history": "generated pose and rotation after first 24 true history frames",
+    "rollout_root": "source future Root throughout"
+  },
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "checkpoint_sha256": {
+    "uniform12": "28662ffd1855ab18fc8091f866252d1800bbd2a2595222b907009891f0eb3930",
+    "hybrid12": "fc5cb84b737d0bb0e9e87fd2bad423388cb52aa03822fe657627a9f9b4fcd436"
+  },
+  "source_manifest_sha256": "9a6c10fa2cd906c47f7f137cf5a83361e86fbbb40d2a7182d8e87c631145483a",
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "versions": {
+    "python": "3.12.12",
+    "torch": "2.14.0+cu130",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1"
+  },
+  "git_head": "e07aad29773bf24dcadd98e36271d3af1894e7fe",
+  "center_cases": 142,
+  "rollout_cases": 12,
+  "four_frame_rollout_cases": 12,
+  "center_by_category_model": {
+    "Crouch/uniform12": {
+      "non_anchor_pose_rmse_cm": 9.270640444755553,
+      "contact_foot_speed_mps": 0.6445071018494498,
+      "source_contact_foot_speed_mps": 0.051158517165466086,
+      "predicted_jump_cm": 8.139254321726629,
+      "source_jump_cm": 6.011862534645529,
+      "first_frame_error_cm": 4.715437450408985,
+      "causal_root_rmse_cm": 7.345907941730038,
+      "causal_root_end_error_cm": 12.572201572903431,
+      "pose_change_under_causal_root_cm": 0.7569394673407078,
+      "clips": 50
+    },
+    "Crouch/hybrid12": {
+      "non_anchor_pose_rmse_cm": 8.967203106880188,
+      "contact_foot_speed_mps": 0.6092856426920388,
+      "source_contact_foot_speed_mps": 0.051158517165466086,
+      "predicted_jump_cm": 7.946988332898295,
+      "source_jump_cm": 6.011862534645529,
+      "first_frame_error_cm": 4.657685903371199,
+      "causal_root_rmse_cm": 7.345907941730038,
+      "causal_root_end_error_cm": 12.572201572903431,
+      "pose_change_under_causal_root_cm": 0.7571048057079315,
+      "clips": 50
+    },
+    "Run/uniform12": {
+      "non_anchor_pose_rmse_cm": 9.74913782165164,
+      "contact_foot_speed_mps": 1.0807239981426329,
+      "source_contact_foot_speed_mps": 0.05782763859274539,
+      "predicted_jump_cm": 13.773330916360143,
+      "source_jump_cm": 12.525889649731429,
+      "first_frame_error_cm": 5.266057416081649,
+      "causal_root_rmse_cm": 13.473419386617717,
+      "causal_root_end_error_cm": 24.25378955226569,
+      "pose_change_under_causal_root_cm": 0.7621086764016322,
+      "clips": 42
+    },
+    "Run/hybrid12": {
+      "non_anchor_pose_rmse_cm": 10.444892514319648,
+      "contact_foot_speed_mps": 1.1161633311118817,
+      "source_contact_foot_speed_mps": 0.05782763859274539,
+      "predicted_jump_cm": 13.940024387988123,
+      "source_jump_cm": 12.525889649731429,
+      "first_frame_error_cm": 5.325824968383212,
+      "causal_root_rmse_cm": 13.473419386617717,
+      "causal_root_end_error_cm": 24.25378955226569,
+      "pose_change_under_causal_root_cm": 0.8912659008942899,
+      "clips": 42
+    },
+    "Walk/uniform12": {
+      "non_anchor_pose_rmse_cm": 6.974540424346924,
+      "contact_foot_speed_mps": 0.6119152929420834,
+      "source_contact_foot_speed_mps": 0.04341186258493522,
+      "predicted_jump_cm": 7.358120603468518,
+      "source_jump_cm": 5.95114931793179,
+      "first_frame_error_cm": 3.936272408376192,
+      "causal_root_rmse_cm": 6.9914216071394915,
+      "causal_root_end_error_cm": 12.398246825984678,
+      "pose_change_under_causal_root_cm": 0.35960989121347664,
+      "clips": 50
+    },
+    "Walk/hybrid12": {
+      "non_anchor_pose_rmse_cm": 6.539842538833618,
+      "contact_foot_speed_mps": 0.5459350258523269,
+      "source_contact_foot_speed_mps": 0.04341186258493522,
+      "predicted_jump_cm": 6.73275884703293,
+      "source_jump_cm": 5.95114931793179,
+      "first_frame_error_cm": 3.5553318599173416,
+      "causal_root_rmse_cm": 6.9914216071394915,
+      "causal_root_end_error_cm": 12.398246825984678,
+      "pose_change_under_causal_root_cm": 0.3852707653492689,
+      "clips": 50
+    }
+  },
+  "rollout_by_category_model": {
+    "Crouch/uniform12": {
+      "chunk1_pose_rmse_cm": 8.094639420509338,
+      "chunk2_pose_rmse_cm": 19.68500018119812,
+      "chunk3_pose_rmse_cm": 23.90948176383972,
+      "chunk2_teacher_forced_rmse_cm": 16.760757446289062,
+      "chunk3_teacher_forced_rmse_cm": 9.186365604400635,
+      "chunk3_closed_loop_penalty_cm": 14.723116159439087,
+      "replan_seam_jump_cm": 6.992840860156666,
+      "source_replan_jump_cm": 6.107824200077214,
+      "contact_foot_speed_mps": 1.6483358792530622,
+      "source_contact_foot_speed_mps": 0.04840942288513305,
+      "clips": 4
+    },
+    "Crouch/hybrid12": {
+      "chunk1_pose_rmse_cm": 8.841616868972778,
+      "chunk2_pose_rmse_cm": 18.601568460464478,
+      "chunk3_pose_rmse_cm": 20.73540210723877,
+      "chunk2_teacher_forced_rmse_cm": 16.56636667251587,
+      "chunk3_teacher_forced_rmse_cm": 8.453634262084961,
+      "chunk3_closed_loop_penalty_cm": 12.281767845153809,
+      "replan_seam_jump_cm": 7.205805076392925,
+      "source_replan_jump_cm": 6.107824200077214,
+      "contact_foot_speed_mps": 1.3367013127553964,
+      "source_contact_foot_speed_mps": 0.04840942288513305,
+      "clips": 4
+    },
+    "Run/uniform12": {
+      "chunk1_pose_rmse_cm": 16.23917818069458,
+      "chunk2_pose_rmse_cm": 20.309282064437866,
+      "chunk3_pose_rmse_cm": 23.67193055152893,
+      "chunk2_teacher_forced_rmse_cm": 13.24634575843811,
+      "chunk3_teacher_forced_rmse_cm": 12.30318558216095,
+      "chunk3_closed_loop_penalty_cm": 11.368744969367981,
+      "replan_seam_jump_cm": 9.399378280731096,
+      "source_replan_jump_cm": 8.727497784047774,
+      "contact_foot_speed_mps": 2.5832059567887224,
+      "source_contact_foot_speed_mps": 0.055096004577657315,
+      "clips": 4
+    },
+    "Run/hybrid12": {
+      "chunk1_pose_rmse_cm": 16.64283585548401,
+      "chunk2_pose_rmse_cm": 22.283655166625977,
+      "chunk3_pose_rmse_cm": 27.481870651245117,
+      "chunk2_teacher_forced_rmse_cm": 14.470389723777771,
+      "chunk3_teacher_forced_rmse_cm": 11.455253958702087,
+      "chunk3_closed_loop_penalty_cm": 16.02661669254303,
+      "replan_seam_jump_cm": 9.223747871944763,
+      "source_replan_jump_cm": 8.727497784047774,
+      "contact_foot_speed_mps": 3.014604031636911,
+      "source_contact_foot_speed_mps": 0.055096004577657315,
+      "clips": 4
+    },
+    "Walk/uniform12": {
+      "chunk1_pose_rmse_cm": 7.949254870414734,
+      "chunk2_pose_rmse_cm": 16.07456338405609,
+      "chunk3_pose_rmse_cm": 19.131897687911987,
+      "chunk2_teacher_forced_rmse_cm": 9.694428443908691,
+      "chunk3_teacher_forced_rmse_cm": 8.028265833854675,
+      "chunk3_closed_loop_penalty_cm": 11.103631854057312,
+      "replan_seam_jump_cm": 6.094941985475671,
+      "source_replan_jump_cm": 5.485505255752502,
+      "contact_foot_speed_mps": 1.1357665168762499,
+      "source_contact_foot_speed_mps": 0.03253619419966606,
+      "clips": 4
+    },
+    "Walk/hybrid12": {
+      "chunk1_pose_rmse_cm": 7.474990367889404,
+      "chunk2_pose_rmse_cm": 16.099353313446045,
+      "chunk3_pose_rmse_cm": 23.16937518119812,
+      "chunk2_teacher_forced_rmse_cm": 9.635846495628357,
+      "chunk3_teacher_forced_rmse_cm": 8.920156240463257,
+      "chunk3_closed_loop_penalty_cm": 14.249218940734863,
+      "replan_seam_jump_cm": 5.872038434809879,
+      "source_replan_jump_cm": 5.485505255752502,
+      "contact_foot_speed_mps": 1.1782824061005526,
+      "source_contact_foot_speed_mps": 0.03253619419966606,
+      "clips": 4
+    }
+  },
+  "four_frame_by_category_model": {
+    "Crouch/uniform12": {
+      "block1_pose_rmse_cm": 9.048579096794128,
+      "block2_pose_rmse_cm": 20.105246543884277,
+      "block3_pose_rmse_cm": 24.095126628875732,
+      "block2_teacher_forced_rmse_cm": 6.5346373319625854,
+      "block3_teacher_forced_rmse_cm": 5.331059098243713,
+      "block3_closed_loop_penalty_cm": 18.76406753063202,
+      "replan_seam_jump_cm": 7.005122361472369,
+      "source_replan_jump_cm": 6.435265021694545,
+      "contact_foot_speed_mps": 1.4528102363883537,
+      "source_contact_foot_speed_mps": 0.04840942288513305,
+      "clips": 4
+    },
+    "Crouch/hybrid12": {
+      "block1_pose_rmse_cm": 9.705500841140747,
+      "block2_pose_rmse_cm": 17.287686586380005,
+      "block3_pose_rmse_cm": 22.78893733024597,
+      "block2_teacher_forced_rmse_cm": 6.982155919075012,
+      "block3_teacher_forced_rmse_cm": 5.562757849693298,
+      "block3_closed_loop_penalty_cm": 17.226179480552673,
+      "replan_seam_jump_cm": 7.07348461652881,
+      "source_replan_jump_cm": 6.435265021694545,
+      "contact_foot_speed_mps": 1.4961524600652985,
+      "source_contact_foot_speed_mps": 0.04840942288513305,
+      "clips": 4
+    },
+    "Run/uniform12": {
+      "block1_pose_rmse_cm": 16.12614870071411,
+      "block2_pose_rmse_cm": 22.879669666290283,
+      "block3_pose_rmse_cm": 25.365149974822998,
+      "block2_teacher_forced_rmse_cm": 8.333152055740356,
+      "block3_teacher_forced_rmse_cm": 7.523662328720093,
+      "block3_closed_loop_penalty_cm": 17.841487646102905,
+      "replan_seam_jump_cm": 10.24530654913039,
+      "source_replan_jump_cm": 9.51044040773768,
+      "contact_foot_speed_mps": 2.4353565675356266,
+      "source_contact_foot_speed_mps": 0.055096004577657315,
+      "clips": 4
+    },
+    "Run/hybrid12": {
+      "block1_pose_rmse_cm": 18.794203519821167,
+      "block2_pose_rmse_cm": 25.614927291870117,
+      "block3_pose_rmse_cm": 31.486398696899414,
+      "block2_teacher_forced_rmse_cm": 8.014674961566925,
+      "block3_teacher_forced_rmse_cm": 7.051269948482513,
+      "block3_closed_loop_penalty_cm": 24.4351287484169,
+      "replan_seam_jump_cm": 10.778996037529959,
+      "source_replan_jump_cm": 9.51044040773768,
+      "contact_foot_speed_mps": 2.7881819808470967,
+      "source_contact_foot_speed_mps": 0.055096004577657315,
+      "clips": 4
+    },
+    "Walk/uniform12": {
+      "block1_pose_rmse_cm": 10.028279542922974,
+      "block2_pose_rmse_cm": 23.663230180740356,
+      "block3_pose_rmse_cm": 29.79179096221924,
+      "block2_teacher_forced_rmse_cm": 5.639275133609772,
+      "block3_teacher_forced_rmse_cm": 5.837457656860352,
+      "block3_closed_loop_penalty_cm": 23.954333305358887,
+      "replan_seam_jump_cm": 6.050079492121217,
+      "source_replan_jump_cm": 5.262498773183382,
+      "contact_foot_speed_mps": 1.5015695759226184,
+      "source_contact_foot_speed_mps": 0.03253619419966606,
+      "clips": 4
+    },
+    "Walk/hybrid12": {
+      "block1_pose_rmse_cm": 9.278390645980835,
+      "block2_pose_rmse_cm": 19.95665407180786,
+      "block3_pose_rmse_cm": 25.852808237075806,
+      "block2_teacher_forced_rmse_cm": 4.611455202102661,
+      "block3_teacher_forced_rmse_cm": 4.659728527069092,
+      "block3_closed_loop_penalty_cm": 21.193079710006714,
+      "replan_seam_jump_cm": 5.802543813740917,
+      "source_replan_jump_cm": 5.262498773183382,
+      "contact_foot_speed_mps": 1.2903713609709428,
+      "source_contact_foot_speed_mps": 0.03253619419966606,
+      "clips": 4
+    }
+  },
+  "limitations": [
+    "No UE CMC/Mover trace or player input is available; causal Root is a past-only baseline, not actual controller output.",
+    "Contact bits are inferred from source motion and do not prove physical contact.",
+    "Rollouts use source future Root and only 12 fixed validation clips; cross-clip game transitions are untested.",
+    "Four-frame replanning always provides the next 24 source Root frames; this is not a causal controller.",
+    "The 24-frame model has no stance command input; Stand/Crouch switching is not evaluated here."
+  ]
+}

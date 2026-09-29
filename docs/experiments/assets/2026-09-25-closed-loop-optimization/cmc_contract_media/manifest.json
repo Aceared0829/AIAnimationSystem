@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "inference_summary": "output\\cmc_ground_root_inference_20260925_run03\\summary.json",
+  "pose_root": "CMC capsule bottom, not capsule center",
+  "trace_sha256": "9180776b198a0c1a5d03508fb9e69a914086f13da251bb7a5afe12e72df26fb6",
+  "clips": [
+    {
+      "scenario": "walk",
+      "video": "walk_cmc_root_comparison.mp4",
+      "video_sha256": "d934397e0da0ac2d6c0e5854d5ef1adec8d23fb2294a8d9e7b8a032c7203bcfe",
+      "poster": "walk_cmc_poster.png"
+    },
+    {
+      "scenario": "run",
+      "video": "run_cmc_root_comparison.mp4",
+      "video_sha256": "b621e8ee8d42fa16c1418da87a55fe3c832aa83b80f8902fc79f4452b7e6206b",
+      "poster": "run_cmc_poster.png"
+    },
+    {
+      "scenario": "crouch",
+      "video": "crouch_cmc_root_comparison.mp4",
+      "video_sha256": "6888e5782146491a46cb5f961bf48d2250b2232edb454b9ba173373a7e18692e",
+      "poster": "crouch_cmc_poster.png"
+    },
+    {
+      "scenario": "stand_to_crouch",
+      "video": "stand_to_crouch_cmc_root_comparison.mp4",
+      "video_sha256": "d536a0d7a15102649c35a1de04a674e0301140c344c8067256ff1b67f6146693",
+      "poster": "stand_to_crouch_cmc_poster.png"
+    }
+  ]
+}

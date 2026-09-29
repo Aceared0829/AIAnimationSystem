@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "split": "validation",
+  "category": "Run",
+  "clips": 42,
+  "center_windows": 42,
+  "height_threshold_m": 0.1,
+  "speed_thresholds_mps": {
+    "0.15": {
+      "all_clip_pairs": 2422,
+      "center_window_pairs": 672,
+      "center_windows_without_pairs": 2
+    },
+    "0.20": {
+      "all_clip_pairs": 2624,
+      "center_window_pairs": 723,
+      "center_windows_without_pairs": 0
+    },
+    "0.30": {
+      "all_clip_pairs": 2918,
+      "center_window_pairs": 779,
+      "center_windows_without_pairs": 0
+    },
+    "0.50": {
+      "all_clip_pairs": 3300,
+      "center_window_pairs": 841,
+      "center_windows_without_pairs": 0
+    }
+  },
+  "interpretation_boundary": "Threshold sensitivity only; additional pairs are not verified physical contacts."
+}

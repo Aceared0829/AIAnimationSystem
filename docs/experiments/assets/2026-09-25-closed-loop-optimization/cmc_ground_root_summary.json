@@ -1,0 +1,143 @@
+{
+  "trace_sha256": "9180776b198a0c1a5d03508fb9e69a914086f13da251bb7a5afe12e72df26fb6",
+  "trace_source": "UE 5.8.2 AIAnimation.Lab.CMCRootCapture automation test, 30 Hz",
+  "pose_root": "CMC capsule bottom = actor location minus current capsule half-height; UE cm mapped to data m",
+  "future_plan_modes": [
+    "accepted_replay_upper_bound",
+    "command_held_causal_proxy"
+  ],
+  "checkpoints": {
+    "uniform12": "28662ffd1855ab18fc8091f866252d1800bbd2a2595222b907009891f0eb3930",
+    "generated_contact10": "d5e1176444238c243d8836bd2b8139485a2ec8e607ea4a5cdb7fb5a14a69ee5a"
+  },
+  "scenarios": [
+    {
+      "scenario": "walk",
+      "clip_index": 1306,
+      "command_root_end_error_cm_by_block": [
+        2.384185791015625e-05,
+        3.514716386795044,
+        1.9691944122314453
+      ],
+      "crouch_accepted_frames": 0,
+      "models": {
+        "accepted_replay_uniform12": {
+          "first_seam_jump_cm": 7.208565848912454,
+          "max_joint_abs_m": 1.5023276805877686,
+          "finite": true
+        },
+        "accepted_replay_generated_contact10": {
+          "first_seam_jump_cm": 5.334019272024642,
+          "max_joint_abs_m": 1.4950896501541138,
+          "finite": true
+        },
+        "command_plan_uniform12": {
+          "first_seam_jump_cm": 7.208565848912454,
+          "max_joint_abs_m": 1.4959944486618042,
+          "finite": true
+        },
+        "command_plan_generated_contact10": {
+          "first_seam_jump_cm": 5.334019272024642,
+          "max_joint_abs_m": 1.4896610975265503,
+          "finite": true
+        }
+      }
+    },
+    {
+      "scenario": "run",
+      "clip_index": 983,
+      "command_root_end_error_cm_by_block": [
+        0.0,
+        39.92084503173828,
+        26.511770248413086
+      ],
+      "crouch_accepted_frames": 0,
+      "models": {
+        "accepted_replay_uniform12": {
+          "first_seam_jump_cm": 12.03861735861124,
+          "max_joint_abs_m": 1.4014472961425781,
+          "finite": true
+        },
+        "accepted_replay_generated_contact10": {
+          "first_seam_jump_cm": 10.747718920533337,
+          "max_joint_abs_m": 1.416375756263733,
+          "finite": true
+        },
+        "command_plan_uniform12": {
+          "first_seam_jump_cm": 12.03861735861124,
+          "max_joint_abs_m": 1.3919472694396973,
+          "finite": true
+        },
+        "command_plan_generated_contact10": {
+          "first_seam_jump_cm": 10.747718920533337,
+          "max_joint_abs_m": 1.4552803039550781,
+          "finite": true
+        }
+      }
+    },
+    {
+      "scenario": "crouch",
+      "clip_index": 49,
+      "command_root_end_error_cm_by_block": [
+        1.1920928955078125e-05,
+        1.5024499893188477,
+        0.3911018371582031
+      ],
+      "crouch_accepted_frames": 48,
+      "models": {
+        "accepted_replay_uniform12": {
+          "first_seam_jump_cm": 5.924341484721751,
+          "max_joint_abs_m": 1.0445204973220825,
+          "finite": true
+        },
+        "accepted_replay_generated_contact10": {
+          "first_seam_jump_cm": 6.497894424934709,
+          "max_joint_abs_m": 1.0816154479980469,
+          "finite": true
+        },
+        "command_plan_uniform12": {
+          "first_seam_jump_cm": 5.924341484721751,
+          "max_joint_abs_m": 1.0535680055618286,
+          "finite": true
+        },
+        "command_plan_generated_contact10": {
+          "first_seam_jump_cm": 6.497894424934709,
+          "max_joint_abs_m": 1.0517585277557373,
+          "finite": true
+        }
+      }
+    },
+    {
+      "scenario": "stand_to_crouch",
+      "clip_index": 1306,
+      "command_root_end_error_cm_by_block": [
+        1.1920928955078125e-05,
+        1.5024499893188477,
+        0.3911018371582031
+      ],
+      "crouch_accepted_frames": 48,
+      "models": {
+        "accepted_replay_uniform12": {
+          "first_seam_jump_cm": 6.121958997923152,
+          "max_joint_abs_m": 1.4959944486618042,
+          "finite": true
+        },
+        "accepted_replay_generated_contact10": {
+          "first_seam_jump_cm": 3.8000119831216326,
+          "max_joint_abs_m": 1.498708724975586,
+          "finite": true
+        },
+        "command_plan_uniform12": {
+          "first_seam_jump_cm": 6.121958997923152,
+          "max_joint_abs_m": 1.4996135234832764,
+          "finite": true
+        },
+        "command_plan_generated_contact10": {
+          "first_seam_jump_cm": 3.8000119831216326,
+          "max_joint_abs_m": 1.4905658960342407,
+          "finite": true
+        }
+      }
+    }
+  ]
+}

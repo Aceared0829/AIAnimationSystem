@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "candidate_count": 30,
+  "splits": [
+    "train",
+    "validation"
+  ],
+  "rule": "Original contacts remain 1.0; add foot weight 0.5 only when ipsilateral toe has an original contact, foot speed <0.15 m/s, foot height < clip foot p05+0.08 m.",
+  "interpretation": "Provisional training targets only, not ground-truth physical contact.",
+  "by_split_category": {
+    "train/Crouch": {
+      "clips": 299,
+      "stored_bits": 44548,
+      "stored_pairs": 39530,
+      "provisional_added_bits": 10031,
+      "provisional_weighted_pairs": 41748.75,
+      "added_left_foot": 4461,
+      "added_left_toe": 0,
+      "added_right_foot": 5570,
+      "added_right_toe": 0
+    },
+    "train/Run": {
+      "clips": 316,
+      "stored_bits": 15986,
+      "stored_pairs": 12075,
+      "provisional_added_bits": 2109,
+      "provisional_weighted_pairs": 12349.0,
+      "added_left_foot": 972,
+      "added_left_toe": 0,
+      "added_right_foot": 1137,
+      "added_right_toe": 0
+    },
+    "train/Walk": {
+      "clips": 331,
+      "stored_bits": 53891,
+      "stored_pairs": 47808,
+      "provisional_added_bits": 13870,
+      "provisional_weighted_pairs": 51057.0,
+      "added_left_foot": 6938,
+      "added_left_toe": 0,
+      "added_right_foot": 6932,
+      "added_right_toe": 0
+    },
+    "validation/Crouch": {
+      "clips": 50,
+      "stored_bits": 8154,
+      "stored_pairs": 7315,
+      "provisional_added_bits": 1752,
+      "provisional_weighted_pairs": 7710.75,
+      "added_left_foot": 562,
+      "added_left_toe": 0,
+      "added_right_foot": 1190,
+      "added_right_toe": 0
+    },
+    "validation/Run": {
+      "clips": 42,
+      "stored_bits": 2926,
+      "stored_pairs": 2422,
+      "provisional_added_bits": 225,
+      "provisional_weighted_pairs": 2450.5,
+      "added_left_foot": 77,
+      "added_left_toe": 0,
+      "added_right_foot": 148,
+      "added_right_toe": 0
+    },
+    "validation/Walk": {
+      "clips": 50,
+      "stored_bits": 7789,
+      "stored_pairs": 6852,
+      "provisional_added_bits": 2078,
+      "provisional_weighted_pairs": 7327.0,
+      "added_left_foot": 1007,
+      "added_left_toe": 0,
+      "added_right_foot": 1071,
+      "added_right_toe": 0
+    }
+  }
+}

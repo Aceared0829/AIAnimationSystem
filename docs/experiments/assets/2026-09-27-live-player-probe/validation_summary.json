@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "source": "second interactive UE run after keyboard binding fix; before cosmetic camera/lighting changes",
+  "trace_sha256": "744761cc6d72a1d609060ac468f4cda711ebd00f54b38de096c920f9082084bf",
+  "sample_count": 2145,
+  "control_samples": 920,
+  "speed_phase_samples": 1225,
+  "moving_samples_above_5_cmps": 1394,
+  "max_cmc_speed_cmps": 375.00000505191423,
+  "actor_x_range_cm": 2107.04721,
+  "actor_y_range_cm": 4407.27616,
+  "crouch_samples": 0,
+  "inference_ms_max_reported": 3.6533,
+  "limitations": [
+    "Foot positions are actual PoseableMesh world-bone readbacks; no physical stance labels.",
+    "No screenshot or subjective visual score in this trace.",
+    "Manual input sequence is not repeatable as a benchmark."
+  ]
+}

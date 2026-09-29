@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "baseline_sha256": "28662ffd1855ab18fc8091f866252d1800bbd2a2595222b907009891f0eb3930",
+  "optimized_sha256": "d5e1176444238c243d8836bd2b8139485a2ec8e607ea4a5cdb7fb5a14a69ee5a",
+  "condition": "no reference; model-generated history; source future Root",
+  "clips": [
+    {
+      "clip_index": 1306,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Walk_Box_B_LL_Rfoot.M_Neutral_Walk_Box_B_LL_Rfoot",
+      "video": "walk_1306_baseline_vs_optimized.mp4",
+      "video_sha256": "e8321045ff7aa2b6f48c96ba61c1c9f94425e56ceb323967acbc1164e7ebd3ec",
+      "poster": "walk_1306_poster.png"
+    },
+    {
+      "clip_index": 983,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Relaxed_Run_Hourglass_FR_LL_Rfoot.M_Relaxed_Run_Hourglass_FR_LL_Rfoot",
+      "video": "run_983_baseline_vs_optimized.mp4",
+      "video_sha256": "3488f00000ba031ef3de4483ed5fe7c72059d25f38528616989e88bff44a3cb9",
+      "poster": "run_983_poster.png"
+    },
+    {
+      "clip_index": 49,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Box_F_RL_Lfoot.M_Neutral_Crouch_Box_F_RL_Lfoot",
+      "video": "crouch_49_baseline_vs_optimized.mp4",
+      "video_sha256": "220164b3f8dc16b919a5479bd50c7241d314e9777926a17b3152cc846b24cac5",
+      "poster": "crouch_49_poster.png"
+    }
+  ]
+}

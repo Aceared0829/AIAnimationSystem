@@ -1,0 +1,100 @@
+[
+  {
+    "trace": "D:\\AILocomotonSystem\\GR00T-WholeBodyControl-p0-review\\output\\playable_player_20260927\\motion_matching_5mps_trace.csv",
+    "sha256": "f6584ae9d991989139b5f3310f7ce5b8f33b44764eb284d5dfb676bb0e75dc2c",
+    "rows": 222,
+    "modes": [
+      {
+        "mode": 0,
+        "standing_samples": 42,
+        "settled_samples": 25,
+        "mean_cmc_speed_mps": 4.87389344,
+        "low_foot_height_threshold_cm": 18.0,
+        "low_foot_speed_sample_count": 12,
+        "low_foot_speed_median_mps": 1.436573862013732,
+        "low_foot_speed_mean_mps": 1.7831319378861903,
+        "foot_local_x_range_cm": {
+          "foot_l": 83.66779999999994,
+          "foot_r": 92.30090000000001
+        }
+      },
+      {
+        "mode": 1,
+        "standing_samples": 60,
+        "settled_samples": 45,
+        "mean_cmc_speed_mps": 5.0,
+        "low_foot_height_threshold_cm": 18.0,
+        "low_foot_speed_sample_count": 43,
+        "low_foot_speed_median_mps": 4.938776015946258,
+        "low_foot_speed_mean_mps": 5.083878789721796,
+        "foot_local_x_range_cm": {
+          "foot_l": 2.9420000000002346,
+          "foot_r": 4.703599999999824
+        }
+      },
+      {
+        "mode": 2,
+        "standing_samples": 60,
+        "settled_samples": 44,
+        "mean_cmc_speed_mps": 5.0,
+        "low_foot_height_threshold_cm": 18.0,
+        "low_foot_speed_sample_count": 28,
+        "low_foot_speed_median_mps": 4.953684479112484,
+        "low_foot_speed_mean_mps": 5.1903496828223075,
+        "foot_local_x_range_cm": {
+          "foot_l": 12.761200000000144,
+          "foot_r": 17.238599999999906
+        }
+      }
+    ]
+  },
+  {
+    "trace": "D:\\AILocomotonSystem\\GR00T-WholeBodyControl-p0-review\\output\\playable_player_20260927\\motion_matching_2mps_trace.csv",
+    "sha256": "97b7a532bf42c24e041695e02d79607b8b5ccc15683ab487411b74eba836c237",
+    "rows": 231,
+    "modes": [
+      {
+        "mode": 0,
+        "standing_samples": 51,
+        "settled_samples": 34,
+        "mean_cmc_speed_mps": 2.0,
+        "low_foot_height_threshold_cm": 18.0,
+        "low_foot_speed_sample_count": 46,
+        "low_foot_speed_median_mps": 0.5870344768390519,
+        "low_foot_speed_mean_mps": 1.4858579392250892,
+        "foot_local_x_range_cm": {
+          "foot_l": 104.66170000000001,
+          "foot_r": 96.55790000000002
+        }
+      },
+      {
+        "mode": 1,
+        "standing_samples": 60,
+        "settled_samples": 45,
+        "mean_cmc_speed_mps": 2.0,
+        "low_foot_height_threshold_cm": 18.0,
+        "low_foot_speed_sample_count": 86,
+        "low_foot_speed_median_mps": 2.0457699190642913,
+        "low_foot_speed_mean_mps": 2.0390490743350815,
+        "foot_local_x_range_cm": {
+          "foot_l": 8.63390000000004,
+          "foot_r": 5.7649000000000115
+        }
+      },
+      {
+        "mode": 2,
+        "standing_samples": 60,
+        "settled_samples": 45,
+        "mean_cmc_speed_mps": 2.0,
+        "low_foot_height_threshold_cm": 18.0,
+        "low_foot_speed_sample_count": 88,
+        "low_foot_speed_median_mps": 2.050671463481396,
+        "low_foot_speed_mean_mps": 2.012580531790215,
+        "foot_local_x_range_cm": {
+          "foot_l": 4.942500000000109,
+          "foot_r": 3.330299999999852
+        }
+      }
+    ]
+  }
+]

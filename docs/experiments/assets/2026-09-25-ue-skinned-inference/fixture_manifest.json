@@ -1,0 +1,632 @@
+{
+  "format": "ue_conditioned_cmc_fixture_v1",
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "trace_sha256": "9180776b198a0c1a5d03508fb9e69a914086f13da251bb7a5afe12e72df26fb6",
+  "skeleton_sha256": "1a799ca14585ce18edcfce3bb755dc7adcffa84d5111ac3afa2aa71238b8b547",
+  "axis_mapping": "data=(minus UE Y, UE Z, UE X)",
+  "condition": "current CMC input held for 24 frames, accepted CMC history, no future source pose",
+  "models": {
+    "baseline": {
+      "onnx": "D:\\AILocomotonSystem\\GR00T-WholeBodyControl-p0-review\\output\\ue_skinned_inference_20260925\\onnx_baseline\\conditioned_pose.onnx",
+      "sha256": "c60376116a9e8fe3e3c2e0df8460dfa50f1818eeab5986dcbee84d150bd5a178"
+    },
+    "candidate": {
+      "onnx": "D:\\AILocomotonSystem\\GR00T-WholeBodyControl-p0-review\\output\\ue_skinned_inference_20260925\\onnx\\conditioned_pose.onnx",
+      "sha256": "eee1e58ac2208058e51944809e1e13b0afded9826ff83e7f686ab2b6597fbcef"
+    }
+  },
+  "scenarios": [
+    {
+      "name": "walk",
+      "clip_index": 1306,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Walk_Box_B_LL_Rfoot.M_Neutral_Walk_Box_B_LL_Rfoot",
+      "source_raw_sha256": "3bdca3146da2f6ef894d8992b331e28dcaed258f2791940d3bcbaae38ea1dcc9",
+      "frames": 72,
+      "windows": 3,
+      "crouch_accepted_frames": 0,
+      "model_windows": {
+        "baseline": [
+          {
+            "step": 0,
+            "inputs": {
+              "history": {
+                "file": "baseline_0_history.f32",
+                "sha256": "ff8df1f45c07c64f285de2ca41ccba2eeb95c44e657b2533b9acc89fc0533fa7"
+              },
+              "root_plan": {
+                "file": "baseline_0_root_plan.f32",
+                "sha256": "b9a1f0935e9739da7585871fa6332a66f16066252fc002724d75a2fd850be6e6"
+              },
+              "reference": {
+                "file": "baseline_0_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_0_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_0_expected.f32",
+            "output_sha256": "00606453eee3d2441ea7900c4569df4de2e84033eb7c987d4365856f01415362"
+          },
+          {
+            "step": 1,
+            "inputs": {
+              "history": {
+                "file": "baseline_1_history.f32",
+                "sha256": "8828ff8cac85073e022be96cec0cc69539a657913f69b99e354982ea60cb9b05"
+              },
+              "root_plan": {
+                "file": "baseline_1_root_plan.f32",
+                "sha256": "c4b2de0709b299149638c943d3445449eaaae1176a022c89f9b6c62b0cc46a2f"
+              },
+              "reference": {
+                "file": "baseline_1_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_1_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_1_expected.f32",
+            "output_sha256": "985c9e2ae9cc61d09c2e64812dc89076915c9a53f5737c2592b4a37b481ff8e9"
+          },
+          {
+            "step": 2,
+            "inputs": {
+              "history": {
+                "file": "baseline_2_history.f32",
+                "sha256": "b03324ccb018a9540bac78fbb8bea3457badf7d3a4828dbb8248d9ca30e3d75d"
+              },
+              "root_plan": {
+                "file": "baseline_2_root_plan.f32",
+                "sha256": "b2929aac8ae440b72b47ea5b37529d33ec8782f1ab8293a830a6c1a5adc4407d"
+              },
+              "reference": {
+                "file": "baseline_2_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_2_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_2_expected.f32",
+            "output_sha256": "ff5f946d9e6ff4285bbfd1ad0783a2a8a65b58f976fcb3fcb61a870d2a369d6a"
+          }
+        ],
+        "candidate": [
+          {
+            "step": 0,
+            "inputs": {
+              "history": {
+                "file": "candidate_0_history.f32",
+                "sha256": "ff8df1f45c07c64f285de2ca41ccba2eeb95c44e657b2533b9acc89fc0533fa7"
+              },
+              "root_plan": {
+                "file": "candidate_0_root_plan.f32",
+                "sha256": "b9a1f0935e9739da7585871fa6332a66f16066252fc002724d75a2fd850be6e6"
+              },
+              "reference": {
+                "file": "candidate_0_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_0_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_0_expected.f32",
+            "output_sha256": "b1ae6dfd36aee1f07d0a2a8c17d236ccf898ad579b8f609c986ee7919b28008b"
+          },
+          {
+            "step": 1,
+            "inputs": {
+              "history": {
+                "file": "candidate_1_history.f32",
+                "sha256": "d3b6ec759d4f7e4dcfdf2c76bfc69378128f60dd872b584a02e0e5c814518c12"
+              },
+              "root_plan": {
+                "file": "candidate_1_root_plan.f32",
+                "sha256": "c4b2de0709b299149638c943d3445449eaaae1176a022c89f9b6c62b0cc46a2f"
+              },
+              "reference": {
+                "file": "candidate_1_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_1_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_1_expected.f32",
+            "output_sha256": "155bc4ad0cfb4d3af1fd8b4a1cea81eb74be2d06beb8327279f2f8d5007ba574"
+          },
+          {
+            "step": 2,
+            "inputs": {
+              "history": {
+                "file": "candidate_2_history.f32",
+                "sha256": "3c73ab05155cadfc30c53dd796193cb5a0b290d541d171be954cde9117945a06"
+              },
+              "root_plan": {
+                "file": "candidate_2_root_plan.f32",
+                "sha256": "b2929aac8ae440b72b47ea5b37529d33ec8782f1ab8293a830a6c1a5adc4407d"
+              },
+              "reference": {
+                "file": "candidate_2_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_2_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_2_expected.f32",
+            "output_sha256": "ab6f94fdab984f2b7f4847f24e5806431ce9fddce5c3811978493e9a38e58fa1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "run",
+      "clip_index": 983,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Relaxed_Run_Hourglass_FR_LL_Rfoot.M_Relaxed_Run_Hourglass_FR_LL_Rfoot",
+      "source_raw_sha256": "b753659475520af349835771ad7ab2801b35ec545b77211439a35a86f3e5e977",
+      "frames": 72,
+      "windows": 3,
+      "crouch_accepted_frames": 0,
+      "model_windows": {
+        "baseline": [
+          {
+            "step": 0,
+            "inputs": {
+              "history": {
+                "file": "baseline_0_history.f32",
+                "sha256": "3f6f0bf4ae5adbb38b28724334c02debc0e213c22c5b8425297a4f9e55948d73"
+              },
+              "root_plan": {
+                "file": "baseline_0_root_plan.f32",
+                "sha256": "455fe29b8b5639b84613acc84c3b98e653401d80e4f3b1ddda0439502e911b41"
+              },
+              "reference": {
+                "file": "baseline_0_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_0_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_0_expected.f32",
+            "output_sha256": "2a30936c396db7eb9e00ef5844a40e4fdbc9d554b988048d4126fbcaf2fa4d30"
+          },
+          {
+            "step": 1,
+            "inputs": {
+              "history": {
+                "file": "baseline_1_history.f32",
+                "sha256": "7dcd0d589f8c9f443bb3f73caa527f27b5a005946eabe2e44af7a32c06fdd72f"
+              },
+              "root_plan": {
+                "file": "baseline_1_root_plan.f32",
+                "sha256": "ae310476b2c3950e0d73d86a6c00dc5f2cdbeb422974a33f42fbd3b0dce7274a"
+              },
+              "reference": {
+                "file": "baseline_1_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_1_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_1_expected.f32",
+            "output_sha256": "5f10bc9992709b88ddaa8b95f14b70097733b45390487994fff4774c5ad91159"
+          },
+          {
+            "step": 2,
+            "inputs": {
+              "history": {
+                "file": "baseline_2_history.f32",
+                "sha256": "d9ec598022b5437570689f005851d285cb7ee12ef7d0867ead22da6c31205c65"
+              },
+              "root_plan": {
+                "file": "baseline_2_root_plan.f32",
+                "sha256": "7acf50c5651559d5b229b6f86792a712abf5f597f9fb553b06f890ca935e6959"
+              },
+              "reference": {
+                "file": "baseline_2_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_2_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_2_expected.f32",
+            "output_sha256": "fd82a5b50417e45f0d9f01ad31ee2475e6b527f47be3c1cb3e693351765318b8"
+          }
+        ],
+        "candidate": [
+          {
+            "step": 0,
+            "inputs": {
+              "history": {
+                "file": "candidate_0_history.f32",
+                "sha256": "3f6f0bf4ae5adbb38b28724334c02debc0e213c22c5b8425297a4f9e55948d73"
+              },
+              "root_plan": {
+                "file": "candidate_0_root_plan.f32",
+                "sha256": "455fe29b8b5639b84613acc84c3b98e653401d80e4f3b1ddda0439502e911b41"
+              },
+              "reference": {
+                "file": "candidate_0_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_0_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_0_expected.f32",
+            "output_sha256": "4095aaa4139e86cd9033c7c0deb78691d7a8f23fd522668f3128d2606b303d1c"
+          },
+          {
+            "step": 1,
+            "inputs": {
+              "history": {
+                "file": "candidate_1_history.f32",
+                "sha256": "8da998911f9a62785284b0becae991d82bc3195eab0e22c140daf5b27e658c80"
+              },
+              "root_plan": {
+                "file": "candidate_1_root_plan.f32",
+                "sha256": "ae310476b2c3950e0d73d86a6c00dc5f2cdbeb422974a33f42fbd3b0dce7274a"
+              },
+              "reference": {
+                "file": "candidate_1_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_1_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_1_expected.f32",
+            "output_sha256": "820022e0050e55a7c6e026ffb76202537f783740de41948e4fc79cfd052f75ee"
+          },
+          {
+            "step": 2,
+            "inputs": {
+              "history": {
+                "file": "candidate_2_history.f32",
+                "sha256": "56b1454265ea9e9e4f789d7bace385879100e4816a2018644c5e7bfd591a111e"
+              },
+              "root_plan": {
+                "file": "candidate_2_root_plan.f32",
+                "sha256": "7acf50c5651559d5b229b6f86792a712abf5f597f9fb553b06f890ca935e6959"
+              },
+              "reference": {
+                "file": "candidate_2_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_2_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_2_expected.f32",
+            "output_sha256": "8aa6c7aa3cc5eb78d8481def2e2e388ec30f15e87f1c548476ad8a319e3b18af"
+          }
+        ]
+      }
+    },
+    {
+      "name": "crouch",
+      "clip_index": 49,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Box_F_RL_Lfoot.M_Neutral_Crouch_Box_F_RL_Lfoot",
+      "source_raw_sha256": "073f83992ff7cf72979a52caea4ca5b6efc8a0b1eafe6b4861e97d05287d45e8",
+      "frames": 72,
+      "windows": 3,
+      "crouch_accepted_frames": 48,
+      "model_windows": {
+        "baseline": [
+          {
+            "step": 0,
+            "inputs": {
+              "history": {
+                "file": "baseline_0_history.f32",
+                "sha256": "7979948fb58edb60fafdfc45123a84cc3e6873ac1a7b3fed719526e311f441c4"
+              },
+              "root_plan": {
+                "file": "baseline_0_root_plan.f32",
+                "sha256": "c42d18691ff46e5cfb0a8ed28e258e1ed08c1c54fb1ff4869eef958b87e02274"
+              },
+              "reference": {
+                "file": "baseline_0_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_0_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_0_expected.f32",
+            "output_sha256": "91c81bf95d3e7db54de5acc807638697360f731584fa503e56cdf93e24bb5379"
+          },
+          {
+            "step": 1,
+            "inputs": {
+              "history": {
+                "file": "baseline_1_history.f32",
+                "sha256": "4f1f83dbfbc241c9da7449f850f6e7b49aa27b2ffc7d0e1f0718ac9dba26aaa0"
+              },
+              "root_plan": {
+                "file": "baseline_1_root_plan.f32",
+                "sha256": "16b7d375d44386aafdb03255701fecb1f63ada3c48774f2f63a5bb0ed8384580"
+              },
+              "reference": {
+                "file": "baseline_1_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_1_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_1_expected.f32",
+            "output_sha256": "b6cc4b5eb771ba38eae6900ab3f9b353eb1443e851a42a725a56835d1ebc8018"
+          },
+          {
+            "step": 2,
+            "inputs": {
+              "history": {
+                "file": "baseline_2_history.f32",
+                "sha256": "5181e217a9d2061b5c48c138e3c996c359f72e8d163710254933383a82747ad7"
+              },
+              "root_plan": {
+                "file": "baseline_2_root_plan.f32",
+                "sha256": "18f896c9369fd1e057efc96ad5dd160c5252bb15e9cadf74c1cfc2b020d618cf"
+              },
+              "reference": {
+                "file": "baseline_2_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_2_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_2_expected.f32",
+            "output_sha256": "104b6febaef12f001640d75cb38d0486034ff586e3ee2a09a6a97636d2df834a"
+          }
+        ],
+        "candidate": [
+          {
+            "step": 0,
+            "inputs": {
+              "history": {
+                "file": "candidate_0_history.f32",
+                "sha256": "7979948fb58edb60fafdfc45123a84cc3e6873ac1a7b3fed719526e311f441c4"
+              },
+              "root_plan": {
+                "file": "candidate_0_root_plan.f32",
+                "sha256": "c42d18691ff46e5cfb0a8ed28e258e1ed08c1c54fb1ff4869eef958b87e02274"
+              },
+              "reference": {
+                "file": "candidate_0_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_0_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_0_expected.f32",
+            "output_sha256": "ab42440c99d12d60c44e608843ed02fec84511f189ad53a2069116824cfc17cb"
+          },
+          {
+            "step": 1,
+            "inputs": {
+              "history": {
+                "file": "candidate_1_history.f32",
+                "sha256": "5540e70378f0eeee4834da3d0e8ebdf66c326cd529b53f32f073a618cdaaa0de"
+              },
+              "root_plan": {
+                "file": "candidate_1_root_plan.f32",
+                "sha256": "16b7d375d44386aafdb03255701fecb1f63ada3c48774f2f63a5bb0ed8384580"
+              },
+              "reference": {
+                "file": "candidate_1_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_1_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_1_expected.f32",
+            "output_sha256": "115815cbc9e365ae397303cebbc27baae0a50ce5c4228600c798a3eaf49ce110"
+          },
+          {
+            "step": 2,
+            "inputs": {
+              "history": {
+                "file": "candidate_2_history.f32",
+                "sha256": "824c0bbb94c9baea3fde87a366c9c1a92348a19bc679ae26b1ea588a4d8cb5e9"
+              },
+              "root_plan": {
+                "file": "candidate_2_root_plan.f32",
+                "sha256": "18f896c9369fd1e057efc96ad5dd160c5252bb15e9cadf74c1cfc2b020d618cf"
+              },
+              "reference": {
+                "file": "candidate_2_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_2_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_2_expected.f32",
+            "output_sha256": "177a1276a319daa22317f4df37cd48ab2b881db058f79f37f9838596f11da743"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stand_to_crouch",
+      "clip_index": 1306,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Walk_Box_B_LL_Rfoot.M_Neutral_Walk_Box_B_LL_Rfoot",
+      "source_raw_sha256": "3bdca3146da2f6ef894d8992b331e28dcaed258f2791940d3bcbaae38ea1dcc9",
+      "frames": 72,
+      "windows": 3,
+      "crouch_accepted_frames": 48,
+      "model_windows": {
+        "baseline": [
+          {
+            "step": 0,
+            "inputs": {
+              "history": {
+                "file": "baseline_0_history.f32",
+                "sha256": "cd80ef637ded8157840e1992bc781afe45a947d6e38d40af9882f094c263ce24"
+              },
+              "root_plan": {
+                "file": "baseline_0_root_plan.f32",
+                "sha256": "c42d18691ff46e5cfb0a8ed28e258e1ed08c1c54fb1ff4869eef958b87e02274"
+              },
+              "reference": {
+                "file": "baseline_0_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_0_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_0_expected.f32",
+            "output_sha256": "c56d19095e34d506e065fcf4cf62ec12d3176d8af023316823fdd2909d11d472"
+          },
+          {
+            "step": 1,
+            "inputs": {
+              "history": {
+                "file": "baseline_1_history.f32",
+                "sha256": "ec928ce3bec29783768d7826f6e317ed0eed0220ff0160becbc2bbf15f7eb2cc"
+              },
+              "root_plan": {
+                "file": "baseline_1_root_plan.f32",
+                "sha256": "16b7d375d44386aafdb03255701fecb1f63ada3c48774f2f63a5bb0ed8384580"
+              },
+              "reference": {
+                "file": "baseline_1_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_1_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_1_expected.f32",
+            "output_sha256": "ea4228694032c68c4d66af81e7f509f7180477c9081e262540991e53f96cbd9c"
+          },
+          {
+            "step": 2,
+            "inputs": {
+              "history": {
+                "file": "baseline_2_history.f32",
+                "sha256": "cff82ba56d95407d4f06c3b9fac9bdc0f7806daa021d54d69b523c4d506bb9d1"
+              },
+              "root_plan": {
+                "file": "baseline_2_root_plan.f32",
+                "sha256": "18f896c9369fd1e057efc96ad5dd160c5252bb15e9cadf74c1cfc2b020d618cf"
+              },
+              "reference": {
+                "file": "baseline_2_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "baseline_2_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "baseline_2_expected.f32",
+            "output_sha256": "4252f546335e8c1a471203d6c552a99a6b71b2e919fd58dc980217b8496857a3"
+          }
+        ],
+        "candidate": [
+          {
+            "step": 0,
+            "inputs": {
+              "history": {
+                "file": "candidate_0_history.f32",
+                "sha256": "cd80ef637ded8157840e1992bc781afe45a947d6e38d40af9882f094c263ce24"
+              },
+              "root_plan": {
+                "file": "candidate_0_root_plan.f32",
+                "sha256": "c42d18691ff46e5cfb0a8ed28e258e1ed08c1c54fb1ff4869eef958b87e02274"
+              },
+              "reference": {
+                "file": "candidate_0_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_0_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_0_expected.f32",
+            "output_sha256": "dbc3b0c4c6cce2dd72d415c6c827532033f675112b5fe76f92cbc638864a29cf"
+          },
+          {
+            "step": 1,
+            "inputs": {
+              "history": {
+                "file": "candidate_1_history.f32",
+                "sha256": "c8ae1799af0025fc3a75467fb44814d1d009d304ca2471a5fa4b90f88ce74616"
+              },
+              "root_plan": {
+                "file": "candidate_1_root_plan.f32",
+                "sha256": "16b7d375d44386aafdb03255701fecb1f63ada3c48774f2f63a5bb0ed8384580"
+              },
+              "reference": {
+                "file": "candidate_1_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_1_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_1_expected.f32",
+            "output_sha256": "916166619976a8c2ce1d9b25b9ab3bdc0920c4a4901fa788ddbc982dd4ebfe7a"
+          },
+          {
+            "step": 2,
+            "inputs": {
+              "history": {
+                "file": "candidate_2_history.f32",
+                "sha256": "881bf0285f6f1fbce6302dee9fe2e908f29d15fb807e8359ec1c5ca7ebc04085"
+              },
+              "root_plan": {
+                "file": "candidate_2_root_plan.f32",
+                "sha256": "18f896c9369fd1e057efc96ad5dd160c5252bb15e9cadf74c1cfc2b020d618cf"
+              },
+              "reference": {
+                "file": "candidate_2_reference.f32",
+                "sha256": "ea13aaa795fdb2267af67be192869c0741e096c545ca9eae81ba1500263f792c"
+              },
+              "mask": {
+                "file": "candidate_2_mask.f32",
+                "sha256": "2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"
+              }
+            },
+            "output": "candidate_2_expected.f32",
+            "output_sha256": "a44b86af96b323ea671d201b92085965dd7b6f6798c54cae1c967b8c0bf20ac8"
+          }
+        ]
+      }
+    }
+  ]
+}

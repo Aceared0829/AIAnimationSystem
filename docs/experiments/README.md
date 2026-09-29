@@ -17,3 +17,13 @@
 | 2026-09-28 | [UE 单机 CMC 站蹲与执行 Root 观测演示](2026-09-28-ue-cmc-preview.md) | UE 功能/碰撞试验 | 自动场景通过；未接入模型姿态 | [119 条观测 CSV](assets/2026-09-28-ue-cmc-preview/cmc_preview_20260928T110529Z.csv)、[摘要](assets/2026-09-28-ue-cmc-preview/summary.json)、本机截图 |
 | 2026-09-28 | [UE CMC + B1 本地在线姿态预览](2026-09-28-ue-b1-online-preview.md) | ONNX 导出 / UE 本地推理 | 接线通过；生成历史回灌质量未通过 | [源历史 40 行](assets/2026-09-28-ue-b1-online-preview/source_history.csv)、[回灌 40 行](assets/2026-09-28-ue-b1-online-preview/generated_feedback.csv)、本机截图 |
 | 2026-09-28 | [MotionWeaver Actor Root 条件训练与本地推理](2026-09-28-motionweaver-a800-actor-root.md) | A800 训练 / 本地推理 | 完成 20000 步；玩家 UE 质量门槛未通过 | [20k 验收汇总](assets/2026-09-28-motionweaver-a800-actor-root/motionweaver_20k_acceptance_summary_20260928.json)、[CMC 逐条报告](assets/2026-09-28-motionweaver-a800-actor-root/motionweaver_cmc_report.json)；视频留本地归档 |
+| 2026-09-25 | [Closed-loop 优化](2026-09-25-closed-loop-optimization.md) | CMC Root / 接触消融 | 完成；保留失败与对照 | CMC Root、接触和两步预测指标资产 |
+| 2026-09-25 | [接触速度审计](2026-09-25-contact-speed-audit.md) | 数据审计 / 接触评价 | 完成 | 速度窗口、验证和审计脚本 |
+| 2026-09-25 | [已有动作诊断](2026-09-25-existing-motion-diagnostics.md) | 动作质量诊断 | 完成 | Root、接触和来源动作报告 |
+| 2026-09-25 | [Root 姿态对齐](2026-09-25-root-pose-alignment.md) | UE / Root 对齐 | 完成 | 四路对齐和 UE 读回数据 |
+| 2026-09-25 | [UE 蒙皮推理](2026-09-25-ue-skinned-inference.md) | UE 本地推理 | 完成；后续模型仍需玩家闭环验收 | UE 蒙皮推理指标和测试说明 |
+| 2026-09-26 | [接触复核训练设计](2026-09-26-contact-review-training-design.md) | 训练设计 | 完成 | 接触审查与训练方案 |
+| 2026-09-27 | [Contact V2 试验](2026-09-27-contact-v2-pilot.md) | 接触条件训练 | 完成 | UE 脚速与条件训练指标 |
+| 2026-09-27 | [实时玩家探针](2026-09-27-live-player-probe.md) | UE 玩家输入 / Root | 完成；用于诊断 | 交互轨迹和意图对照 |
+| 2026-09-27 | [Motion Matching 可运行预览](2026-09-27-motion-matching-plugin-playable.md) | UE 插件 / Motion Matching | 完成；最终联机未验收 | 可运行主机与插件记录 |
+| 2026-09-27 | [预训练对齐计划](2026-09-27-pretraining-alignment-plan.md) | 训练计划 | 完成；作为历史方案保留 | 配置与对齐指标 |

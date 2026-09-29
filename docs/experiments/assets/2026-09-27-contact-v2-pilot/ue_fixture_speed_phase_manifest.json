@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "format": "ue_root_pose_four_way_v1",
+  "trace_sha256": "0d0229c14ceae53e4e71e71f03d289f187d837f3bd19f541f5735b85a359142d",
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "onnx_sha256": "207642f0bef63895f7ca9fc9b9c3aaa2c17c2380ca968f47dc98c3d0016e3654",
+  "cases": [
+    {
+      "scenario": "walk",
+      "clip_index": 1587,
+      "offset": 0,
+      "split": "validation",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Relaxed_Walk_Loop_B.M_Relaxed_Walk_Loop_B",
+      "source_raw_sha256": "ba2b4fcddcec4160efa8cb8029a135e31318a9cb82a6c8bca7bae00c2f278383",
+      "source_speed_mps": 1.649999737739563,
+      "cmc_speed_mps": 1.649999976158142,
+      "source_cmc_velocity_gap_mps": 4.324160272517474e-06,
+      "root_plan_error_mean_cm": 2.9802322387695312e-06,
+      "root_plan_error_max_cm": 4.76837158203125e-05,
+      "windows": [
+        {
+          "step": 0,
+          "output_sha256": "8e9d3f56677cedeefbd2b005be604c2f97869e342136834c253eae3746bb039e"
+        },
+        {
+          "step": 1,
+          "output_sha256": "1de93cd9d158c99f896ef22e60e125426dedff3b7293c1249ddb33da21282a94"
+        },
+        {
+          "step": 2,
+          "output_sha256": "cbad132d8ac1ffe9aa45f695705b11cc47ffc24cba9648db68d12b81b1f76bd6"
+        }
+      ]
+    },
+    {
+      "scenario": "run",
+      "clip_index": 1109,
+      "offset": 0,
+      "split": "train",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Relaxed_Run_Switch_LR_LL_Lfoot.M_Relaxed_Run_Switch_LR_LL_Lfoot",
+      "source_raw_sha256": "caa4014f800e5c28d22a4f8a89c50c6583816cc8a7dbfb99f2d8f21d7ed8b8e3",
+      "source_speed_mps": 3.75,
+      "cmc_speed_mps": 3.75,
+      "source_cmc_velocity_gap_mps": 3.0366999226316693e-07,
+      "root_plan_error_mean_cm": 1.0602851943986025e-05,
+      "root_plan_error_max_cm": 9.5367431640625e-05,
+      "windows": [
+        {
+          "step": 0,
+          "output_sha256": "bf3f1a987e8fe86fb2459a5aacedd1e4fb138bb3c0bddbe68c343b4b665e9741"
+        },
+        {
+          "step": 1,
+          "output_sha256": "1363e1e283e3bac1684a94aed3c2d0aaa230fe3097d37d8c3b3440c6bde7aad7"
+        },
+        {
+          "step": 2,
+          "output_sha256": "28498b5e069dfc0cd7c5c504af65c7546ac4688151658dd9e2b75d6f0c7ff809"
+        }
+      ]
+    },
+    {
+      "scenario": "crouch",
+      "clip_index": 146,
+      "offset": 0,
+      "split": "validation",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Loop_FL.M_Neutral_Crouch_Loop_FL",
+      "source_raw_sha256": "5bfd9a390328e0e789170afad92ead0fb32d25abb0b99eeab0becb1dade29164",
+      "source_speed_mps": 2.2503902912139893,
+      "cmc_speed_mps": 2.250000238418579,
+      "source_cmc_velocity_gap_mps": 0.0003903383912984282,
+      "root_plan_error_mean_cm": 4.682983217207948e-06,
+      "root_plan_error_max_cm": 6.743495760019869e-05,
+      "windows": [
+        {
+          "step": 0,
+          "output_sha256": "bedb67fcf149ab2eacf1222a8540792464cf0884f8517d19784e70ac01b7b6a6"
+        },
+        {
+          "step": 1,
+          "output_sha256": "998a69d806b7b646ec29b21303435d7529b7eafcff9a13635c40a5a0f23d7c4b"
+        },
+        {
+          "step": 2,
+          "output_sha256": "a63dae2373bf191745f88b6190943c4a983a32845c86973e4f5e7eff908c6ef8"
+        }
+      ]
+    }
+  ]
+}

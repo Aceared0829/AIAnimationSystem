@@ -1,0 +1,18 @@
+[control]
+[2026.09.27-08.33.08:414][604]LogTemp: Display: AIAnimationFourWay walk step 0: 24.221 ms; max error 0.000000000
+[2026.09.27-08.33.12:978][892]LogTemp: Display: AIAnimationFourWay UE skinned walk: 4 lanes x 72 frames
+[2026.09.27-08.33.12:981][892]LogTemp: Display: AIAnimationFourWay run step 0: 1.600 ms; max error 0.000000000
+[2026.09.27-08.33.17:760][180]LogTemp: Display: AIAnimationFourWay UE skinned run: 4 lanes x 72 frames
+[2026.09.27-08.33.17:762][180]LogTemp: Display: AIAnimationFourWay crouch step 0: 1.416 ms; max error 0.000000000
+[2026.09.27-08.33.22:178][468]LogTemp: Display: AIAnimationFourWay UE skinned crouch: 4 lanes x 72 frames
+[2026.09.27-08.33.22:179][468]LogTemp: Display: AIAnimationFourWay max skinned foot-bone readback error 0.000000 cm
+[2026.09.27-08.33.22:224][605]LogAutomationController: Display: Test Completed. Result={Success} Name={RootPoseFourWay} Path={AIAnimation.Lab.RootPoseFourWay}
+[speed_phase]
+[2026.09.27-08.42.13:132][608]LogTemp: Display: AIAnimationFourWay walk step 0: 4.325 ms; max error 0.000000000
+[2026.09.27-08.42.17:922][896]LogTemp: Display: AIAnimationFourWay UE skinned walk: 4 lanes x 72 frames
+[2026.09.27-08.42.17:924][896]LogTemp: Display: AIAnimationFourWay run step 0: 1.528 ms; max error 0.000000000
+[2026.09.27-08.42.22:888][184]LogTemp: Display: AIAnimationFourWay UE skinned run: 4 lanes x 72 frames
+[2026.09.27-08.42.22:890][184]LogTemp: Display: AIAnimationFourWay crouch step 0: 1.560 ms; max error 0.000000000
+[2026.09.27-08.42.27:789][472]LogTemp: Display: AIAnimationFourWay UE skinned crouch: 4 lanes x 72 frames
+[2026.09.27-08.42.27:790][472]LogTemp: Display: AIAnimationFourWay max skinned foot-bone readback error 0.000000 cm
+[2026.09.27-08.42.27:821][609]LogAutomationController: Display: Test Completed. Result={Success} Name={RootPoseFourWay} Path={AIAnimation.Lab.RootPoseFourWay}

@@ -1,0 +1,422 @@
+[
+  {
+    "clip_index": 1025,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Relaxed_Run_Quad_F_BR_Rfoot.M_Relaxed_Run_Quad_F_BR_Rfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 116,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 3.7606630325317383,
+    "diagnostic_center_contact_pairs": 2,
+    "diagnostic_local_floor_proxy_only_fraction": 0.028017
+  },
+  {
+    "clip_index": 983,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Relaxed_Run_Hourglass_FR_LL_Rfoot.M_Relaxed_Run_Hourglass_FR_LL_Rfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 120,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 3.749805212020874,
+    "diagnostic_center_contact_pairs": 2,
+    "diagnostic_local_floor_proxy_only_fraction": 0.027083
+  },
+  {
+    "clip_index": 951,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Relaxed_Run_Box_LR_B_Lfoot.M_Relaxed_Run_Box_LR_B_Lfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 101,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 3.74902606010437,
+    "diagnostic_center_contact_pairs": 3,
+    "diagnostic_local_floor_proxy_only_fraction": 0.017327
+  },
+  {
+    "clip_index": 1003,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Relaxed_Run_Pivot_LL_RL_Lfoot.M_Relaxed_Run_Pivot_LL_RL_Lfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 119,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 3.750051498413086,
+    "diagnostic_center_contact_pairs": 3,
+    "diagnostic_local_floor_proxy_only_fraction": 0.014706
+  },
+  {
+    "clip_index": 814,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Hourglass_RL_FL_Rfoot.M_Neutral_Run_Hourglass_RL_FL_Rfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 98,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 4.999996185302734,
+    "diagnostic_center_contact_pairs": 2,
+    "diagnostic_local_floor_proxy_only_fraction": 0.012755
+  },
+  {
+    "clip_index": 734,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Box_B_LL_Rfoot.M_Neutral_Run_Box_B_LL_Rfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 113,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 3.498464584350586,
+    "diagnostic_center_contact_pairs": 2,
+    "diagnostic_local_floor_proxy_only_fraction": 0.011062
+  },
+  {
+    "clip_index": 987,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Relaxed_Run_Hourglass_RR_FL_Lfoot.M_Relaxed_Run_Hourglass_RR_FL_Lfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 127,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 3.7582311630249023,
+    "diagnostic_center_contact_pairs": 3,
+    "diagnostic_local_floor_proxy_only_fraction": 0.009843
+  },
+  {
+    "clip_index": 880,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Start_F_Lfoot.M_Neutral_Run_Start_F_Lfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 79,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 4.999990940093994,
+    "diagnostic_center_contact_pairs": 2,
+    "diagnostic_local_floor_proxy_only_fraction": 0.009494
+  },
+  {
+    "clip_index": 824,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Loop_F_R_20.M_Neutral_Run_Loop_F_R_20",
+    "category": "Run",
+    "split": "validation",
+    "frames": 76,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 4.999999523162842,
+    "diagnostic_center_contact_pairs": 2,
+    "diagnostic_local_floor_proxy_only_fraction": 0.006579
+  },
+  {
+    "clip_index": 857,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Prism_F_FR_Lfoot.M_Neutral_Run_Prism_F_FR_Lfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 85,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 4.999853610992432,
+    "diagnostic_center_contact_pairs": 0,
+    "diagnostic_local_floor_proxy_only_fraction": 0.005882
+  },
+  {
+    "clip_index": 810,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Hourglass_LR_FR_Rfoot.M_Neutral_Run_Hourglass_LR_FR_Rfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 119,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 4.9525604248046875,
+    "diagnostic_center_contact_pairs": 1,
+    "diagnostic_local_floor_proxy_only_fraction": 0.004202
+  },
+  {
+    "clip_index": 885,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Start_FR_Rfoot.M_Neutral_Run_Start_FR_Rfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 79,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 5.000022888183594,
+    "diagnostic_center_contact_pairs": 0,
+    "diagnostic_local_floor_proxy_only_fraction": 0.003165
+  },
+  {
+    "clip_index": 1117,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Relaxed_Run_Turn_R_090_Lfoot.M_Relaxed_Run_Turn_R_090_Lfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 117,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 3.752082109451294,
+    "diagnostic_center_contact_pairs": 3,
+    "diagnostic_local_floor_proxy_only_fraction": 0.002137
+  },
+  {
+    "clip_index": 859,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Prism_FL_F_Lfoot.M_Neutral_Run_Prism_FL_F_Lfoot",
+    "category": "Run",
+    "split": "validation",
+    "frames": 80,
+    "flags": [
+      "contact_diagnostic_review",
+      "sparse_center_contact_pairs"
+    ],
+    "diagnostic_root_speed_mean_mps": 5.000767230987549,
+    "diagnostic_center_contact_pairs": 1,
+    "diagnostic_local_floor_proxy_only_fraction": 0.0
+  },
+  {
+    "clip_index": 208,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Stop_RR_Lfoot.M_Neutral_Crouch_Stop_RR_Lfoot",
+    "category": "Crouch",
+    "split": "validation",
+    "frames": 176,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 0.0,
+    "diagnostic_center_contact_pairs": 69,
+    "diagnostic_local_floor_proxy_only_fraction": 0.171875
+  },
+  {
+    "clip_index": 201,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Stop_F_Lfoot.M_Neutral_Crouch_Stop_F_Lfoot",
+    "category": "Crouch",
+    "split": "validation",
+    "frames": 151,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 0.0,
+    "diagnostic_center_contact_pairs": 69,
+    "diagnostic_local_floor_proxy_only_fraction": 0.155629
+  },
+  {
+    "clip_index": 412,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Relaxed_Crouch_Stop_F_Lfoot.M_Relaxed_Crouch_Stop_F_Lfoot",
+    "category": "Crouch",
+    "split": "validation",
+    "frames": 176,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 0.0,
+    "diagnostic_center_contact_pairs": 69,
+    "diagnostic_local_floor_proxy_only_fraction": 0.15483
+  },
+  {
+    "clip_index": 361,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Relaxed_Crouch_Reface_Stop_090_L_Lfoot.M_Relaxed_Crouch_Reface_Stop_090_L_Lfoot",
+    "category": "Crouch",
+    "split": "validation",
+    "frames": 176,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 2.505148977149929e-09,
+    "diagnostic_center_contact_pairs": 55,
+    "diagnostic_local_floor_proxy_only_fraction": 0.149148
+  },
+  {
+    "clip_index": 206,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Stop_LR_Rfoot.M_Neutral_Crouch_Stop_LR_Rfoot",
+    "category": "Crouch",
+    "split": "validation",
+    "frames": 153,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 2.3439522465196205e-06,
+    "diagnostic_center_contact_pairs": 69,
+    "diagnostic_local_floor_proxy_only_fraction": 0.145425
+  },
+  {
+    "clip_index": 1621,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Relaxed_Walk_Quad_F_BL_Rfoot.M_Relaxed_Walk_Quad_F_BL_Rfoot",
+    "category": "Walk",
+    "split": "validation",
+    "frames": 162,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 1.6551698446273804,
+    "diagnostic_center_contact_pairs": 20,
+    "diagnostic_local_floor_proxy_only_fraction": 0.141975
+  },
+  {
+    "clip_index": 413,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Relaxed_Crouch_Stop_F_Rfoot.M_Relaxed_Crouch_Stop_F_Rfoot",
+    "category": "Crouch",
+    "split": "validation",
+    "frames": 176,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 0.0,
+    "diagnostic_center_contact_pairs": 69,
+    "diagnostic_local_floor_proxy_only_fraction": 0.140625
+  },
+  {
+    "clip_index": 203,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Stop_FL_Rfoot.M_Neutral_Crouch_Stop_FL_Rfoot",
+    "category": "Crouch",
+    "split": "validation",
+    "frames": 169,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 0.0,
+    "diagnostic_center_contact_pairs": 69,
+    "diagnostic_local_floor_proxy_only_fraction": 0.139053
+  },
+  {
+    "clip_index": 1713,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Relaxed_Walk_Switch_RR_RL_Rfoot.M_Relaxed_Walk_Switch_RR_RL_Rfoot",
+    "category": "Walk",
+    "split": "validation",
+    "frames": 169,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 1.6507081985473633,
+    "diagnostic_center_contact_pairs": 17,
+    "diagnostic_local_floor_proxy_only_fraction": 0.137574
+  },
+  {
+    "clip_index": 362,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Relaxed_Crouch_Reface_Stop_090_L_Rfoot.M_Relaxed_Crouch_Reface_Stop_090_L_Rfoot",
+    "category": "Crouch",
+    "split": "validation",
+    "frames": 176,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 1.7177962385872547e-09,
+    "diagnostic_center_contact_pairs": 61,
+    "diagnostic_local_floor_proxy_only_fraction": 0.134943
+  },
+  {
+    "clip_index": 1587,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Relaxed_Walk_Loop_B.M_Relaxed_Walk_Loop_B",
+    "category": "Walk",
+    "split": "validation",
+    "frames": 116,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 1.6500002145767212,
+    "diagnostic_center_contact_pairs": 22,
+    "diagnostic_local_floor_proxy_only_fraction": 0.133621
+  },
+  {
+    "clip_index": 1494,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Walk_Stop_RR_Rfoot.M_Neutral_Walk_Stop_RR_Rfoot",
+    "category": "Walk",
+    "split": "validation",
+    "frames": 112,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 0.0,
+    "diagnostic_center_contact_pairs": 62,
+    "diagnostic_local_floor_proxy_only_fraction": 0.113839
+  },
+  {
+    "clip_index": 1569,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Relaxed_Walk_Hourglass_FL_RR_Rfoot.M_Relaxed_Walk_Hourglass_FL_RR_Rfoot",
+    "category": "Walk",
+    "split": "validation",
+    "frames": 168,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 1.648842453956604,
+    "diagnostic_center_contact_pairs": 20,
+    "diagnostic_local_floor_proxy_only_fraction": 0.108631
+  },
+  {
+    "clip_index": 1304,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Walk_Arc_F_Wide_R.M_Neutral_Walk_Arc_F_Wide_R",
+    "category": "Walk",
+    "split": "validation",
+    "frames": 113,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 1.9999889135360718,
+    "diagnostic_center_contact_pairs": 12,
+    "diagnostic_local_floor_proxy_only_fraction": 0.108407
+  },
+  {
+    "clip_index": 1599,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Relaxed_Walk_Pivot_F_B_Lfoot.M_Relaxed_Walk_Pivot_F_B_Lfoot",
+    "category": "Walk",
+    "split": "validation",
+    "frames": 169,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 1.6499959230422974,
+    "diagnostic_center_contact_pairs": 22,
+    "diagnostic_local_floor_proxy_only_fraction": 0.107988
+  },
+  {
+    "clip_index": 1544,
+    "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Relaxed_Walk_Diamond_BL_BR_Rfoot.M_Relaxed_Walk_Diamond_BL_BR_Rfoot",
+    "category": "Walk",
+    "split": "validation",
+    "frames": 163,
+    "flags": [
+      "contact_diagnostic_review",
+      "absolute_floor_height_disagreement"
+    ],
+    "diagnostic_root_speed_mean_mps": 1.6544538736343384,
+    "diagnostic_center_contact_pairs": 20,
+    "diagnostic_local_floor_proxy_only_fraction": 0.107362
+  }
+]

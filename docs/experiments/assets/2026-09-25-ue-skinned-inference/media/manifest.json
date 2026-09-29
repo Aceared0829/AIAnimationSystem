@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "source": "UE 5.8.2 NNE CPU inference on prepared CMC inputs; UPoseableMeshComponent skinned UEFN Mannequin; UE SceneCapture BaseColor frames",
+  "display_transform": "RGB channel = clamp((UE PNG channel - 4) * 6, 0, 255); labels only",
+  "fps": 15,
+  "source_fps": 30,
+  "frames_per_scenario": 72,
+  "ue_log_sha256": "78ec7d31b0caccb1440ccc95941091ff0d87bb6bb5d22c0b80b9dee444bab30d",
+  "videos": [
+    {
+      "scenario": "walk",
+      "video": "walk_ue_skinned.mp4",
+      "video_sha256": "a6a524975cabc978b9aec670961344a19a1a8f7f8fda675bdbb21093910f7e3c",
+      "poster": "walk_poster.png",
+      "poster_sha256": "b5ddb165d722b564f3903b17a6021d09a9b070af7e493cf298f6771e579fe931"
+    },
+    {
+      "scenario": "run",
+      "video": "run_ue_skinned.mp4",
+      "video_sha256": "972d38b184523bd8354551040fe0acb44bc41b1f44d6808975368c5ecb5dd0ce",
+      "poster": "run_poster.png",
+      "poster_sha256": "d66f06b8078e537f4f7fcdb0f8a76b4878f23b25a21a0c41ac300c17e817d461"
+    },
+    {
+      "scenario": "crouch",
+      "video": "crouch_ue_skinned.mp4",
+      "video_sha256": "c76d326095b093391b3cecd63b9a66310bed4b0cb21004087ac69f3e93fd550c",
+      "poster": "crouch_poster.png",
+      "poster_sha256": "7f2a983e4b4d1303f188ecea4330625248b412388ef90c9c5ebbddcc9c2cef41"
+    },
+    {
+      "scenario": "stand_to_crouch",
+      "video": "stand_to_crouch_ue_skinned.mp4",
+      "video_sha256": "527dd0d94ebac9d686c80d693a57666f777862795a09bf43d583886fe065df29",
+      "poster": "stand_to_crouch_poster.png",
+      "poster_sha256": "ab92fc2c9d8f11b18bae28d5adb3a56f9677f07c447865d3629238c7cfdb27af"
+    }
+  ]
+}

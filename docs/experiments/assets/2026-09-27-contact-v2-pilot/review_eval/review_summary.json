@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "candidate_count": 30,
+  "checkpoint_sha256": {
+    "control": "6b9bee84e583324928e024c94d3b8c4d1fe3017e4ace23acade49f9fe16c03f0",
+    "toe_witness": "ad6b050d606921f09a1548d533044939e638b6e047a4f29a31ca816069a207f8",
+    "speed_phase": "d924308f2635512c15292774dfb6ffc860963791b710b71a204eec844ef9fd5b"
+  },
+  "score_note": "Per-clip mean then equal clip-weight mean; provisional contact weights are a hypothesis, not ground truth.",
+  "by_category_model": {
+    "Crouch/control": {
+      "clips": 8,
+      "clips_with_stored_pairs": 8,
+      "stored_pairs": 530.0,
+      "provisional_weighted_pairs": 573.25,
+      "stored_contact_speed_clip_mean_mps": 0.11780864564280358,
+      "provisional_speed_clip_mean_mps": 0.11767794312987612,
+      "pose_rmse_clip_mean_cm": 3.2871505320072174
+    },
+    "Crouch/speed_phase": {
+      "clips": 8,
+      "clips_with_stored_pairs": 8,
+      "stored_pairs": 530.0,
+      "provisional_weighted_pairs": 573.25,
+      "stored_contact_speed_clip_mean_mps": 0.11580125374298529,
+      "provisional_speed_clip_mean_mps": 0.11573744821919497,
+      "pose_rmse_clip_mean_cm": 3.2308565378189087
+    },
+    "Crouch/toe_witness": {
+      "clips": 8,
+      "clips_with_stored_pairs": 8,
+      "stored_pairs": 530.0,
+      "provisional_weighted_pairs": 573.25,
+      "stored_contact_speed_clip_mean_mps": 0.11817723818120782,
+      "provisional_speed_clip_mean_mps": 0.11802413210973893,
+      "pose_rmse_clip_mean_cm": 3.2867923378944397
+    },
+    "Run/control": {
+      "clips": 14,
+      "clips_with_stored_pairs": 12,
+      "stored_pairs": 26.0,
+      "provisional_weighted_pairs": 26.0,
+      "stored_contact_speed_clip_mean_mps": 1.0860182830618792,
+      "provisional_speed_clip_mean_mps": 1.0860182830618792,
+      "pose_rmse_clip_mean_cm": 5.744486161640713
+    },
+    "Run/speed_phase": {
+      "clips": 14,
+      "clips_with_stored_pairs": 12,
+      "stored_pairs": 26.0,
+      "provisional_weighted_pairs": 26.0,
+      "stored_contact_speed_clip_mean_mps": 1.0570297780379525,
+      "provisional_speed_clip_mean_mps": 1.0570297780379525,
+      "pose_rmse_clip_mean_cm": 5.6543377467564175
+    },
+    "Run/toe_witness": {
+      "clips": 14,
+      "clips_with_stored_pairs": 12,
+      "stored_pairs": 26.0,
+      "provisional_weighted_pairs": 26.0,
+      "stored_contact_speed_clip_mean_mps": 1.081704790048267,
+      "provisional_speed_clip_mean_mps": 1.081704790048267,
+      "pose_rmse_clip_mean_cm": 5.744212320872715
+    },
+    "Walk/control": {
+      "clips": 8,
+      "clips_with_stored_pairs": 8,
+      "stored_pairs": 195.0,
+      "provisional_weighted_pairs": 220.0,
+      "stored_contact_speed_clip_mean_mps": 0.460022121042186,
+      "provisional_speed_clip_mean_mps": 0.45608599652581894,
+      "pose_rmse_clip_mean_cm": 3.595588892698288
+    },
+    "Walk/speed_phase": {
+      "clips": 8,
+      "clips_with_stored_pairs": 8,
+      "stored_pairs": 195.0,
+      "provisional_weighted_pairs": 220.0,
+      "stored_contact_speed_clip_mean_mps": 0.45918423137341513,
+      "provisional_speed_clip_mean_mps": 0.45625863145225076,
+      "pose_rmse_clip_mean_cm": 3.6648935079574585
+    },
+    "Walk/toe_witness": {
+      "clips": 8,
+      "clips_with_stored_pairs": 8,
+      "stored_pairs": 195.0,
+      "provisional_weighted_pairs": 220.0,
+      "stored_contact_speed_clip_mean_mps": 0.45865501755078053,
+      "provisional_speed_clip_mean_mps": 0.4544441257331163,
+      "pose_rmse_clip_mean_cm": 3.592450439929962
+    }
+  }
+}
