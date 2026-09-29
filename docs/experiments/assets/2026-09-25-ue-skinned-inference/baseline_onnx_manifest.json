@@ -1,0 +1,56 @@
+{
+  "checkpoint": "E:\\AIAnimationSystemData\\training_runs\\conditioned_pose_20260925_uniform12\\epoch_012.pt",
+  "checkpoint_sha256": "28662ffd1855ab18fc8091f866252d1800bbd2a2595222b907009891f0eb3930",
+  "onnx_sha256": "c60376116a9e8fe3e3c2e0df8460dfa50f1818eeab5986dcbee84d150bd5a178",
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "format": "conditioned_pose_24x79_no_reference_v1",
+  "inputs": {
+    "history": [
+      1,
+      24,
+      718
+    ],
+    "root_plan": [
+      1,
+      24,
+      7
+    ],
+    "reference": [
+      1,
+      24,
+      711
+    ],
+    "mask": [
+      1,
+      24,
+      1
+    ]
+  },
+  "outputs": {
+    "pose": [
+      1,
+      24,
+      711
+    ]
+  },
+  "opset": 18,
+  "fixtures": [
+    {
+      "index": 0,
+      "max_abs_error": 1.245737075805664e-05,
+      "finite": true
+    },
+    {
+      "index": 1,
+      "max_abs_error": 5.7220458984375e-06,
+      "finite": true
+    },
+    {
+      "index": 2,
+      "max_abs_error": 1.9073486328125e-06,
+      "finite": true
+    }
+  ],
+  "torch": "2.14.0+cu130",
+  "onnxruntime": "1.24.4"
+}

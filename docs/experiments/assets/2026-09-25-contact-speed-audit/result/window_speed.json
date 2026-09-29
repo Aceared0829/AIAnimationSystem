@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "windows_sha256": "48e6e86df75fa0d0056aaa8876f989dc92dfcb98e6979ae3e12718c76d0c97b2",
+  "fps": 30,
+  "history_frames": 24,
+  "future_frames": 24,
+  "speed_definition": "mean horizontal source Root speed across the 24 future frames; includes first history-to-future step",
+  "steady_definition": "within-window speed standard deviation <0.10 m/s",
+  "bins": [
+    {
+      "split": "train",
+      "category": "Walk",
+      "speed_bin_mps": "0-0.2",
+      "windows": 515,
+      "distinct_clips": 30,
+      "steady_windows": 487
+    },
+    {
+      "split": "train",
+      "category": "Walk",
+      "speed_bin_mps": "0.2-1",
+      "windows": 103,
+      "distinct_clips": 32,
+      "steady_windows": 19
+    },
+    {
+      "split": "train",
+      "category": "Walk",
+      "speed_bin_mps": "1-2",
+      "windows": 6824,
+      "distinct_clips": 320,
+      "steady_windows": 5895
+    },
+    {
+      "split": "train",
+      "category": "Walk",
+      "speed_bin_mps": "2-4",
+      "windows": 907,
+      "distinct_clips": 65,
+      "steady_windows": 885
+    },
+    {
+      "split": "train",
+      "category": "Walk",
+      "speed_bin_mps": "4+",
+      "windows": 4,
+      "distinct_clips": 2,
+      "steady_windows": 0
+    },
+    {
+      "split": "train",
+      "category": "Run",
+      "speed_bin_mps": "0-0.2",
+      "windows": 330,
+      "distinct_clips": 28,
+      "steady_windows": 309
+    },
+    {
+      "split": "train",
+      "category": "Run",
+      "speed_bin_mps": "0.2-1",
+      "windows": 32,
+      "distinct_clips": 19,
+      "steady_windows": 2
+    },
+    {
+      "split": "train",
+      "category": "Run",
+      "speed_bin_mps": "1-2",
+      "windows": 113,
+      "distinct_clips": 18,
+      "steady_windows": 52
+    },
+    {
+      "split": "train",
+      "category": "Run",
+      "speed_bin_mps": "2-4",
+      "windows": 3588,
+      "distinct_clips": 252,
+      "steady_windows": 2949
+    },
+    {
+      "split": "train",
+      "category": "Run",
+      "speed_bin_mps": "4+",
+      "windows": 718,
+      "distinct_clips": 73,
+      "steady_windows": 571
+    },
+    {
+      "split": "train",
+      "category": "Crouch",
+      "speed_bin_mps": "0-0.2",
+      "windows": 460,
+      "distinct_clips": 27,
+      "steady_windows": 447
+    },
+    {
+      "split": "train",
+      "category": "Crouch",
+      "speed_bin_mps": "0.2-1",
+      "windows": 50,
+      "distinct_clips": 18,
+      "steady_windows": 0
+    },
+    {
+      "split": "train",
+      "category": "Crouch",
+      "speed_bin_mps": "1-2",
+      "windows": 5219,
+      "distinct_clips": 261,
+      "steady_windows": 4473
+    },
+    {
+      "split": "train",
+      "category": "Crouch",
+      "speed_bin_mps": "2-4",
+      "windows": 1078,
+      "distinct_clips": 98,
+      "steady_windows": 973
+    },
+    {
+      "split": "train",
+      "category": "Crouch",
+      "speed_bin_mps": "4+",
+      "windows": 0,
+      "distinct_clips": 0,
+      "steady_windows": 0
+    },
+    {
+      "split": "validation",
+      "category": "Walk",
+      "speed_bin_mps": "0-0.2",
+      "windows": 37,
+      "distinct_clips": 2,
+      "steady_windows": 35
+    },
+    {
+      "split": "validation",
+      "category": "Walk",
+      "speed_bin_mps": "0.2-1",
+      "windows": 5,
+      "distinct_clips": 2,
+      "steady_windows": 0
+    },
+    {
+      "split": "validation",
+      "category": "Walk",
+      "speed_bin_mps": "1-2",
+      "windows": 1010,
+      "distinct_clips": 47,
+      "steady_windows": 865
+    },
+    {
+      "split": "validation",
+      "category": "Walk",
+      "speed_bin_mps": "2-4",
+      "windows": 230,
+      "distinct_clips": 15,
+      "steady_windows": 221
+    },
+    {
+      "split": "validation",
+      "category": "Walk",
+      "speed_bin_mps": "4+",
+      "windows": 2,
+      "distinct_clips": 1,
+      "steady_windows": 0
+    },
+    {
+      "split": "validation",
+      "category": "Run",
+      "speed_bin_mps": "0-0.2",
+      "windows": 98,
+      "distinct_clips": 6,
+      "steady_windows": 97
+    },
+    {
+      "split": "validation",
+      "category": "Run",
+      "speed_bin_mps": "0.2-1",
+      "windows": 0,
+      "distinct_clips": 0,
+      "steady_windows": 0
+    },
+    {
+      "split": "validation",
+      "category": "Run",
+      "speed_bin_mps": "1-2",
+      "windows": 1,
+      "distinct_clips": 1,
+      "steady_windows": 0
+    },
+    {
+      "split": "validation",
+      "category": "Run",
+      "speed_bin_mps": "2-4",
+      "windows": 479,
+      "distinct_clips": 31,
+      "steady_windows": 380
+    },
+    {
+      "split": "validation",
+      "category": "Run",
+      "speed_bin_mps": "4+",
+      "windows": 86,
+      "distinct_clips": 10,
+      "steady_windows": 69
+    },
+    {
+      "split": "validation",
+      "category": "Crouch",
+      "speed_bin_mps": "0-0.2",
+      "windows": 164,
+      "distinct_clips": 8,
+      "steady_windows": 158
+    },
+    {
+      "split": "validation",
+      "category": "Crouch",
+      "speed_bin_mps": "0.2-1",
+      "windows": 21,
+      "distinct_clips": 8,
+      "steady_windows": 0
+    },
+    {
+      "split": "validation",
+      "category": "Crouch",
+      "speed_bin_mps": "1-2",
+      "windows": 708,
+      "distinct_clips": 42,
+      "steady_windows": 582
+    },
+    {
+      "split": "validation",
+      "category": "Crouch",
+      "speed_bin_mps": "2-4",
+      "windows": 235,
+      "distinct_clips": 23,
+      "steady_windows": 218
+    },
+    {
+      "split": "validation",
+      "category": "Crouch",
+      "speed_bin_mps": "4+",
+      "windows": 0,
+      "distinct_clips": 0,
+      "steady_windows": 0
+    }
+  ]
+}

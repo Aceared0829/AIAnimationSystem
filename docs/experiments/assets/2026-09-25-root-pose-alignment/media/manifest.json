@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "source": "UE 5.8.2 NNE CPU plus UEFN skinned mesh and world-bone readback",
+  "display_transform": "RGB channel = clamp((UE PNG channel - 4) * 6, 0, 255); labels only",
+  "source_fps": 30,
+  "video_fps": 15,
+  "frames_per_scenario": 72,
+  "ue_log_sha256": "817eb93112bdf6b2bd7306131cff21ee361144f9f3fbd5213d19221c9600a072",
+  "bone_readback_sha256": "5b5cd65f17646467192b687cc07a9b19b8d2e7f15658f4c21c401c78d01c7270",
+  "videos": [
+    {
+      "scenario": "walk",
+      "video": "walk_four_way.mp4",
+      "video_sha256": "a7758bc613cb4a1f5b78560821e59d7ec40c48f05d678d557af7ad936ea34675",
+      "poster": "walk_four_way_poster.png",
+      "poster_sha256": "2a95d1d91c06216c3e18e8f1c447b52b74317647592c9a757a2177f5cbcd3255"
+    },
+    {
+      "scenario": "run",
+      "video": "run_four_way.mp4",
+      "video_sha256": "0fbc809fb38fc74da2919bd0109af713be5f454d6ff9bf154ba89317b4e3f621",
+      "poster": "run_four_way_poster.png",
+      "poster_sha256": "79418ed2370f0209b78cc0a5220248bdcc6abcec482a7eff1549b97db7b33753"
+    },
+    {
+      "scenario": "crouch",
+      "video": "crouch_four_way.mp4",
+      "video_sha256": "1c4730794882bc53b67797b70f9b8bad5e279fe1d8474863b357f45203043b2c",
+      "poster": "crouch_four_way_poster.png",
+      "poster_sha256": "34dba596c00897b20bdc5c116391b72d59a0c3a81cc4addaa763f7619e300989"
+    }
+  ]
+}

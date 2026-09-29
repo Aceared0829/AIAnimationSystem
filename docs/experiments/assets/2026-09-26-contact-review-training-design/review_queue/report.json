@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "audit_type": "contact_speed_diagnostic_review_v1",
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "checked_clips": 1217,
+  "review_queue_clips": 30,
+  "source_candidate_csv_sha256": "ed4389f60246429d6d5e8866fa353ee74e79550cbf4f5038ca4d41acd8d799b8",
+  "note": "Candidates for inspection only; no automatic approval or exclusion."
+}

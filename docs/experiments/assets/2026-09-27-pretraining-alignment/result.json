@@ -1,0 +1,78 @@
+{
+  "type": "read_only_cpu_contract_probe",
+  "numpy": "2.5.3",
+  "onnxruntime": "1.24.4",
+  "provider": "CPUExecutionProvider",
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "bundle_manifest_sha256": "622dd640cb60dd82cf7548f016d589832cf4840b91c3b2597cb5531e90dbd1d3",
+  "source_basis": [
+    {
+      "clip_index": 1299,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Walk_Arc_F_Small_L.M_Neutral_Walk_Arc_F_Small_L",
+      "split": "train",
+      "raw_sha256": "5ce8aa5cc1b89abfb5597e8e9887a61752d3e0dcea66f4f55e3eacc12e664661",
+      "frames": 111,
+      "velocity_root_ue_median_mps": [
+        -0.3326004795609892,
+        1.972080380259727,
+        0.0
+      ],
+      "body_yaw_proxy_median_degrees": 102.59205039311813
+    },
+    {
+      "clip_index": 1313,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Walk_Box_F_LL_Lfoot.M_Neutral_Walk_Box_F_LL_Lfoot",
+      "split": "train",
+      "raw_sha256": "3446d2016676401e6b2153d11576f394f854f9806ad792bb1e78c1ee2de73e6c",
+      "frames": 132,
+      "velocity_root_ue_median_mps": [
+        1.799941062927246,
+        0.0,
+        0.0
+      ],
+      "body_yaw_proxy_median_degrees": 91.94113068293659
+    },
+    {
+      "clip_index": 446,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Idle/M_Neutral_Stand_Idle_Loop.M_Neutral_Stand_Idle_Loop",
+      "split": "train",
+      "raw_sha256": "0c15e671e3e6d6a6b242a1898bb5cb6f5f21588a01a833616841c24572e2e900",
+      "frames": 301,
+      "velocity_root_ue_median_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "body_yaw_proxy_median_degrees": 113.03779956978745
+    }
+  ],
+  "rotation_feedback": [
+    {
+      "model": "control",
+      "onnx_sha256": "322944017edeacb739306ec44d35aa3e58b7851da8953ee98bd69f6ab605e910",
+      "abs_mean": 0.006513548083603382,
+      "abs_max": 0.047042012214660645
+    },
+    {
+      "model": "speed_phase",
+      "onnx_sha256": "207642f0bef63895f7ca9fc9b9c3aaa2c17c2380ca968f47dc98c3d0016e3654",
+      "abs_mean": 0.006178728304803371,
+      "abs_max": 0.04210638999938965
+    }
+  ],
+  "limitations": [
+    "Three diagnostic train clips, not dataset-wide direction coverage.",
+    "Body heading is an upper-body position proxy, not authoritative facing.",
+    "One synthetic constant-plan call per model; no UE or closed-loop result.",
+    "Rotation differences are dimensionless, not angles or pose errors."
+  ],
+  "probe_condition": {
+    "seed_clip": 446,
+    "fps": 30,
+    "future_pose_reference": false,
+    "root_plan": "synthetic +UE-X in model root basis, 2 m/s, times 1/30..24/30",
+    "history_root": "24 identical identity transforms",
+    "rotation_samples_per_model": 316,
+    "seed_sha256": "560df1240785dfcdd7e3231c06f428b5e3200663ccbe7e61ca7ee24a84180a32"
+  }
+}

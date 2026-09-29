@@ -1,0 +1,29 @@
+[2026.09.25-14.05.02:761][474]LogTemp: Display: AIAnimationConditioned walk baseline step 0: 6.946 ms; max error 0.000000000
+[2026.09.25-14.05.02:765][474]LogTemp: Display: AIAnimationConditioned walk candidate step 0: 2.774 ms; max error 0.000000000
+[2026.09.25-14.05.02:768][474]LogTemp: Display: AIAnimationConditioned walk baseline step 1: 2.048 ms; max error 0.000000000
+[2026.09.25-14.05.02:770][474]LogTemp: Display: AIAnimationConditioned walk candidate step 1: 2.219 ms; max error 0.000000000
+[2026.09.25-14.05.02:773][474]LogTemp: Display: AIAnimationConditioned walk baseline step 2: 2.026 ms; max error 0.000000000
+[2026.09.25-14.05.02:776][474]LogTemp: Display: AIAnimationConditioned walk candidate step 2: 2.227 ms; max error 0.000000000
+[2026.09.25-14.05.05:107][546]LogTemp: Display: AIAnimationConditioned UE skinned walk frames=72 path=D:\AILocomotonSystem\GR00T-WholeBodyControl-p0-review\output\ue_skinned_inference_20260925\render_final/walk
+[2026.09.25-14.05.05:109][546]LogTemp: Display: AIAnimationConditioned run baseline step 0: 1.569 ms; max error 0.000000000
+[2026.09.25-14.05.05:111][546]LogTemp: Display: AIAnimationConditioned run candidate step 0: 1.411 ms; max error 0.000000000
+[2026.09.25-14.05.05:112][546]LogTemp: Display: AIAnimationConditioned run baseline step 1: 1.119 ms; max error 0.000000000
+[2026.09.25-14.05.05:113][546]LogTemp: Display: AIAnimationConditioned run candidate step 1: 1.083 ms; max error 0.000000000
+[2026.09.25-14.05.05:115][546]LogTemp: Display: AIAnimationConditioned run baseline step 2: 1.041 ms; max error 0.000000000
+[2026.09.25-14.05.05:116][546]LogTemp: Display: AIAnimationConditioned run candidate step 2: 1.010 ms; max error 0.000000000
+[2026.09.25-14.05.07:344][618]LogTemp: Display: AIAnimationConditioned UE skinned run frames=72 path=D:\AILocomotonSystem\GR00T-WholeBodyControl-p0-review\output\ue_skinned_inference_20260925\render_final/run
+[2026.09.25-14.05.07:346][618]LogTemp: Display: AIAnimationConditioned crouch baseline step 0: 1.747 ms; max error 0.000000000
+[2026.09.25-14.05.07:348][618]LogTemp: Display: AIAnimationConditioned crouch candidate step 0: 1.220 ms; max error 0.000000000
+[2026.09.25-14.05.07:349][618]LogTemp: Display: AIAnimationConditioned crouch baseline step 1: 1.082 ms; max error 0.000000000
+[2026.09.25-14.05.07:350][618]LogTemp: Display: AIAnimationConditioned crouch candidate step 1: 1.168 ms; max error 0.000000000
+[2026.09.25-14.05.07:351][618]LogTemp: Display: AIAnimationConditioned crouch baseline step 2: 0.996 ms; max error 0.000000000
+[2026.09.25-14.05.07:353][618]LogTemp: Display: AIAnimationConditioned crouch candidate step 2: 1.037 ms; max error 0.000000000
+[2026.09.25-14.05.09:757][690]LogTemp: Display: AIAnimationConditioned UE skinned crouch frames=72 path=D:\AILocomotonSystem\GR00T-WholeBodyControl-p0-review\output\ue_skinned_inference_20260925\render_final/crouch
+[2026.09.25-14.05.09:759][690]LogTemp: Display: AIAnimationConditioned stand_to_crouch baseline step 0: 1.657 ms; max error 0.000000000
+[2026.09.25-14.05.09:760][690]LogTemp: Display: AIAnimationConditioned stand_to_crouch candidate step 0: 1.385 ms; max error 0.000000000
+[2026.09.25-14.05.09:762][690]LogTemp: Display: AIAnimationConditioned stand_to_crouch baseline step 1: 1.456 ms; max error 0.000000000
+[2026.09.25-14.05.09:764][690]LogTemp: Display: AIAnimationConditioned stand_to_crouch candidate step 1: 1.307 ms; max error 0.000000000
+[2026.09.25-14.05.09:766][690]LogTemp: Display: AIAnimationConditioned stand_to_crouch baseline step 2: 1.227 ms; max error 0.000000000
+[2026.09.25-14.05.09:767][690]LogTemp: Display: AIAnimationConditioned stand_to_crouch candidate step 2: 1.243 ms; max error 0.000000000
+[2026.09.25-14.05.12:048][762]LogTemp: Display: AIAnimationConditioned UE skinned stand_to_crouch frames=72 path=D:\AILocomotonSystem\GR00T-WholeBodyControl-p0-review\output\ue_skinned_inference_20260925\render_final/stand_to_crouch
+[2026.09.25-14.05.12:078][475]LogAutomationController: Display: Test Completed. Result={Success} Name={ConditionedSkinning} Path={AIAnimation.Lab.ConditionedSkinning}

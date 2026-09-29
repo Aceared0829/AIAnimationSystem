@@ -1,0 +1,69 @@
+{
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "candidate_count": 30,
+  "categories": {
+    "Run": {
+      "clips": 14,
+      "center_windows_without_stored_pairs": 2,
+      "center_windows_without_full_clip_pairs": 0,
+      "stored_center_pairs": 26,
+      "full_clip_stored_pairs": 245,
+      "center_contact_bits": 63,
+      "center_low_speed_bits": 70,
+      "center_low_height_bits": 320,
+      "center_low_speed_high_bits": 7,
+      "center_high_speed_low_bits": 257,
+      "center_high_speed_high_bits": 1017,
+      "center_local_floor_proxy_pairs": 26,
+      "center_speed_030_absolute_floor_pairs": 71,
+      "center_speed_030_local_floor_pairs": 75
+    },
+    "Crouch": {
+      "clips": 8,
+      "center_windows_without_stored_pairs": 0,
+      "center_windows_without_full_clip_pairs": 0,
+      "stored_center_pairs": 530,
+      "full_clip_stored_pairs": 2701,
+      "center_contact_bits": 554,
+      "center_low_speed_bits": 735,
+      "center_low_height_bits": 571,
+      "center_low_speed_high_bits": 181,
+      "center_high_speed_low_bits": 17,
+      "center_high_speed_high_bits": 16,
+      "center_local_floor_proxy_pairs": 703,
+      "center_speed_030_absolute_floor_pairs": 533,
+      "center_speed_030_local_floor_pairs": 707
+    },
+    "Walk": {
+      "clips": 8,
+      "center_windows_without_stored_pairs": 0,
+      "center_windows_without_full_clip_pairs": 0,
+      "stored_center_pairs": 195,
+      "full_clip_stored_pairs": 1085,
+      "center_contact_bits": 223,
+      "center_low_speed_bits": 330,
+      "center_low_height_bits": 408,
+      "center_low_speed_high_bits": 107,
+      "center_high_speed_low_bits": 185,
+      "center_high_speed_high_bits": 253,
+      "center_local_floor_proxy_pairs": 288,
+      "center_speed_030_absolute_floor_pairs": 220,
+      "center_speed_030_local_floor_pairs": 342
+    }
+  },
+  "interpretation_boundary": "Alternative foot speed and floor thresholds are diagnostic sensitivity probes, not physical contact truth.",
+  "all": {
+    "clips": 30,
+    "stored_center_pairs": 751,
+    "full_clip_stored_pairs": 4031,
+    "center_contact_bits": 840,
+    "center_low_speed_bits": 1135,
+    "center_low_height_bits": 1299,
+    "center_low_speed_high_bits": 295,
+    "center_high_speed_low_bits": 459,
+    "center_high_speed_high_bits": 1286,
+    "center_local_floor_proxy_pairs": 1017,
+    "center_speed_030_absolute_floor_pairs": 824,
+    "center_speed_030_local_floor_pairs": 1124
+  }
+}

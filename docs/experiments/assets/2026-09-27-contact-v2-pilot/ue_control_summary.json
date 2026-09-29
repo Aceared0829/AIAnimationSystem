@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "fixture_manifest_sha256": "684f011f8a2b028333ac7e0a33f0381007b91ebe2ed03b55df8d0e02543a1792",
+  "ue_bone_readback_sha256": "f1ec039ce8c2bad5204ec9a40610cdd84e73ac2434e2134de94a4e933122a859",
+  "ue_world_bone_error_max_cm": 0.0,
+  "contact_label_source": "frozen source-pose heuristic, not physical CMC ground truth",
+  "fps": 30,
+  "cases": [
+    {
+      "scenario": "walk",
+      "clip_index": 1587,
+      "split": "validation",
+      "source_speed_mps": 1.649999737739563,
+      "cmc_speed_mps": 1.649999976158142,
+      "source_cmc_velocity_gap_mps": 4.324160272517474e-06,
+      "root_plan_error_mean_cm": 2.9802322387695312e-06,
+      "root_plan_error_max_cm": 4.76837158203125e-05,
+      "lanes": {
+        "source_source": {
+          "source_contact_pairs": 61,
+          "contact_foot_speed_mean_mps": 0.039195291961058594,
+          "contact_run_max_drift_mean_cm": 0.46995960090716044,
+          "contact_run_max_drift_max_cm": 0.8554899102134506,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            5.076500935722236,
+            4.1103211579302545
+          ]
+        },
+        "source_cmc": {
+          "source_contact_pairs": 61,
+          "contact_foot_speed_mean_mps": 0.039194914473580054,
+          "contact_run_max_drift_mean_cm": 0.46995718446484763,
+          "contact_run_max_drift_max_cm": 0.8554662409499418,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            5.076500935722236,
+            4.110321156929468
+          ]
+        },
+        "model_plan": {
+          "source_contact_pairs": 61,
+          "contact_foot_speed_mean_mps": 0.39929020708514934,
+          "contact_run_max_drift_mean_cm": 3.90135511078907,
+          "contact_run_max_drift_max_cm": 12.272890200014176,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            7.809581999684744,
+            5.663177138221807
+          ]
+        },
+        "model_cmc": {
+          "source_contact_pairs": 61,
+          "contact_foot_speed_mean_mps": 0.39928988705539276,
+          "contact_run_max_drift_mean_cm": 3.901351534117049,
+          "contact_run_max_drift_max_cm": 12.272890200014176,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            7.809581999684744,
+            5.663177138221807
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "run",
+      "clip_index": 1109,
+      "split": "train",
+      "source_speed_mps": 3.75,
+      "cmc_speed_mps": 3.75,
+      "source_cmc_velocity_gap_mps": 3.0366999226316693e-07,
+      "root_plan_error_mean_cm": 1.0602851943986025e-05,
+      "root_plan_error_max_cm": 9.5367431640625e-05,
+      "lanes": {
+        "source_source": {
+          "source_contact_pairs": 19,
+          "contact_foot_speed_mean_mps": 0.06649722665867189,
+          "contact_run_max_drift_mean_cm": 0.3287820888289087,
+          "contact_run_max_drift_max_cm": 0.688840004249176,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            16.640578385032896,
+            13.001103523634718
+          ]
+        },
+        "source_cmc": {
+          "source_contact_pairs": 19,
+          "contact_foot_speed_mean_mps": 0.06649645624758475,
+          "contact_run_max_drift_mean_cm": 0.32877753029236423,
+          "contact_run_max_drift_max_cm": 0.6888338941239652,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            16.64057848243726,
+            13.001103462133132
+          ]
+        },
+        "model_plan": {
+          "source_contact_pairs": 19,
+          "contact_foot_speed_mean_mps": 3.8333743881916553,
+          "contact_run_max_drift_mean_cm": 23.991535440535884,
+          "contact_run_max_drift_max_cm": 79.20960007576925,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            14.624434780833846,
+            13.615862005761395
+          ]
+        },
+        "model_cmc": {
+          "source_contact_pairs": 19,
+          "contact_foot_speed_mean_mps": 3.8333763294981673,
+          "contact_run_max_drift_mean_cm": 23.991547786249182,
+          "contact_run_max_drift_max_cm": 79.20962390641374,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            14.624434780833846,
+            13.615862005761395
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "crouch",
+      "clip_index": 146,
+      "split": "validation",
+      "source_speed_mps": 2.2503902912139893,
+      "cmc_speed_mps": 2.250000238418579,
+      "source_cmc_velocity_gap_mps": 0.0003903383912984282,
+      "root_plan_error_mean_cm": 4.682983217207948e-06,
+      "root_plan_error_max_cm": 6.743495760019869e-05,
+      "lanes": {
+        "source_source": {
+          "source_contact_pairs": 46,
+          "contact_foot_speed_mean_mps": 0.06545712533945611,
+          "contact_run_max_drift_mean_cm": 0.8383113269965883,
+          "contact_run_max_drift_max_cm": 1.9294975095275508,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            8.567871475500024,
+            3.746772776744983
+          ]
+        },
+        "source_cmc": {
+          "source_contact_pairs": 46,
+          "contact_foot_speed_mean_mps": 0.065239737959903,
+          "contact_run_max_drift_mean_cm": 0.8343235631327062,
+          "contact_run_max_drift_max_cm": 1.9205998372021658,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            8.566727298852308,
+            3.745575465617188
+          ]
+        },
+        "model_plan": {
+          "source_contact_pairs": 46,
+          "contact_foot_speed_mean_mps": 0.687564465624817,
+          "contact_run_max_drift_mean_cm": 9.73766044049879,
+          "contact_run_max_drift_max_cm": 22.967894098221453,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            7.126699329137725,
+            5.294157648188229
+          ]
+        },
+        "model_cmc": {
+          "source_contact_pairs": 46,
+          "contact_foot_speed_mean_mps": 0.6875648396303594,
+          "contact_run_max_drift_mean_cm": 9.737661437412152,
+          "contact_run_max_drift_max_cm": 22.967894098221453,
+          "contact_runs": 10,
+          "foot_boundary_step_mean_cm": [
+            7.126699329137725,
+            5.294136693480067
+          ]
+        }
+      }
+    }
+  ]
+}

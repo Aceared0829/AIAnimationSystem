@@ -1,0 +1,56 @@
+{
+  "checkpoint": "E:\\AIAnimationSystemData\\training_runs\\conditioned_pose_20260925_closed_loop_ablation02\\generated_contact\\epoch_010.pt",
+  "checkpoint_sha256": "d5e1176444238c243d8836bd2b8139485a2ec8e607ea4a5cdb7fb5a14a69ee5a",
+  "onnx_sha256": "eee1e58ac2208058e51944809e1e13b0afded9826ff83e7f686ab2b6597fbcef",
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "format": "conditioned_pose_24x79_no_reference_v1",
+  "inputs": {
+    "history": [
+      1,
+      24,
+      718
+    ],
+    "root_plan": [
+      1,
+      24,
+      7
+    ],
+    "reference": [
+      1,
+      24,
+      711
+    ],
+    "mask": [
+      1,
+      24,
+      1
+    ]
+  },
+  "outputs": {
+    "pose": [
+      1,
+      24,
+      711
+    ]
+  },
+  "opset": 18,
+  "fixtures": [
+    {
+      "index": 0,
+      "max_abs_error": 4.76837158203125e-06,
+      "finite": true
+    },
+    {
+      "index": 1,
+      "max_abs_error": 3.337860107421875e-06,
+      "finite": true
+    },
+    {
+      "index": 2,
+      "max_abs_error": 1.9073486328125e-06,
+      "finite": true
+    }
+  ],
+  "torch": "2.14.0+cu130",
+  "onnxruntime": "1.24.4"
+}

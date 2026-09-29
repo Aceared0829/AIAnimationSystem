@@ -1,0 +1,410 @@
+{
+  "schema_version": 1,
+  "split": "validation",
+  "speed_map_sha256": "96831e5ce3d6ea2a88505e1d0e4421eb626ce7aaf01e56016fc7727dbb2f7783",
+  "center_csv_sha256": "920ccd1cd25a06bf39b6e4432e3c4f33e6c5e000678529d7c0bfac6df8297d13",
+  "rollout_csv_sha256": "44a88adb091d33b1a9dfed44086cdf468c55678b1c0ce5b8c27af8424c0f9c82",
+  "arms": [
+    "initial",
+    "control3",
+    "foot_velocity3"
+  ],
+  "speed_table": [
+    {
+      "category": "Walk",
+      "speed_bin_mps": "0-0.2",
+      "model": "initial",
+      "clips": 2,
+      "clips_with_contact_score": 2,
+      "non_anchor_pose_rmse_cm": 5.340631008148193,
+      "contact_foot_speed_mps": 0.19923912385447579
+    },
+    {
+      "category": "Walk",
+      "speed_bin_mps": "0-0.2",
+      "model": "control3",
+      "clips": 2,
+      "clips_with_contact_score": 2,
+      "non_anchor_pose_rmse_cm": 5.505979299545288,
+      "contact_foot_speed_mps": 0.20069535020187046
+    },
+    {
+      "category": "Walk",
+      "speed_bin_mps": "0-0.2",
+      "model": "foot_velocity3",
+      "clips": 2,
+      "clips_with_contact_score": 2,
+      "non_anchor_pose_rmse_cm": 5.572915077209473,
+      "contact_foot_speed_mps": 0.19724471030240318
+    },
+    {
+      "category": "Walk",
+      "speed_bin_mps": "1-2",
+      "model": "initial",
+      "clips": 40,
+      "clips_with_contact_score": 40,
+      "non_anchor_pose_rmse_cm": 6.318920809030533,
+      "contact_foot_speed_mps": 0.5030655272134531
+    },
+    {
+      "category": "Walk",
+      "speed_bin_mps": "1-2",
+      "model": "control3",
+      "clips": 40,
+      "clips_with_contact_score": 40,
+      "non_anchor_pose_rmse_cm": 6.078510147333145,
+      "contact_foot_speed_mps": 0.4670536319241414
+    },
+    {
+      "category": "Walk",
+      "speed_bin_mps": "1-2",
+      "model": "foot_velocity3",
+      "clips": 40,
+      "clips_with_contact_score": 40,
+      "non_anchor_pose_rmse_cm": 6.105232733488083,
+      "contact_foot_speed_mps": 0.4599256924856263
+    },
+    {
+      "category": "Walk",
+      "speed_bin_mps": "2-4",
+      "model": "initial",
+      "clips": 8,
+      "clips_with_contact_score": 8,
+      "non_anchor_pose_rmse_cm": 4.79747274518013,
+      "contact_foot_speed_mps": 0.43704559293469736
+    },
+    {
+      "category": "Walk",
+      "speed_bin_mps": "2-4",
+      "model": "control3",
+      "clips": 8,
+      "clips_with_contact_score": 8,
+      "non_anchor_pose_rmse_cm": 4.601653158664703,
+      "contact_foot_speed_mps": 0.4100114273269454
+    },
+    {
+      "category": "Walk",
+      "speed_bin_mps": "2-4",
+      "model": "foot_velocity3",
+      "clips": 8,
+      "clips_with_contact_score": 8,
+      "non_anchor_pose_rmse_cm": 4.674150139093399,
+      "contact_foot_speed_mps": 0.4295345004371688
+    },
+    {
+      "category": "Run",
+      "speed_bin_mps": "0-0.2",
+      "model": "initial",
+      "clips": 6,
+      "clips_with_contact_score": 6,
+      "non_anchor_pose_rmse_cm": 5.203208128611247,
+      "contact_foot_speed_mps": 0.09158321690190845
+    },
+    {
+      "category": "Run",
+      "speed_bin_mps": "0-0.2",
+      "model": "control3",
+      "clips": 6,
+      "clips_with_contact_score": 6,
+      "non_anchor_pose_rmse_cm": 5.007310191790263,
+      "contact_foot_speed_mps": 0.09289353807767375
+    },
+    {
+      "category": "Run",
+      "speed_bin_mps": "0-0.2",
+      "model": "foot_velocity3",
+      "clips": 6,
+      "clips_with_contact_score": 6,
+      "non_anchor_pose_rmse_cm": 5.039812803268433,
+      "contact_foot_speed_mps": 0.09049297291320108
+    },
+    {
+      "category": "Run",
+      "speed_bin_mps": "2-4",
+      "model": "initial",
+      "clips": 29,
+      "clips_with_contact_score": 29,
+      "non_anchor_pose_rmse_cm": 9.441907800477127,
+      "contact_foot_speed_mps": 1.0636612725069334
+    },
+    {
+      "category": "Run",
+      "speed_bin_mps": "2-4",
+      "model": "control3",
+      "clips": 29,
+      "clips_with_contact_score": 29,
+      "non_anchor_pose_rmse_cm": 9.371148849355764,
+      "contact_foot_speed_mps": 1.070413261997067
+    },
+    {
+      "category": "Run",
+      "speed_bin_mps": "2-4",
+      "model": "foot_velocity3",
+      "clips": 29,
+      "clips_with_contact_score": 29,
+      "non_anchor_pose_rmse_cm": 9.388346918698016,
+      "contact_foot_speed_mps": 1.095453140640489
+    },
+    {
+      "category": "Run",
+      "speed_bin_mps": "4+",
+      "model": "initial",
+      "clips": 7,
+      "clips_with_contact_score": 5,
+      "non_anchor_pose_rmse_cm": 9.524776118142265,
+      "contact_foot_speed_mps": 1.1877752465087532
+    },
+    {
+      "category": "Run",
+      "speed_bin_mps": "4+",
+      "model": "control3",
+      "clips": 7,
+      "clips_with_contact_score": 5,
+      "non_anchor_pose_rmse_cm": 9.398488998413086,
+      "contact_foot_speed_mps": 1.2009364227984851
+    },
+    {
+      "category": "Run",
+      "speed_bin_mps": "4+",
+      "model": "foot_velocity3",
+      "clips": 7,
+      "clips_with_contact_score": 5,
+      "non_anchor_pose_rmse_cm": 9.422747135162354,
+      "contact_foot_speed_mps": 1.1081715341383767
+    },
+    {
+      "category": "Crouch",
+      "speed_bin_mps": "0-0.2",
+      "model": "initial",
+      "clips": 8,
+      "clips_with_contact_score": 8,
+      "non_anchor_pose_rmse_cm": 5.674708247184753,
+      "contact_foot_speed_mps": 0.12025328368329855
+    },
+    {
+      "category": "Crouch",
+      "speed_bin_mps": "0-0.2",
+      "model": "control3",
+      "clips": 8,
+      "clips_with_contact_score": 8,
+      "non_anchor_pose_rmse_cm": 5.604674369096756,
+      "contact_foot_speed_mps": 0.116544966081829
+    },
+    {
+      "category": "Crouch",
+      "speed_bin_mps": "0-0.2",
+      "model": "foot_velocity3",
+      "clips": 8,
+      "clips_with_contact_score": 8,
+      "non_anchor_pose_rmse_cm": 5.628062009811401,
+      "contact_foot_speed_mps": 0.1130140028816559
+    },
+    {
+      "category": "Crouch",
+      "speed_bin_mps": "1-2",
+      "model": "initial",
+      "clips": 27,
+      "clips_with_contact_score": 27,
+      "non_anchor_pose_rmse_cm": 9.812853654225668,
+      "contact_foot_speed_mps": 0.6616124516101656
+    },
+    {
+      "category": "Crouch",
+      "speed_bin_mps": "1-2",
+      "model": "control3",
+      "clips": 27,
+      "clips_with_contact_score": 27,
+      "non_anchor_pose_rmse_cm": 9.710677848921883,
+      "contact_foot_speed_mps": 0.6571442042723916
+    },
+    {
+      "category": "Crouch",
+      "speed_bin_mps": "1-2",
+      "model": "foot_velocity3",
+      "clips": 27,
+      "clips_with_contact_score": 27,
+      "non_anchor_pose_rmse_cm": 9.754025468119869,
+      "contact_foot_speed_mps": 0.6650368114900166
+    },
+    {
+      "category": "Crouch",
+      "speed_bin_mps": "2-4",
+      "model": "initial",
+      "clips": 15,
+      "clips_with_contact_score": 15,
+      "non_anchor_pose_rmse_cm": 8.618869813283284,
+      "contact_foot_speed_mps": 0.7036497116198406
+    },
+    {
+      "category": "Crouch",
+      "speed_bin_mps": "2-4",
+      "model": "control3",
+      "clips": 15,
+      "clips_with_contact_score": 15,
+      "non_anchor_pose_rmse_cm": 8.361452134450277,
+      "contact_foot_speed_mps": 0.6894183334551016
+    },
+    {
+      "category": "Crouch",
+      "speed_bin_mps": "2-4",
+      "model": "foot_velocity3",
+      "clips": 15,
+      "clips_with_contact_score": 15,
+      "non_anchor_pose_rmse_cm": 8.429903062184652,
+      "contact_foot_speed_mps": 0.7142536715483518
+    }
+  ],
+  "category_table": [
+    {
+      "category": "Walk",
+      "model": "initial",
+      "clips": 50,
+      "clips_with_contact_score": 50,
+      "non_anchor_pose_rmse_cm": 6.036357526779175,
+      "contact_foot_speed_mps": 0.48034928159449314
+    },
+    {
+      "category": "Walk",
+      "model": "control3",
+      "clips": 50,
+      "clips_with_contact_score": 50,
+      "non_anchor_pose_rmse_cm": 5.81931179523468,
+      "contact_foot_speed_mps": 0.4472725479196991
+    },
+    {
+      "category": "Walk",
+      "model": "foot_velocity3",
+      "clips": 50,
+      "clips_with_contact_score": 50,
+      "non_anchor_pose_rmse_cm": 5.854966812133789,
+      "contact_foot_speed_mps": 0.4445558624705442
+    },
+    {
+      "category": "Run",
+      "model": "initial",
+      "clips": 42,
+      "clips_with_contact_score": 40,
+      "non_anchor_pose_rmse_cm": 8.850190662202381,
+      "contact_foot_speed_mps": 0.9333638109164071
+    },
+    {
+      "category": "Run",
+      "model": "control3",
+      "clips": 42,
+      "clips_with_contact_score": 40,
+      "non_anchor_pose_rmse_cm": 8.75230001835596,
+      "contact_foot_speed_mps": 0.940100698509335
+    },
+    {
+      "category": "Run",
+      "model": "foot_velocity3",
+      "clips": 42,
+      "clips_with_contact_score": 40,
+      "non_anchor_pose_rmse_cm": 8.772861128761654,
+      "contact_foot_speed_mps": 0.9462989146686318
+    },
+    {
+      "category": "Crouch",
+      "model": "initial",
+      "clips": 50,
+      "clips_with_contact_score": 50,
+      "non_anchor_pose_rmse_cm": 8.792555236816407,
+      "contact_foot_speed_mps": 0.5876061627447693
+    },
+    {
+      "category": "Crouch",
+      "model": "control3",
+      "clips": 50,
+      "clips_with_contact_score": 50,
+      "non_anchor_pose_rmse_cm": 8.64894957780838,
+      "contact_foot_speed_mps": 0.5803305649167146
+    },
+    {
+      "category": "Crouch",
+      "model": "foot_velocity3",
+      "clips": 50,
+      "clips_with_contact_score": 50,
+      "non_anchor_pose_rmse_cm": 8.696634593009948,
+      "contact_foot_speed_mps": 0.5914782201301795
+    }
+  ],
+  "rollout_table": [
+    {
+      "category": "Walk",
+      "model": "initial",
+      "clips": 4,
+      "clips_with_contact_score": 4,
+      "chunk3_pose_rmse_cm": 19.49235463142395,
+      "contact_foot_speed_mps": 0.9657207193444757
+    },
+    {
+      "category": "Walk",
+      "model": "control3",
+      "clips": 4,
+      "clips_with_contact_score": 4,
+      "chunk3_pose_rmse_cm": 19.26214861869812,
+      "contact_foot_speed_mps": 0.9814441475683314
+    },
+    {
+      "category": "Walk",
+      "model": "foot_velocity3",
+      "clips": 4,
+      "clips_with_contact_score": 4,
+      "chunk3_pose_rmse_cm": 19.20532202720642,
+      "contact_foot_speed_mps": 0.9730441363535489
+    },
+    {
+      "category": "Run",
+      "model": "initial",
+      "clips": 4,
+      "clips_with_contact_score": 4,
+      "chunk3_pose_rmse_cm": 20.409398674964905,
+      "contact_foot_speed_mps": 2.401947673177623
+    },
+    {
+      "category": "Run",
+      "model": "control3",
+      "clips": 4,
+      "clips_with_contact_score": 4,
+      "chunk3_pose_rmse_cm": 19.51210582256317,
+      "contact_foot_speed_mps": 2.248837207458113
+    },
+    {
+      "category": "Run",
+      "model": "foot_velocity3",
+      "clips": 4,
+      "clips_with_contact_score": 4,
+      "chunk3_pose_rmse_cm": 19.55830681324005,
+      "contact_foot_speed_mps": 2.2373356624916036
+    },
+    {
+      "category": "Crouch",
+      "model": "initial",
+      "clips": 4,
+      "clips_with_contact_score": 4,
+      "chunk3_pose_rmse_cm": 19.685288429260254,
+      "contact_foot_speed_mps": 1.3041546546641358
+    },
+    {
+      "category": "Crouch",
+      "model": "control3",
+      "clips": 4,
+      "clips_with_contact_score": 4,
+      "chunk3_pose_rmse_cm": 19.666666269302368,
+      "contact_foot_speed_mps": 1.2877875086030293
+    },
+    {
+      "category": "Crouch",
+      "model": "foot_velocity3",
+      "clips": 4,
+      "clips_with_contact_score": 4,
+      "chunk3_pose_rmse_cm": 19.684839248657227,
+      "contact_foot_speed_mps": 1.2784890808881177
+    }
+  ],
+  "limitations": [
+    "Scores use source future Root; this is not a live CMC speed test.",
+    "Run 4+ m/s center scores rely on eight source contact pairs across seven clips.",
+    "Long rollouts include only four fixed validation clips per category."
+  ]
+}

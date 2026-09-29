@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "condition": "Same source clip and matched recorded CMC Root; UE NNE CPU skinned mesh",
+  "source_fps": 30,
+  "video_fps": 15,
+  "frames_per_scenario": 72,
+  "display_transform": "clamp((UE RGB - 4) * 6, 0, 255); presentation only",
+  "control_bones_sha256": "f1ec039ce8c2bad5204ec9a40610cdd84e73ac2434e2134de94a4e933122a859",
+  "candidate_bones_sha256": "b34196b23c0f93c59ee7ecf787652aca1290ce8222de7cbbf67ce01c506373e9",
+  "videos": [
+    {
+      "scenario": "walk",
+      "video": "walk_control_vs_speed_phase.mp4",
+      "video_sha256": "da901195c5988faf9e0438078b36cd48a659636d5bfcaeeede7921a7fb373eee",
+      "poster": "walk_poster.png",
+      "poster_sha256": "e035ce6404ce8e65c72e5812051c2636e92ec5766d33bc6724467a24283d6e06"
+    },
+    {
+      "scenario": "run",
+      "video": "run_control_vs_speed_phase.mp4",
+      "video_sha256": "7ee4ff2115f96fa27bacf9eaa83ae373051c44992c1e001da7bf8e68a6f3fc73",
+      "poster": "run_poster.png",
+      "poster_sha256": "e283d8a0acccd535020b37babb05225d9af9d0c5dfc920ac402559f4169aa1d2"
+    },
+    {
+      "scenario": "crouch",
+      "video": "crouch_control_vs_speed_phase.mp4",
+      "video_sha256": "b18c662bb18d19d352b932a0951306618dc549f96018cc68ded62a529c4ce6ef",
+      "poster": "crouch_poster.png",
+      "poster_sha256": "c14063dda40c96d57782e0a87169f8120001ccb5d42294944a316b5080c5707f"
+    }
+  ]
+}

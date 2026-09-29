@@ -1,0 +1,56 @@
+{
+  "checkpoint": "E:\\AIAnimationSystemData\\training_runs\\conditioned_pose_20260927_contact_v2_pilot01\\speed_phase\\epoch_003.pt",
+  "checkpoint_sha256": "d924308f2635512c15292774dfb6ffc860963791b710b71a204eec844ef9fd5b",
+  "onnx_sha256": "207642f0bef63895f7ca9fc9b9c3aaa2c17c2380ca968f47dc98c3d0016e3654",
+  "contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "format": "conditioned_pose_24x79_no_reference_v1",
+  "inputs": {
+    "history": [
+      1,
+      24,
+      718
+    ],
+    "root_plan": [
+      1,
+      24,
+      7
+    ],
+    "reference": [
+      1,
+      24,
+      711
+    ],
+    "mask": [
+      1,
+      24,
+      1
+    ]
+  },
+  "outputs": {
+    "pose": [
+      1,
+      24,
+      711
+    ]
+  },
+  "opset": 18,
+  "fixtures": [
+    {
+      "index": 0,
+      "max_abs_error": 3.3974647521972656e-06,
+      "finite": true
+    },
+    {
+      "index": 1,
+      "max_abs_error": 2.384185791015625e-06,
+      "finite": true
+    },
+    {
+      "index": 2,
+      "max_abs_error": 2.384185791015625e-06,
+      "finite": true
+    }
+  ],
+  "torch": "2.14.0+cu130",
+  "onnxruntime": "1.24.4"
+}
