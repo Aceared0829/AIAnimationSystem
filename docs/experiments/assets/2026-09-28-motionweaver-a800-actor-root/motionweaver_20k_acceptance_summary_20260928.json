@@ -1,0 +1,358 @@
+{
+  "schema_version": 1,
+  "checkpoint_sha256": "5c41d53b2901e6ce38991f729e7394e526fc09a6c9c03874cc30789e9ad13199",
+  "checkpoint_training_steps": 20000,
+  "run_label": "20K FINAL",
+  "device": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "input_contract": {
+    "historical_source_pose_frames": 4,
+    "future_source_pose_frames": 0,
+    "teacher_future_root": "exported_ue_actor_root_offline_oracle",
+    "controller_future_root": "recorded_ue_cmc_capture_rigidly_aligned_at_history_frame_3",
+    "cmc_crouch_state_supplied_to_model": false
+  },
+  "same_trajectory_loops": {
+    "Crouch": {
+      "clip_index": 145,
+      "source_contact_pairs": 2,
+      "source_contact_foot_speed_mps": 0.07328564673662186,
+      "joint_rmse_cm": {
+        "old": 5.871840953826904,
+        "motionweaver": 8.254919052124023,
+        "motionweaver_minus_old": 2.383078098297119
+      },
+      "contact_foot_speed_mps": {
+        "old": 1.141167402267456,
+        "motionweaver": 0.8753683567047119,
+        "motionweaver_minus_old": -0.26579904556274414
+      },
+      "foot_velocity_rmse_mps": {
+        "old": 0.9229227304458618,
+        "motionweaver": 1.1677908897399902,
+        "motionweaver_minus_old": 0.24486815929412842
+      },
+      "seam_velocity_error_cm_per_frame": {
+        "old": 2.7525761127471924,
+        "motionweaver": 2.1201019287109375,
+        "motionweaver_minus_old": -0.6324741840362549
+      },
+      "body_facing_rmse_vs_source_deg": {
+        "old": 3.364685535430908,
+        "motionweaver": 5.946852684020996,
+        "motionweaver_minus_old": 2.582167148590088
+      },
+      "representative_frame_png": "crouch_00145_comparison.png",
+      "comparison_video": "crouch_00145_comparison.mp4"
+    },
+    "Run": {
+      "clip_index": 820,
+      "source_contact_pairs": 0,
+      "source_contact_foot_speed_mps": null,
+      "joint_rmse_cm": {
+        "old": 7.356483459472656,
+        "motionweaver": 11.996068000793457,
+        "motionweaver_minus_old": 4.639584541320801
+      },
+      "contact_foot_speed_mps": {
+        "old": null,
+        "motionweaver": null,
+        "motionweaver_minus_old": null
+      },
+      "foot_velocity_rmse_mps": {
+        "old": 1.4797662496566772,
+        "motionweaver": 1.5593031644821167,
+        "motionweaver_minus_old": 0.07953691482543945
+      },
+      "seam_velocity_error_cm_per_frame": {
+        "old": 6.862251281738281,
+        "motionweaver": 2.4383761882781982,
+        "motionweaver_minus_old": -4.423875093460083
+      },
+      "body_facing_rmse_vs_source_deg": {
+        "old": 7.394714832305908,
+        "motionweaver": 7.071651458740234,
+        "motionweaver_minus_old": -0.32306337356567383
+      },
+      "representative_frame_png": "run_00820_comparison.png",
+      "comparison_video": "run_00820_comparison.mp4"
+    },
+    "Walk": {
+      "clip_index": 1403,
+      "source_contact_pairs": 5,
+      "source_contact_foot_speed_mps": 0.0308596882969141,
+      "joint_rmse_cm": {
+        "old": 6.719508171081543,
+        "motionweaver": 6.030010223388672,
+        "motionweaver_minus_old": -0.6894979476928711
+      },
+      "contact_foot_speed_mps": {
+        "old": 0.6805605292320251,
+        "motionweaver": 0.7803346514701843,
+        "motionweaver_minus_old": 0.09977412223815918
+      },
+      "foot_velocity_rmse_mps": {
+        "old": 0.8374639749526978,
+        "motionweaver": 0.7688468098640442,
+        "motionweaver_minus_old": -0.06861716508865356
+      },
+      "seam_velocity_error_cm_per_frame": {
+        "old": 3.7300615310668945,
+        "motionweaver": 2.3898684978485107,
+        "motionweaver_minus_old": -1.3401930332183838
+      },
+      "body_facing_rmse_vs_source_deg": {
+        "old": 12.246832847595215,
+        "motionweaver": 4.354849338531494,
+        "motionweaver_minus_old": -7.891983509063721
+      },
+      "representative_frame_png": "walk_01403_comparison.png",
+      "comparison_video": "walk_01403_comparison.mp4"
+    }
+  },
+  "same_trajectory_contact_stops": {
+    "Crouch": {
+      "clip_index": 411,
+      "source_contact_pairs": 24,
+      "source_contact_foot_speed_mps": 0.006692165043205023,
+      "joint_rmse_cm": {
+        "old": 5.686985492706299,
+        "motionweaver": 13.424958229064941,
+        "motionweaver_minus_old": 7.737972736358643
+      },
+      "contact_foot_speed_mps": {
+        "old": 0.12654712796211243,
+        "motionweaver": 0.1855282336473465,
+        "motionweaver_minus_old": 0.05898110568523407
+      },
+      "foot_velocity_rmse_mps": {
+        "old": 0.4003930985927582,
+        "motionweaver": 0.3623180687427521,
+        "motionweaver_minus_old": -0.038075029850006104
+      },
+      "seam_velocity_error_cm_per_frame": {
+        "old": 4.24747896194458,
+        "motionweaver": 3.2065980434417725,
+        "motionweaver_minus_old": -1.0408809185028076
+      },
+      "body_facing_rmse_vs_source_deg": {
+        "old": 0.7302805781364441,
+        "motionweaver": 3.0903587341308594,
+        "motionweaver_minus_old": 2.3600781559944153
+      },
+      "representative_frame_png": null,
+      "comparison_video": null
+    },
+    "Run": {
+      "clip_index": 898,
+      "source_contact_pairs": 20,
+      "source_contact_foot_speed_mps": 0.026632869616150856,
+      "joint_rmse_cm": {
+        "old": 10.246003150939941,
+        "motionweaver": 14.133031845092773,
+        "motionweaver_minus_old": 3.887028694152832
+      },
+      "contact_foot_speed_mps": {
+        "old": 0.8468930125236511,
+        "motionweaver": 0.16571594774723053,
+        "motionweaver_minus_old": -0.6811770647764206
+      },
+      "foot_velocity_rmse_mps": {
+        "old": 1.1352980136871338,
+        "motionweaver": 0.5768824219703674,
+        "motionweaver_minus_old": -0.5584155917167664
+      },
+      "seam_velocity_error_cm_per_frame": {
+        "old": 5.93546724319458,
+        "motionweaver": 2.288264036178589,
+        "motionweaver_minus_old": -3.647203207015991
+      },
+      "body_facing_rmse_vs_source_deg": {
+        "old": 7.649744033813477,
+        "motionweaver": 16.732715606689453,
+        "motionweaver_minus_old": 9.082971572875977
+      },
+      "representative_frame_png": null,
+      "comparison_video": null
+    },
+    "Walk": {
+      "clip_index": 1653,
+      "source_contact_pairs": 11,
+      "source_contact_foot_speed_mps": 0.03519626706838608,
+      "joint_rmse_cm": {
+        "old": 10.281081199645996,
+        "motionweaver": 9.213685035705566,
+        "motionweaver_minus_old": -1.0673961639404297
+      },
+      "contact_foot_speed_mps": {
+        "old": 0.32107383012771606,
+        "motionweaver": 0.27633869647979736,
+        "motionweaver_minus_old": -0.0447351336479187
+      },
+      "foot_velocity_rmse_mps": {
+        "old": 0.898271918296814,
+        "motionweaver": 0.4982006549835205,
+        "motionweaver_minus_old": -0.40007126331329346
+      },
+      "seam_velocity_error_cm_per_frame": {
+        "old": 5.019296169281006,
+        "motionweaver": 2.04630446434021,
+        "motionweaver_minus_old": -2.972991704940796
+      },
+      "body_facing_rmse_vs_source_deg": {
+        "old": 6.8339152336120605,
+        "motionweaver": 19.036890029907227,
+        "motionweaver_minus_old": 12.202974796295166
+      },
+      "representative_frame_png": null,
+      "comparison_video": null
+    }
+  },
+  "recorded_cmc_controller": {
+    "Walk": {
+      "clip_index": 1403,
+      "controller_metrics": {
+        "actor_turn_final_deg": 90.0,
+        "generated_body_turn_final_deg": 94.0683822631836,
+        "body_turn_minus_actor_turn_final_deg": 4.068382263183594,
+        "body_turn_response_rmse_deg": 10.605884688530377,
+        "actor_condition_local_joint_rms_delta_cm": 1.383533000946045,
+        "actor_condition_future_token_difference_fraction": 0.08333333333333333,
+        "cmc_future_actor_mean_speed_mps": 1.399999976158142,
+        "cmc_first_future_step_cm": 4.666658401489258,
+        "source_history_last_step_cm": 6.666749954223633,
+        "cmc_future_crouched_frames": 0,
+        "source_inverse_vs_raw_rmse_m": 0.003389081684872508
+      },
+      "video": "walk_01403_cmc.mp4",
+      "representative_frame_png": "walk_01403_cmc.png"
+    },
+    "Run": {
+      "clip_index": 820,
+      "controller_metrics": {
+        "actor_turn_final_deg": 90.0,
+        "generated_body_turn_final_deg": 75.20751190185547,
+        "body_turn_minus_actor_turn_final_deg": -14.792488098144531,
+        "body_turn_response_rmse_deg": 10.269411080608378,
+        "actor_condition_local_joint_rms_delta_cm": 5.2350592613220215,
+        "actor_condition_future_token_difference_fraction": 0.25,
+        "cmc_future_actor_mean_speed_mps": 3.9586265087127686,
+        "cmc_first_future_step_cm": 11.384503364562988,
+        "source_history_last_step_cm": 10.00004768371582,
+        "cmc_future_crouched_frames": 0,
+        "source_inverse_vs_raw_rmse_m": 0.005110284313559532
+      },
+      "video": "run_00820_cmc.mp4",
+      "representative_frame_png": "run_00820_cmc.png"
+    },
+    "Crouch": {
+      "clip_index": 430,
+      "controller_metrics": {
+        "actor_turn_final_deg": 90.0,
+        "generated_body_turn_final_deg": 93.7354965209961,
+        "body_turn_minus_actor_turn_final_deg": 3.7354965209960938,
+        "body_turn_response_rmse_deg": 4.897255286141788,
+        "actor_condition_local_joint_rms_delta_cm": 0.4992506504058838,
+        "actor_condition_future_token_difference_fraction": 0.020833333333333332,
+        "cmc_future_actor_mean_speed_mps": 0.800000011920929,
+        "cmc_first_future_step_cm": 2.6666667461395264,
+        "source_history_last_step_cm": 0.0,
+        "cmc_future_crouched_frames": 24,
+        "source_inverse_vs_raw_rmse_m": 0.007469272240996361
+      },
+      "video": "crouch_00430_cmc.mp4",
+      "representative_frame_png": "crouch_00430_cmc.png"
+    }
+  },
+  "decoder_pose_root_oracle_ablation": {
+    "Walk": {
+      "clip_index": 1403,
+      "source_contact_pairs": 5,
+      "pose_tokens_exactly_equal": true,
+      "metrics": {
+        "joint_rmse_cm": {
+          "zero_external": 6.030010223388672,
+          "future_true_pose_root_oracle": 4.863020420074463
+        },
+        "generated_contact_foot_speed_mps": {
+          "zero_external": 0.7803346514701843,
+          "future_true_pose_root_oracle": 0.9702960848808289
+        },
+        "foot_velocity_rmse_mps": {
+          "zero_external": 0.7688468098640442,
+          "future_true_pose_root_oracle": 0.6934773325920105
+        }
+      }
+    },
+    "Run": {
+      "clip_index": 820,
+      "source_contact_pairs": 0,
+      "pose_tokens_exactly_equal": true,
+      "metrics": {
+        "joint_rmse_cm": {
+          "zero_external": 11.996068000793457,
+          "future_true_pose_root_oracle": 11.062750816345215
+        },
+        "generated_contact_foot_speed_mps": {
+          "zero_external": null,
+          "future_true_pose_root_oracle": null
+        },
+        "foot_velocity_rmse_mps": {
+          "zero_external": 1.5593031644821167,
+          "future_true_pose_root_oracle": 1.4658058881759644
+        }
+      }
+    },
+    "Crouch": {
+      "clip_index": 145,
+      "source_contact_pairs": 2,
+      "pose_tokens_exactly_equal": true,
+      "metrics": {
+        "joint_rmse_cm": {
+          "zero_external": 8.254919052124023,
+          "future_true_pose_root_oracle": 6.484544277191162
+        },
+        "generated_contact_foot_speed_mps": {
+          "zero_external": 0.8753683567047119,
+          "future_true_pose_root_oracle": 0.4373931288719177
+        },
+        "foot_velocity_rmse_mps": {
+          "zero_external": 1.1677908897399902,
+          "future_true_pose_root_oracle": 0.8306110501289368
+        }
+      }
+    }
+  },
+  "forward_timing_teacher": {
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "implementation": "Python eager; one untimed warmup per clip; synchronized forward only",
+    "clips": 3,
+    "measured_forwards": 9,
+    "measured_forwards_per_clip": 3,
+    "p50_ms": 18.238999997265637,
+    "p95_ms": 21.041759999934584,
+    "four_frame_replan_budget_at_30hz_ms": 133.33333333333334,
+    "p95_below_four_frame_budget": true
+  },
+  "forward_timing_cmc": {
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "implementation": "Python eager; one untimed warmup per clip; synchronized forward only",
+    "clips": 3,
+    "measured_forwards": 9,
+    "measured_forwards_per_clip": 3,
+    "p50_ms": 17.778100009309128,
+    "p95_ms": 19.951000000583008,
+    "four_frame_replan_budget_at_30hz_ms": 133.33333333333334,
+    "p95_below_four_frame_budget": true
+  },
+  "limits": [
+    "Old model has 24 history poses; MotionWeaver has four",
+    "Teacher trajectory is an exported Actor Root offline oracle, not live CMC",
+    "CMC source-panel pose is counterfactual, not controller ground truth",
+    "World turn from Actor transform is not proof that local model pose responds to turn",
+    "Crouch CMC flag is omitted from model inputs",
+    "Contact speed requires consecutive source-contact pairs and is not calibrated on changed CMC paths",
+    "Timing excludes all UE runtime work and Python preprocessing"
+  ]
+}

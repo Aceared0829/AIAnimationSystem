@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "scope": "same-source, same-Actor-Root offline skeleton comparison; no live CMC/UE skin",
+  "old_checkpoint_sha256": "fc5cb84b737d0bb0e9e87fd2bad423388cb52aa03822fe657627a9f9b4fcd436",
+  "motionweaver_checkpoint_sha256": "5c41d53b2901e6ce38991f729e7394e526fc09a6c9c03874cc30789e9ad13199",
+  "motionweaver_training_steps": 20000,
+  "motionweaver_run_label": "20K FINAL",
+  "untrained_smoke_only": false,
+  "old_history_pose_frames": 24,
+  "motionweaver_history_pose_frames": 4,
+  "future_source_pose_frames": 0,
+  "future_actor_root_source": "exported_ue_actor_root_offline_oracle",
+  "comparison_limits": [
+    "Different history lengths: old model 24 frames, MotionWeaver 4 frames",
+    "The future Actor Root is exported from the source clip; it is an offline controller-plan proxy",
+    "Contact speed is omitted when no consecutive source-contact pairs exist",
+    "World translation is imposed by the same Actor Root in both models, so its equality is not a quality win"
+  ],
+  "clips": [
+    {
+      "clip_index": 145,
+      "category": "Crouch",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Crouch_Loop_F_R_20.M_Neutral_Crouch_Loop_F_R_20",
+      "source_frame_start": 42,
+      "future_frames": 24,
+      "source_contact_pairs": 2,
+      "source_contact_foot_speed_mps": 0.07328564673662186,
+      "metrics": {
+        "joint_rmse_cm": {
+          "old": 5.871840953826904,
+          "motionweaver": 8.254919052124023,
+          "motionweaver_minus_old": 2.383078098297119
+        },
+        "joint_mean_error_cm": {
+          "old": 4.785542964935303,
+          "motionweaver": 7.58301305770874,
+          "motionweaver_minus_old": 2.7974700927734375
+        },
+        "foot_velocity_rmse_mps": {
+          "old": 0.9229227304458618,
+          "motionweaver": 1.1677908897399902,
+          "motionweaver_minus_old": 0.24486815929412842
+        },
+        "generated_contact_foot_speed_mps": {
+          "old": 1.141167402267456,
+          "motionweaver": 0.8753683567047119,
+          "motionweaver_minus_old": -0.26579904556274414
+        },
+        "seam_velocity_error_cm_per_frame": {
+          "old": 2.7525761127471924,
+          "motionweaver": 2.1201019287109375,
+          "motionweaver_minus_old": -0.6324741840362549
+        },
+        "body_facing_rmse_vs_source_deg": {
+          "old": 3.364685535430908,
+          "motionweaver": 5.946852684020996,
+          "motionweaver_minus_old": 2.582167148590088
+        }
+      },
+      "video": "crouch_00145_comparison.mp4",
+      "video_sha256": "3e134122f9305057af3c061b2d648c10c12353ed771bb97ee8d21e5caf8192ef",
+      "representative_frame_png": "crouch_00145_comparison.png",
+      "representative_frame_sha256": "ce284115aab62cd0e219d4e621e6c74d72ddaec32c3f33133335643b2e0d6940"
+    },
+    {
+      "clip_index": 820,
+      "category": "Run",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Run/M_Neutral_Run_Loop_BL.M_Neutral_Run_Loop_BL",
+      "source_frame_start": 25,
+      "future_frames": 24,
+      "source_contact_pairs": 0,
+      "source_contact_foot_speed_mps": null,
+      "metrics": {
+        "joint_rmse_cm": {
+          "old": 7.356483459472656,
+          "motionweaver": 11.996068000793457,
+          "motionweaver_minus_old": 4.639584541320801
+        },
+        "joint_mean_error_cm": {
+          "old": 6.456399917602539,
+          "motionweaver": 9.950839042663574,
+          "motionweaver_minus_old": 3.494439125061035
+        },
+        "foot_velocity_rmse_mps": {
+          "old": 1.4797662496566772,
+          "motionweaver": 1.5593031644821167,
+          "motionweaver_minus_old": 0.07953691482543945
+        },
+        "generated_contact_foot_speed_mps": {
+          "old": null,
+          "motionweaver": null,
+          "motionweaver_minus_old": null
+        },
+        "seam_velocity_error_cm_per_frame": {
+          "old": 6.862251281738281,
+          "motionweaver": 2.4383761882781982,
+          "motionweaver_minus_old": -4.423875093460083
+        },
+        "body_facing_rmse_vs_source_deg": {
+          "old": 7.394714832305908,
+          "motionweaver": 7.071651458740234,
+          "motionweaver_minus_old": -0.32306337356567383
+        }
+      },
+      "video": "run_00820_comparison.mp4",
+      "video_sha256": "cd731e09fb4f574e69a7f5cb9e2560f06c260c9dc8e2aff11f400cd46757e2c1",
+      "representative_frame_png": "run_00820_comparison.png",
+      "representative_frame_sha256": "d2f87bc836ef1b4583c080447bbd0fb35056c6052c36f6f917768885f5637b11"
+    },
+    {
+      "clip_index": 1403,
+      "category": "Walk",
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Walk/M_Neutral_Walk_Loop_F_L_20.M_Neutral_Walk_Loop_F_L_20",
+      "source_frame_start": 46,
+      "future_frames": 24,
+      "source_contact_pairs": 5,
+      "source_contact_foot_speed_mps": 0.0308596882969141,
+      "metrics": {
+        "joint_rmse_cm": {
+          "old": 6.719508171081543,
+          "motionweaver": 6.030010223388672,
+          "motionweaver_minus_old": -0.6894979476928711
+        },
+        "joint_mean_error_cm": {
+          "old": 5.639223098754883,
+          "motionweaver": 5.503547191619873,
+          "motionweaver_minus_old": -0.13567590713500977
+        },
+        "foot_velocity_rmse_mps": {
+          "old": 0.8374639749526978,
+          "motionweaver": 0.7688468098640442,
+          "motionweaver_minus_old": -0.06861716508865356
+        },
+        "generated_contact_foot_speed_mps": {
+          "old": 0.6805605292320251,
+          "motionweaver": 0.7803346514701843,
+          "motionweaver_minus_old": 0.09977412223815918
+        },
+        "seam_velocity_error_cm_per_frame": {
+          "old": 3.7300615310668945,
+          "motionweaver": 2.3898684978485107,
+          "motionweaver_minus_old": -1.3401930332183838
+        },
+        "body_facing_rmse_vs_source_deg": {
+          "old": 12.246832847595215,
+          "motionweaver": 4.354849338531494,
+          "motionweaver_minus_old": -7.891983509063721
+        }
+      },
+      "video": "walk_01403_comparison.mp4",
+      "video_sha256": "8a6dda1a308019336a0349ba4ea168e941ac0f328f39e3cadb754c95e3f847c0",
+      "representative_frame_png": "walk_01403_comparison.png",
+      "representative_frame_sha256": "70ba98ff4bd1230af8630752e05616e653ed229eaed404f7273c324d6a8303c2"
+    }
+  ]
+}
