@@ -159,19 +159,32 @@ def main():
     parser.add_argument('--source',default='D:/BONES-SEED')
     parser.add_argument('--port',type=int,default=8765)
     parser.add_argument('--exception-triage',action='store_true',help='审核 needs_segmentation 与 needs_skeleton_review；每页最多 50 条')
+    parser.add_argument('--conditioned-contract',help='prepared 条件动作契约目录')
+    parser.add_argument('--conditioned-audit',help='对应审计目录（report.json、review_queue.json）')
     args=parser.parse_args()
+    prepared_mode=bool(args.conditioned_contract or args.conditioned_audit)
+    if prepared_mode and (not args.conditioned_contract or not args.conditioned_audit or args.exception_triage):
+        parser.error('prepared 模式须同时指定 --conditioned-contract 与 --conditioned-audit，且不能与 --exception-triage 共用')
     library=Path(args.library).resolve()
     source=Path(args.source).resolve()
-    exception_entries,exception_digest=(exception_manifest(library,source) if args.exception_triage else (None,None))
-    page_count=max(1,math.ceil(len(exception_entries)/MAX_REVIEW_ITEMS)) if exception_entries is not None else 1
+    if prepared_mode:
+        from data.tools.conditioned_review_store import ConditionedReviewStore, load_review_inputs
+        contract, report, prepared_entries, queue_digest = load_review_inputs(args.conditioned_contract,args.conditioned_audit)
+        exception_entries,exception_digest=None,None
+    else:
+        prepared_entries=None
+        exception_entries,exception_digest=(exception_manifest(library,source) if args.exception_triage else (None,None))
+    paged_entries=prepared_entries if prepared_mode else exception_entries
+    page_count=max(1,math.ceil(len(paged_entries)/MAX_REVIEW_ITEMS)) if paged_entries is not None else 1
     stores={}
     def store_for(page):
-        if exception_entries is None:
+        if paged_entries is None:
             page=1
         elif not 1<=page<=page_count:
             raise ValueError(f'页码必须在 1 到 {page_count} 之间')
         if page not in stores:
-            stores[page]=ReviewStore(library,source,exception_entries,exception_digest,page)
+            stores[page]=(ConditionedReviewStore(library,contract,report,prepared_entries,queue_digest,page)
+                          if prepared_mode else ReviewStore(library,source,exception_entries,exception_digest,page))
         return stores[page]
     class Handler(BaseHTTPRequestHandler):
         def reply(self,data,kind='application/json',code=200,gz=False):
@@ -190,7 +203,7 @@ def main():
             try:
                 page=int(parse_qs(parsed.query).get('page',['1'])[0])
                 store=store_for(page)
-                if path=='/api/catalog':return self.reply(dict(store.cohort,decisions=store.decisions(),token=store.token,page=page,page_count=page_count,exception_mode=args.exception_triage))
+                if path=='/api/catalog':return self.reply(dict(store.cohort,decisions=store.decisions(),token=store.token,page=page,page_count=page_count,exception_mode=args.exception_triage,prepared_mode=prepared_mode))
                 if path.startswith('/api/clip/'):return self.reply(store.clip(path.rsplit('/',1)[-1]),gz=True)
                 if path=='/api/export':return self.reply(dict(cohort=store.cohort,decisions=store.decisions(),note='人工记录不会自动发布、入库或删除数据'))
                 files={'/':('index.html','text/html'),'/app.js':('app.js','text/javascript'),'/style.css':('style.css','text/css')}
@@ -212,7 +225,7 @@ def main():
                 self.reply(dict(ok=True))
             except Exception as exc:self.reply(dict(error=str(exc)),code=400)
     first=store_for(1)
-    print(f'Motion review: http://127.0.0.1:{args.port} | {len(exception_entries) if exception_entries is not None else len(first.ids)} clips | {page_count} pages | {first.cohort_path}',flush=True)
+    print(f'Motion review: http://127.0.0.1:{args.port} | {len(paged_entries) if paged_entries is not None else len(first.ids)} clips | {page_count} pages | {first.cohort_path}',flush=True)
     ThreadingHTTPServer(('127.0.0.1',args.port),Handler).serve_forever()
 
 
