@@ -100,12 +100,13 @@ model/motionbricks/ 网络、几何、动作表示与共享实现
 model-weight/       base/motionbricks/ · 自定义发布产物
 inference/          runtime/ · export/ · profiling/ · cli/ · demo/ · assets/
 unreal-script/      AILocomotionSystem/ · python/
-unreal-sample/      示例交付边界说明（当前无独立工程）
+unreal-sample/      UE 推理/动画工具链实验宿主源码与资产交付边界（Content 暂缓）
 tests/              单元、训练、导出与目录回归测试
 ```
 
 | 位置 | 用途 |
 | --- | --- |
+| [unreal-sample](unreal-sample/README.md) | UE 5.8 实验宿主 `UMWSamplePreview` 与 Content 暂缓发布的边界；当前项目尚未接入模型推理 |
 | [unreal-script](unreal-script/README.md) | UE 插件安装、动画导出、数据约定与训练说明 |
 | [模型与参考演示说明](docs/motionbricks/README.md) | 上游模型技术说明与 G1 参考演示 |
 | [动作表示](docs/motionbricks/motion_representation.md) | 骨架、Root Motion、姿态特征和坐标约定 |

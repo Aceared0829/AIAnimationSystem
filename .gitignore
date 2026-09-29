@@ -218,6 +218,14 @@ MotionBricks-launcher.log
 /unreal-sample/**/Binaries/
 /unreal-sample/**/Intermediate/
 /unreal-sample/**/Saved/
+# UE sample hosts keep source and project metadata, not IDE solutions or derived data.
+/unreal-sample/**/.vs/
+/unreal-sample/**/DerivedDataCache/
+/unreal-sample/**/*.sln
+/unreal-sample/**/*.slnx
+/unreal-sample/**/.vsconfig
+# UE writes local preview-lighting profiles into this file; keep functional Config/ defaults.
+/unreal-sample/UMWSamplePreview/Config/DefaultEditor.ini
 /motionbricks/assets/
 /motionbricks/out/
 /motionbricks/unreal_data/

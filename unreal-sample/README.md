@@ -1,10 +1,12 @@
-# Unreal 示例工程边界
+# Unreal 实验宿主与资产边界
 
-当前仓库没有独立 `.uproject` 示例工程。外部 `D:/GameAnimationSample` 是现有数据流程使用的工程，未搬入此仓库。
+`UMWSamplePreview/UMWSamplePreview.uproject` 是 UE 5.8 的实验宿主，用于逐步测试 UE 内实际推理及动画工具链，验证后再考虑正式使用；**不承担动作数据导入、清洗或数据集处理**。本仓库现阶段保存项目 `.uproject`、`Source/`、必要的 `Config/` 及 `MotionMatchingInCpp` 插件源码。`Content/`（包括插件内的地图、角色、动画和 Blueprint）以及 UE/IDE 生成物暂不纳入 Git。是否发布 Content 及如何处理 LFS 容量将在后续单独决定；不要用 `git add -f` 绕过现有忽略规则。
 
-将来示例在这里按项目名保存 `.uproject`、`Source/` 和 `Config/`；通过 `unreal-script/` 插件组装功能。示例 `Content/` 应由匹配版本、带清单和 SHA-256 的资产包恢复。
+当前宿主的游戏模块只是构建入口，尚未将 `AIAnimation`、`AIAnimationMotionMatching`、模型包或推理 AnimGraph 接入该 `.uproject`。已有的 `unreal-script/AIAnimation/Tools/setup_motion_matching_host.ps1` 操作的是另一套本机 `output/ue_cmc_host`，不负责组装此项目；历史 GASP 宿主测试不算 `UMWSamplePreview` 的测试。默认地图配置指向 `/MotionMatchingInCpp/Levels/DefaultLevel`，插件的 Mesh/AnimBP 等也引用插件 Content。没有对应资产时，源码即使可以编译，也**不能据此宣称默认地图可打开、角色可玩或实际推理已经运行**。插件仍记录五个与旧 `ZeroG` 资产有关的引用，见 [移植备注](UMWSamplePreview/Plugins/MotionMatchingInCpp/PORTABILITY.md)。后续发布资产时，需要为与源码版本匹配的包提供目录恢复说明、清单及校验值。
 
-当前没有为该目录发布 Content Release；不能仅凭仓库内源码宣称在没有 GASP 资产的机器上可打开地图或运行游戏。
+`MotionMatchingInCpp` 源码保留其原有版权标记；不能将插件及外部动画资产直接视作本仓库 Apache-2.0 源码授权的一部分。插件源码的公开收录权限由项目维护者确认，正式分发条款仍需单独注明。当前工程仅作为持续开发的实验基础，不保证从干净检出即可运行。
+
+外部 `D:/GameAnimationSample` 是已有数据流程使用的工程，不迁入本宿主。下列 GASP 宿主实验是独立的历史入口，也不用于证明 `UMWSamplePreview` 已完成推理接线。
 
 ## 单机 CMC 观测演示
 

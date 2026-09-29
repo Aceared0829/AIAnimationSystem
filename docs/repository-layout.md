@@ -46,7 +46,7 @@ AIAnimationSystem/
 │   ├── AILocomotionSystem/
 │   │   └── AILocomotionDataset/  # 完整可复用 UE 插件
 │   └── python/                   # UE 宿主内的重定向和验证脚本
-├── unreal-sample/                # 当前仅交付约定，无现成 .uproject
+├── unreal-sample/                # UMWSamplePreview：UE 5.8 推理/动画工具链实验宿主源码；Content 暂缓交付
 ├── tests/                       # 回归测试与受控动画夹具
 ├── docs/                        # 架构、迁移与技术说明
 ├── launcher/                    # Windows 启动器源码
@@ -55,6 +55,8 @@ AIAnimationSystem/
 ├── setup.py                     # 唯一有效安装入口
 └── pyproject.toml
 ```
+
+`unreal-sample/UMWSamplePreview/` 目前仅为实验宿主的工程/插件源码与文本配置，供后续接入 UE 内推理及动画工具链；不处理动作数据，也尚未接入模型或 AnimGraph。默认地图与插件角色依赖暂未发布的 Content，不能把源码检出视作可玩示例。边界与历史宿主的区别见 [Unreal 实验宿主说明](../unreal-sample/README.md)。
 
 `data/raw/`、`model-weight/pretrained/`、`finetuned/`、`exported/` 按实际产物需要创建，已配置本地忽略规则。目录名不表示训练、后训练或示例已经完成。
 
