@@ -16,6 +16,7 @@ from motionbricks.training.unreal_quality import collate_native, PoseAwareBatchS
 
 from motionbricks.data.synthetic_dataset import collate_batch
 from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
+from motionbricks.data.motionweaver_dataset import MotionWeaverUnrealDataset, collate_motionweaver
 from motionbricks.helper.pl_util import load_motion_rep
 from motionbricks.repository import base_weights
 
@@ -27,7 +28,8 @@ class DatasetContract(pl.Callback):
         self.signature, self.kind, self.config, self.training_contract = signature, kind, config, training_contract
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
-        checkpoint["unreal_contract"] = {"signature": self.signature, "kind": self.kind, "training_contract": self.training_contract, "config": self.config}
+        checkpoint["unreal_contract"] = {"signature": self.signature, "kind": self.kind, "training_contract": self.training_contract,
+                                         "motionweaver_profile": self.config.get("motionweaver_profile"), "config": self.config}
 
     def on_train_start(self, trainer, pl_module):
         # Lightning 恢复检查点后才执行此回调；此时旧调度器状态已覆盖构建时的新周期。
@@ -100,6 +102,16 @@ def build_config(args, dataset):
             conf.model.pose_vqvae_network = contract["config"]["model"]["pose_vqvae_network"]
             conf.model.args.vqvae_model_ckpt_path = str(Path(args.vqvae).resolve())
             conf.model.args.vqvae_sha256 = file_sha256(args.vqvae)
+            if getattr(args, "motionweaver_online", False):
+                conf.model._target_ = "motionbricks.motion_backbone.models.motionweaver_pose_model.MotionWeaverPoseModel"
+                net = conf.model.backbone_network.args
+                net.n_embd, net.n_head, net.n_layers = 256, 8, 6
+                net.pose_feat_width, net.root_feat_width, net.token_length_feat_width = 256, 128, 64
+                conf.model.args.batchsize_mul_factor = 1
+                conf.motionweaver_profile = "actor_root_history4_compact_v1"
+                conf.motionweaver_actor_root_manifest_sha256 = file_sha256(
+                    Path(args.actor_root_sidecar) / "actor_roots_manifest.json"
+                )
         if args.tiny:
             # 仅用于 CPU 冒烟验证；模型配置会随检查点保存，不能与正式模型互换。
             if args.model == "vqvae":
@@ -117,6 +129,12 @@ def build_config(args, dataset):
 
 
 def train(args):
+    if getattr(args, "motionweaver_online", False) and args.model != "pose":
+        raise ValueError("--motionweaver_online 仅适用于 Pose Token 训练")
+    if getattr(args, "motionweaver_online", False) and not args.actor_root_sidecar:
+        raise ValueError("MotionWeaver Actor Root 条件训练需要 --actor_root_sidecar")
+    if getattr(args, "motionweaver_online", False) and args.native_quality:
+        raise ValueError("MotionWeaver Actor Root 条件训练暂不支持会丢失独立 Root 的 native_quality collate")
     if getattr(args, "pose_aware_sampling", False) and not getattr(args, "native_quality", False):
         raise ValueError("--pose_aware_sampling 必须与 --native_quality 一起使用")
     if args.max_steps < 1 or args.batch_size < 1:
@@ -124,7 +142,8 @@ def train(args):
     if args.geometry_coeff < 0 or args.hand_endpoint_coeff < 0 or args.traversal_endpoint_coeff < 0:
         raise ValueError("几何损失权重不能为负数")
     pl.seed_everything(args.seed, workers=True)
-    dataset = UnrealMotionDataset(args.dataset)
+    dataset = (MotionWeaverUnrealDataset(args.dataset, args.actor_root_sidecar)
+               if getattr(args, "motionweaver_online", False) else UnrealMotionDataset(args.dataset))
     if dataset.manifest.get("training_contract") == "pose_only_root_authoritative" and args.model == "root":
         raise ValueError("Pose-only 数据集的世界移动由 CMC/Mover 权威提供，禁止训练 Root 模型")
     indices = training_indices(dataset.manifest)
@@ -133,6 +152,10 @@ def train(args):
     if args.resume:
         contract = check_checkpoint(args.resume, signature, args.model)
         previous = contract["config"]
+        if previous.get("motionweaver_profile") != conf.get("motionweaver_profile"):
+            raise ValueError("续训必须保持相同的 MotionWeaver 在线条件配置")
+        if previous.get("motionweaver_actor_root_manifest_sha256") != conf.get("motionweaver_actor_root_manifest_sha256"):
+            raise ValueError("续训必须使用相同的独立 Actor Root sidecar")
         previous_native = previous["model"].get("_target_", "").endswith("UnrealQualityVQVAE")
         if previous_native != getattr(args, "native_quality", False):
             raise ValueError("续训必须保持原检查点的 --native_quality 模式，避免静默改变帧掩码和训练目标")
@@ -160,7 +183,9 @@ def train(args):
     config = OmegaConf.to_container(conf, resolve=False)
     OmegaConf.save(conf, output / "config.yaml")
     checkpoint = ModelCheckpoint(dirpath=str(output / "checkpoints"), every_n_train_steps=max(1, min(getattr(args, "checkpoint_every", 1000), args.max_steps)), save_last=True, save_top_k=-1)
-    trainer = pl.Trainer(max_steps=args.max_steps, accelerator=args.accelerator, devices=1, logger=CSVLogger(str(output), name="metrics"),
+    trainer = pl.Trainer(max_steps=args.max_steps, accelerator=args.accelerator, devices=1,
+                         precision=getattr(args, "precision", "32"),
+                         logger=CSVLogger(str(output), name="metrics"),
                          callbacks=[checkpoint, DatasetContract(signature, args.model, config, dataset.manifest.get("training_contract", "legacy_root_in_pose"))], gradient_clip_val=1.0, num_sanity_val_steps=0, log_every_n_steps=1)
     if getattr(args, "native_quality", False):
         categories = [dataset.manifest["clips"][i]["labels"]["category"] for i in indices]
@@ -173,7 +198,8 @@ def train(args):
         else:
             loader = DataLoader(Subset(dataset, indices), batch_size=args.batch_size, sampler=sampler, num_workers=0, collate_fn=collate_native)
     else:
-        loader = DataLoader(Subset(dataset, indices), batch_size=args.batch_size, shuffle=True, num_workers=0, collate_fn=collate_batch)
+        collate_fn = collate_motionweaver if getattr(args, "motionweaver_online", False) else collate_batch
+        loader = DataLoader(Subset(dataset, indices), batch_size=args.batch_size, shuffle=True, num_workers=0, collate_fn=collate_fn)
     trainer.fit(model, train_dataloaders=loader, ckpt_path=args.resume)
     trainer.save_checkpoint(output / "checkpoints" / "final.ckpt")
     print(f"训练完成：{output / 'checkpoints' / 'final.ckpt'}")
@@ -190,6 +216,9 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--accelerator", choices=["auto", "cpu", "gpu"], default="auto")
+    parser.add_argument("--precision", choices=["32", "bf16-mixed", "16-mixed"], default="32")
+    parser.add_argument("--motionweaver_online", action="store_true", help="Pose Token 使用 4 帧历史条件和紧凑主干；不输入未来真实姿态")
+    parser.add_argument("--actor_root_sidecar", help="与 UE prepared 动作逐帧对齐的独立 Actor Root sidecar")
     parser.add_argument("--tiny", action="store_true", help="使用小网络，仅用于接口和训练冒烟验证")
     parser.add_argument("--native_quality", action="store_true", help="真实帧掩码、家族留出集及几何监督")
     parser.add_argument("--pose_aware_sampling", action="store_true", help="原生质量训练采用长度分桶和困难类别采样，不增加模型参数")

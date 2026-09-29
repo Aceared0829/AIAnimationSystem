@@ -8,6 +8,6 @@ public class AIAnimation : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "AnimGraphRuntime", "NNE" });
-		PrivateDependencyModuleNames.AddRange(new[] { "Json", "RenderCore", "RHI" });
+		PrivateDependencyModuleNames.AddRange(new[] { "InputCore", "Json", "RenderCore", "RHI" });
 	}
 }

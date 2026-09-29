@@ -42,6 +42,7 @@ def sample_motion_segments_from_motion_clips(motions: t.Tensor, motion_lengths: 
 
     m_start_idx = t.randint(low=0, high=31415926, size=[motions.shape[0]]).to(device)  # just use a big high value
     m_start_idx = m_start_idx % (motion_lengths - (num_desired_frames + 1) + 1)  # at least (numFrame+1) frames left
+    info['start_indices'] = m_start_idx
 
     m_chunk_idx = torch.arange(num_desired_frames + 1).tile([augmented_batch_size, 1]).to(device) + m_start_idx[:, None]
     motions = motions.gather(1, m_chunk_idx[:, :, None].tile([1, 1, motions.shape[-1]]))

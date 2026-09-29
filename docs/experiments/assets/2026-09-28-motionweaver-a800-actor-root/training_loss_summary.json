@@ -1,0 +1,16 @@
+{
+  "2k chain pilot": {
+    "logged_steps": 2000,
+    "last_step": 1999,
+    "first_100_mean_token_ce_nats": 2.2605537605285644,
+    "last_100_mean_token_ce_nats": 1.8683681464195252,
+    "source": "D:\\AILocomotonSystem\\GR00T-WholeBodyControl-p0-review\\output\\motionweaver_actor_a800_20260928\\metrics.csv"
+  },
+  "20k formal": {
+    "logged_steps": 20000,
+    "last_step": 19999,
+    "first_100_mean_token_ce_nats": 2.3247400379180907,
+    "last_100_mean_token_ce_nats": 1.440057384967804,
+    "source": "D:\\AILocomotonSystem\\GR00T-WholeBodyControl-p0-review\\output\\motionweaver_actor_a800_20k_20260928\\metrics.csv"
+  }
+}

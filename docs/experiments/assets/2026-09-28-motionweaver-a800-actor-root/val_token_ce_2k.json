@@ -1,0 +1,89 @@
+{
+  "metric": "masked_pose_token_cross_entropy_nats",
+  "condition": "paired_source_actor_root_teacher",
+  "split": "validation",
+  "seed": 1701,
+  "per_action": 16,
+  "indices": [
+    1306,
+    1335,
+    1352,
+    1367,
+    1430,
+    1442,
+    1486,
+    1521,
+    1538,
+    1539,
+    1544,
+    1565,
+    1619,
+    1621,
+    1637,
+    1701,
+    746,
+    783,
+    815,
+    824,
+    836,
+    857,
+    859,
+    877,
+    890,
+    959,
+    1011,
+    1034,
+    1040,
+    1092,
+    1100,
+    1122,
+    49,
+    124,
+    127,
+    128,
+    154,
+    167,
+    180,
+    194,
+    206,
+    241,
+    260,
+    309,
+    376,
+    389,
+    393,
+    399
+  ],
+  "manifest_sha256": "059e300ba6d4f6bad38437e907a2864f6029d040c2d06776553b1238d6b31844",
+  "sidecar_manifest_sha256": "876d7500ce64406a3c1bf6e2cb2e8f1c3fcf3ef271aa49a2e08c5ab799047da3",
+  "reports": [
+    {
+      "checkpoint": "D:\\AILocomotonSystem\\GR00T-WholeBodyControl-p0-review\\output\\motionweaver_actor_a800_20260928\\final.ckpt",
+      "checkpoint_sha256": "656665240807825ecf0304bd18476352776dc27a775ec1ae314e1affadc91a45",
+      "global_step": 2000,
+      "scheduler_total_steps": 2000,
+      "scores": {
+        "walk": {
+          "pose_token_ce_nats": 1.7406858342847182,
+          "target_tokens": 922,
+          "clips": 16
+        },
+        "overall": {
+          "pose_token_ce_nats": 1.8619498879265932,
+          "target_tokens": 2608,
+          "clips": 48
+        },
+        "run": {
+          "pose_token_ce_nats": 1.9808508756903762,
+          "target_tokens": 953,
+          "clips": 16
+        },
+        "crouch": {
+          "pose_token_ce_nats": 1.859893702549954,
+          "target_tokens": 733,
+          "clips": 16
+        }
+      }
+    }
+  ]
+}
