@@ -40,10 +40,17 @@ def load_review_inputs(contract_folder, audit_folder):
         clip = contract["clips"][index]
         if row["asset"] != clip["asset"] or row["frames"] != clip["source_frames"]:
             raise ValueError("复核清单与来源动作错位")
+        reason = (f"{row['category']} · {row['split']} · 窗口 Root 均速 "
+                  f"{row['diagnostic_root_speed_mean_mps']:.2f} m/s · 连续接触帧对 "
+                  f"{row['diagnostic_center_contact_pairs']} · 本地高度代理额外标记 "
+                  f"{row['diagnostic_local_floor_proxy_only_fraction']:.1%}"
+                  if "diagnostic_center_contact_pairs" in row else
+                  f"{row['category']} · {row['split']} · Root 峰值 {row.get('root_speed_max_mps', 0):.2f} m/s "
+                  f"· 高度跨度 {row.get('root_height_range_m', 0):.2f} m")
         entries.append({"id": str(index), "name": row["asset"].split("/")[-1].split(".")[0],
                         "asset": row["asset"], "group": "issue" if row["flags"] else "sample",
                         "flags": row["flags"], "integrity_errors": [], "frames": row["frames"],
-                        "reason": f"{row['category']} · {row['split']} · Root 峰值 {row.get('root_speed_max_mps', 0):.2f} m/s · 高度跨度 {row.get('root_height_range_m', 0):.2f} m"})
+                        "reason": reason})
     if len({entry["id"] for entry in entries}) != len(entries):
         raise ValueError("复核清单包含重复动作")
     return contract, report, entries, hashlib.sha256(queue_path.read_bytes()).hexdigest()
