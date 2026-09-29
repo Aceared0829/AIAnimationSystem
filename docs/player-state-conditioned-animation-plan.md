@@ -2,7 +2,7 @@
 
 > 状态：P0 已完成，待进入 P1。创建于 2026-09-25。本文件用于持续核对方向和验收条件；执行证据见 [P0 审计记录](experiments/2026-09-25-p0-stance-data-audit.md)。
 >
-> 项目：AIAnimationSystem。当前分析基于工作树 `884f34c`、本地 `origin/main` `af9f9330`、E 盘审计版数据及训练归档。工作树与 `origin/main` 并不相同；开始实现前须重新核对代码、数据契约和已有未提交修改。本计划本身不表示训练、UE 接入或游戏内验收已经完成。
+> 项目：AIAnimationSystem。P0 分析基于原工作树 `884f34c`、当时的 `origin/main` `af9f9330`、E 盘审计版数据及训练归档。集成工作区从 `af9f9330` 建立，保留主线已有的数据封版、来源哈希校验和测试；开始后续阶段前仍须核对最新代码与数据身份。本计划本身不表示状态训练、UE 接入或游戏内验收已经完成。
 
 ## 一、目标与不可丢失的边界
 
@@ -45,7 +45,7 @@
 
 ### P0：冻结基线并核实数据
 
-- [x] 记录分支、提交 SHA、脏工作树、E 盘数据契约 SHA、训练权重 SHA、评估脚本版本和硬件。已确认当前分支与 `origin/main` 分叉；后续训练从核对后的干净主线工作区开始，不覆盖本工作区已有修改。身份和哈希见 [P0 审计](experiments/2026-09-25-p0-stance-data-audit.md)。
+- [x] 记录原审计分支、提交 SHA、脏工作树、E 盘数据契约 SHA、训练权重 SHA、评估脚本版本和硬件。集成工作区从 `origin/main` 派生，只移植 P0 证据与视口改动，不覆盖主线封版及旧工作区。身份和哈希见 [P0 审计](experiments/2026-09-25-p0-stance-data-audit.md)。
 - [x] 用现有 Motion Review 入口核对 107 段固定候选：SQLite 仍为 107/107 `approved`；用户在 2026-09-25 确认全部通过，并要求按逐条标记的结论处理。P0 以[按 clip ID 冻结的确认清单](experiments/assets/2026-09-25-p0-stance-data-audit/restart_2026-09-25/review_acceptance.csv)关闭该项；58 条旧批量备注保留作历史，没有伪造逐条点击或播放记录，也未改写 SQLite。UE 场景的蒙皮、碰撞和落点验收另在后续阶段完成。
 - [x] 对 4 条明确 `Stand↔Crouch` 动作逐帧看侧视姿态与 Root，确认资产名、动作方向、主要过渡帧及原地边界。4×76 帧图和逐窗口数据见 [P0 审计](experiments/2026-09-25-p0-stance-data-audit.md)；UE 蒙皮/碰撞验收另做。
 - [x] 复核跨分区近似变体和 13 组 Root 同轨，形成[来源家族草表](experiments/assets/2026-09-25-p0-stance-data-audit/source_family_draft.csv)；保留原 v1 测试集与基线报告。语义家族的最终归并与 v2 重划分留到 P1，不能将同 Root 直接等同同来源。

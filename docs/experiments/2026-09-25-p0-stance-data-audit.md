@@ -30,7 +30,7 @@
 & .venv\Scripts\python.exe docs\experiments\assets\2026-09-25-p0-stance-data-audit\render_stance_filmstrip.py
 ```
 
-脚本逐 NPZ 校验契约中记录的 SHA，读取同 Root 审计组和 Motion Review SQLite，不改原数据与审核结论。分析无随机抽样/随机种子。若迁移了 E/D 盘路径，应先更新脚本中仅本机有效的路径；脚本的 `summary.json` 同时记录输入契约、报告和队列 SHA。
+脚本默认从 E 盘正式封版的 `contract/` 与 `audit/` 读取输入；它们与上文原审计版契约、报告和队列的 SHA 逐字节一致，因此可在新的主线工作区复跑。脚本逐 NPZ 校验契约中记录的 SHA，读取同 Root 审计组和 Motion Review SQLite，不改原数据与审核结论。分析无随机抽样/随机种子。若迁移了 E/D 盘路径，应先更新脚本中仅本机有效的路径；脚本的 `summary.json` 同时记录输入契约、报告和队列 SHA。
 
 ## 结果一：显式站蹲动作
 

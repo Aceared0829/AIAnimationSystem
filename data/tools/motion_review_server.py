@@ -112,13 +112,16 @@ class ReviewStore:
         p[:,hips:]-=np.einsum('tij,j->ti',r[:,0],bvh.offsets[hips])[:,None]
         basis=np.array([[1.,0,0],[0,0,1],[0,1,0]])
         p=p@basis.T
-        def pack(positions,names,parents,pelvis):
+        def pack(positions,names,parents,pelvis,root_positions):
             if not np.isfinite(positions).all():
                 raise ValueError('非有限坐标')
-            return dict(names=names,parents=parents,pelvis=pelvis,positions=np.round(positions,4).reshape(-1).tolist())
+            if not np.isfinite(root_positions).all():
+                raise ValueError('非有限 Root 坐标')
+            return dict(names=names,parents=parents,pelvis=pelvis,positions=np.round(positions,4).reshape(-1).tolist(),
+                        root_positions=np.round(root_positions,4).reshape(-1).tolist())
         if self.exception_mode:
             data=dict(id=mid,name=name,fps=round(1/bvh.frame_time),frames=len(p),package=metadata.get('package'),description=metadata.get('content_natural_desc_1',''),
-                      source=pack(p,bvh.names,bvh.parents,hips),target=None,target_root=None,source_sha256=entry['source_sha256'],output_sha256=None,
+                      source=pack(p,bvh.names,bvh.parents,hips,p[:,0]),target=None,target_root=None,source_sha256=entry['source_sha256'],output_sha256=None,
                       review_note='该动作在 UE 重定向前被隔离，右侧没有 UEFN 输出可供对比。')
         else:
             with np.load(output,allow_pickle=False) as archive:
@@ -131,7 +134,7 @@ class ReviewStore:
             world=np.einsum('tij,tkj->tki',rr,f[:,:,:3])+roots[:,None,:3]
             bones=json.loads((output.parent/'skeleton.json').read_text())['bones']
             data=dict(id=mid,name=name,fps=fps,frames=len(f),package=metadata.get('package'),description=metadata.get('content_natural_desc_1',''),
-                      source=pack(p,bvh.names,bvh.parents,hips),target=pack(world,[b['name'] for b in bones],[b['parent'] for b in bones],0),
+                      source=pack(p,bvh.names,bvh.parents,hips,p[:,0]),target=pack(world,[b['name'] for b in bones],[b['parent'] for b in bones],0,roots[:,:3]),
                       target_root=np.round(roots[:,:3],4).tolist(),source_sha256=json.loads(event[0])['source_sha256'],output_sha256=expected)
         return gzip.compress(json.dumps(data,separators=(',',':')).encode(),compresslevel=3)
 

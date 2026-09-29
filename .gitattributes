@@ -23,3 +23,6 @@
 
 # Small README illustrations are stored directly in Git for reliable rendering.
 unreal-script/AIAnimation/docs/images/*.png -filter -diff -merge -text
+
+# Remote shell entrypoints must retain Unix line endings when checked out on Windows.
+tools/run_conditioned_remote.sh text eol=lf

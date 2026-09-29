@@ -11,9 +11,10 @@ import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[4]
-CONTRACT_PATH = Path(r"E:\AIAnimationSystemData\prepared\reference_guided_root_pose_v1_20260924_audited\contract.json")
-REPORT_PATH = ROOT / "output/conditioned_data_audit_20260924_complete/report.json"
-QUEUE_PATH = REPORT_PATH.parent / "review_queue.json"
+FREEZE = Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924")
+CONTRACT_PATH = FREEZE / "contract/contract.json"
+REPORT_PATH = FREEZE / "audit/report.json"
+QUEUE_PATH = FREEZE / "audit/review_queue.json"
 DECISIONS_PATH = Path(r"D:\MotionDataLibrary\reviews\decisions.sqlite3")
 OUT = Path(__file__).resolve().parent
 

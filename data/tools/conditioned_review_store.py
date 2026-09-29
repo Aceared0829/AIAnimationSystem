@@ -104,18 +104,21 @@ class ConditionedReviewStore:
         world = apply_authoritative_root(raw["positions"], raw["root_track"])
         # Motion (X 左、Y 上、Z 前，米) → UE (X 前、Y 右、Z 上，厘米)。
         ue_world = np.stack((world[..., 2], -world[..., 0], world[..., 1]), axis=-1) * 100
-        root_m = raw["root_track"][:, :3]
-        ue_root = np.stack((root_m[:, 2], -root_m[:, 0], root_m[:, 1]), axis=-1) * 100
-        skeleton = read_json(source / "skeleton.json")
+        motion_root = raw["root_track"][:, :3]
+        ue_root = np.stack((motion_root[:, 2], -motion_root[:, 0], motion_root[:, 1]), axis=-1) * 100
+        skeleton_path = source / "skeleton.json"
+        if hashlib.sha256(skeleton_path.read_bytes()).hexdigest() != self.contract["skeleton_sha256"]:
+            raise ValueError("来源骨架已改变，拒绝沿用旧契约")
+        skeleton = read_json(skeleton_path)
         bones = skeleton["bones"]
         source_rig = {"names": [bone["name"] for bone in bones],
                       "parents": [bone["parent"] for bone in bones], "pelvis": 0,
-                      "positions": np.round(ue_world, 3).reshape(-1).tolist()}
+                      "positions": np.round(ue_world, 3).reshape(-1).tolist(),
+                      "root_positions": np.round(ue_root, 3).reshape(-1).tolist()}
         result = {"id": mid, "name": item["asset"], "fps": self.contract["fps"],
                   "frames": item["source_frames"], "package": item["category"],
                   "description": f"{item['split']} · {item['action']}",
-                  "source": source_rig, "source_root": np.round(ue_root, 3).tolist(),
-                  "target": None, "target_root": None,
+                  "source": source_rig, "target": None, "target_root": None,
                   "source_sha256": digest, "output_sha256": None,
                   "review_note": "UE 导出动作的 Root 合成骨架；非蒙皮/碰撞验收。"}
         return gzip.compress(json.dumps(result, separators=(",", ":")).encode(), compresslevel=3)
