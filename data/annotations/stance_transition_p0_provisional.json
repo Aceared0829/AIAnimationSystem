@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "base_contract_sha256": "9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d",
+  "notes": "方向已在 P0 逐帧骨架复核；过渡起止采用骨盆高度 10%-90% 相位，仍需 UE 蒙皮与状态边界复核。目标状态仅由旧动作推定，不是玩家请求或 CMC 结果。",
+  "clips": [
+    {
+      "clip_index": 226,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Transition_Crouch_to_Stand.M_Neutral_Transition_Crouch_to_Stand",
+      "raw_sha256": "df38fe2bc9c5b091e7ac2e3b3c39fee70feff3783fd9da32bd47d52d3a3c9845",
+      "from_stance": "crouch",
+      "to_stance": "stand",
+      "transition_start": 3,
+      "transition_end": 13,
+      "status": "provisional",
+      "evidence": "P0 骨架逐帧复核方向；骨盆高度 10%-90% 相位帧 3-13"
+    },
+    {
+      "clip_index": 227,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Neutral_Transition_Stand_to_Crouch.M_Neutral_Transition_Stand_to_Crouch",
+      "raw_sha256": "48b752f29507dbcfa80f19226d4ab2b4dfdee0e8dacce1e29dda7c1eeb957b60",
+      "from_stance": "stand",
+      "to_stance": "crouch",
+      "transition_start": 7,
+      "transition_end": 17,
+      "status": "provisional",
+      "evidence": "P0 骨架逐帧复核方向；骨盆高度 10%-90% 相位帧 7-17"
+    },
+    {
+      "clip_index": 429,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Relaxed_Transition_Crouch_to_Stand.M_Relaxed_Transition_Crouch_to_Stand",
+      "raw_sha256": "41ae89c116fda86d5e04e2df89f403d53c95ac4ebd3b2bfcce14505f84dcf862",
+      "from_stance": "crouch",
+      "to_stance": "stand",
+      "transition_start": 3,
+      "transition_end": 14,
+      "status": "provisional",
+      "evidence": "P0 骨架逐帧复核方向；骨盆高度 10%-90% 相位帧 3-14"
+    },
+    {
+      "clip_index": 430,
+      "asset": "/Game/Characters/UEFN_Mannequin/Animations/Crouch/M_Relaxed_Transition_Stand_to_Crouch.M_Relaxed_Transition_Stand_to_Crouch",
+      "raw_sha256": "d805575263029e81b9a087757fae9e4e126d20c0f72fc5ab14d0a082939e20ad",
+      "from_stance": "stand",
+      "to_stance": "crouch",
+      "transition_start": 6,
+      "transition_end": 17,
+      "status": "provisional",
+      "evidence": "P0 骨架逐帧复核方向；骨盆高度 10%-90% 相位帧 6-17"
+    }
+  ]
+}
