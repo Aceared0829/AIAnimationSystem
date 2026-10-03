@@ -153,6 +153,7 @@ cython_debug/
 # IDE
 .idea/
 .vscode/
+.codex/
 
 # log
 outputs/
@@ -214,6 +215,7 @@ MotionBricks-launcher.log
 /unreal-script/**/Binaries/
 /unreal-script/**/Intermediate/
 /unreal-script/**/Saved/
+/unreal-script/MotionWeaverCMCPreview/Content/
 /unreal-sample/**/Content/
 /unreal-sample/**/Binaries/
 /unreal-sample/**/Intermediate/
@@ -241,6 +243,8 @@ logs_eval/
 output/playwright/
 /output/ue_animgraph*/
 /output/ai_animation_runtime*/
+# Local experiment outputs; explicitly unignore selected evidence when publishing.
+/output/
 
 # Model checkpoints directory
 models/
