@@ -17,7 +17,7 @@
 ## 代码、环境与数据
 
 - 仓库基线：工作树 `codex/motionweaver-stance-root`，原始提交 `e07aad2`；本次代码/记录尚未提交，且该树包含前序 B1 与 CMC 演示改动。
-- 宿主：本机 `D:\GameAnimationSample\GameAnimationSample.uproject`，UE `D:\UE_5.8` 5.8.2，Windows，NNE `NNERuntimeORTDml`。宿主插件目录通过 junction 指向本工作树的 `unreal-sample/MotionWeaverCMCPreview`，没有修改原 `AIAnimation` 插件。
+- 宿主：本机 `D:\GameAnimationSample\GameAnimationSample.uproject`，UE `D:\UE_5.8` 5.8.2，Windows，NNE `NNERuntimeORTDml`。宿主插件目录通过 junction 指向本工作树的 `unreal-script/MotionWeaverCMCPreview`，没有修改原 `AIAnimation` 插件。
 - B1 权重：仅本机 `E:\AIAnimationSystemData\training_runs\stance_pilot_20260928_cloud\run_b1\best.pt`，SHA-256 `317e0a5cbfeaeb2f9ae780087256ad4a267238f74bc59b90d09bd85f129a9c52`。
 - 站蹲契约：`E:\AIAnimationSystemData\prepared\stance_root_pose_v2_p0_20260928_r2/contract.json`，SHA-256 `41436aaa999486212ae1bb1d955578f7cb5618ff59e95219cef13152a2a110a9`；基础契约 SHA-256 `9bbf2893d461290371c2cefdf54eeb201b09cf639f50ea0dd0254bcc2f9eae9d`。
 - 导出模型：仅本机 `E:\AIAnimationSystemData\exports\stance_pilot_b1_ue_20260928_v3/model.onnx`，SHA-256 `9c0a1d5fec04840e14d318c3560710f786218035a2f413a9e3e207d9d9b00d2d`；同目录 `manifest.json` SHA-256 `0a7d5c8667fd51643e2746d1dadcbd252d62c702adf34877a01469c346ac2bda`。骨架 SHA-256 `1a799ca14585ce18edcfce3bb755dc7adcffa84d5111ac3afa2aa71238b8b547`。
