@@ -1,0 +1,357 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-10-03",
+  "timezone": "Asia/Hong_Kong",
+  "code_commit": "8f5b927eaebb66c13208bbafc2ae6f29d2903a18",
+  "engine_version": "5.8.3",
+  "comparison": {
+    "file_count": 2992,
+    "before_registry_entries": 2994,
+    "after_registry_entries": 2994,
+    "missing_assets": [],
+    "additional_assets": [],
+    "load_failures": [],
+    "key_defaults_match": true,
+    "level_actors_match": true,
+    "before_level_actors": 115,
+    "after_level_actors": 115,
+    "old_dependencies": [],
+    "before-runtime.json": {
+      "errors": [],
+      "snapshots": {
+        "idle": {
+          "label": "idle",
+          "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+          "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+          "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+          "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+          "location": [
+            -800.0,
+            0.0,
+            88.27500748462182
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "crouched": false,
+          "bone_count": 88,
+          "camera_location": [
+            -980.0,
+            50.0,
+            143.27500748462182
+          ]
+        },
+        "walk": {
+          "label": "walk",
+          "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+          "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+          "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+          "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+          "location": [
+            -728.0000009402229,
+            0.0,
+            88.27500748462182
+          ],
+          "velocity": [
+            319.9999969300914,
+            0.0,
+            0.0
+          ],
+          "crouched": false,
+          "bone_count": 88,
+          "camera_location": [
+            -919.9994828566505,
+            50.0,
+            143.27500748462182
+          ]
+        },
+        "crouch": {
+          "label": "crouch",
+          "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+          "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+          "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+          "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+          "location": [
+            -722.8054858633947,
+            0.0,
+            62.275007484621824
+          ],
+          "velocity": [
+            311.6665344238281,
+            0.0,
+            0.0
+          ],
+          "crouched": true,
+          "bone_count": 88,
+          "camera_location": [
+            -914.8044260213956,
+            50.0,
+            143.27275006038246
+          ]
+        },
+        "stand": {
+          "label": "stand",
+          "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+          "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+          "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+          "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+          "location": [
+            -718.1665665649314,
+            0.0,
+            88.27600693530542
+          ],
+          "velocity": [
+            278.33293485641224,
+            0.0,
+            0.0
+          ],
+          "crouched": false,
+          "bone_count": 88,
+          "camera_location": [
+            -910.1612817831736,
+            50.0,
+            143.25840221920558
+          ]
+        }
+      }
+    },
+    "after-runtime.json": {
+      "errors": [],
+      "snapshots": {
+        "idle": {
+          "label": "idle",
+          "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+          "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+          "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+          "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+          "location": [
+            -800.0,
+            0.0,
+            88.27500748462182
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "crouched": false,
+          "bone_count": 88,
+          "camera_location": [
+            -980.0,
+            50.0,
+            143.27500748462182
+          ]
+        },
+        "walk": {
+          "label": "walk",
+          "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+          "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+          "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+          "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+          "location": [
+            -635.4314394077797,
+            0.0,
+            88.27500748462182
+          ],
+          "velocity": [
+            500.0,
+            0.0,
+            0.0
+          ],
+          "crouched": false,
+          "bone_count": 88,
+          "camera_location": [
+            -846.8619610151787,
+            50.0,
+            143.27500748462182
+          ]
+        },
+        "crouch": {
+          "label": "crouch",
+          "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+          "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+          "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+          "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+          "location": [
+            -575.7594254866118,
+            0.0,
+            62.275007484621824
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "crouched": true,
+          "bone_count": 88,
+          "camera_location": [
+            -755.7594254866118,
+            50.0,
+            93.27500748462182
+          ]
+        },
+        "stand": {
+          "label": "stand",
+          "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+          "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+          "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+          "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+          "location": [
+            -575.7594254866118,
+            0.0,
+            88.27600693530542
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "crouched": false,
+          "bone_count": 88,
+          "camera_location": [
+            -755.7594254866118,
+            50.0,
+            143.27600693530542
+          ]
+        }
+      }
+    },
+    "runtime_identity_match": true,
+    "idle_position_match": true,
+    "idle_camera_match": true,
+    "movement_verified": true
+  },
+  "final_cr_pie": {
+    "phase": "cr",
+    "snapshots": [
+      {
+        "label": "idle",
+        "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+        "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+        "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+        "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+        "location": [
+          -800.0,
+          0.0,
+          88.27500748462182
+        ],
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "crouched": false,
+        "bone_count": 88,
+        "camera_location": [
+          -980.0,
+          50.0,
+          143.27500748462182
+        ]
+      },
+      {
+        "label": "walk",
+        "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+        "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+        "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+        "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+        "location": [
+          -618.7756327646937,
+          0.0,
+          88.27500748462182
+        ],
+        "velocity": [
+          500.0,
+          0.0,
+          0.0
+        ],
+        "crouched": false,
+        "bone_count": 88,
+        "camera_location": [
+          -831.2062130230631,
+          50.0,
+          143.27500748462182
+        ]
+      },
+      {
+        "label": "crouch",
+        "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+        "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+        "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+        "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+        "location": [
+          -557.5347496643724,
+          0.0,
+          62.275007484621824
+        ],
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "crouched": true,
+        "bone_count": 88,
+        "camera_location": [
+          -737.5347496643724,
+          50.0,
+          93.27500748462182
+        ]
+      },
+      {
+        "label": "stand",
+        "pawn_class": "/Game/Blueprints/SandboxCharacter_CMC.SandboxCharacter_CMC_C",
+        "controller_class": "/Game/Blueprints/PC_Sandbox.PC_Sandbox_C",
+        "mesh": "/Game/Characters/UEFN_Mannequin/Meshes/SKM_UEFN_Mannequin.SKM_UEFN_Mannequin",
+        "anim_class": "/Game/Blueprints/ABP_PlayerCharacter.ABP_PlayerCharacter_C",
+        "location": [
+          -557.5347496643724,
+          0.0,
+          88.27600693530542
+        ],
+        "velocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "crouched": false,
+        "bone_count": 88,
+        "camera_location": [
+          -737.5347496643724,
+          50.0,
+          143.27600693530542
+        ]
+      }
+    ],
+    "errors": []
+  },
+  "final_builds": {
+    "editor": "Succeeded",
+    "game": "Succeeded"
+  },
+  "native_property_initialization_errors": 0,
+  "regressions": {
+    "storage": 11,
+    "mirror": 4,
+    "observer_ui": 3,
+    "failures": 0
+  },
+  "limitations": [
+    "Content and raw logs are local and excluded from Git",
+    "No Cook, packaging, networking, model inference, or exhaustive Traversal validation",
+    "Movement samples use different render timing; walk positions and poses are not asserted identical",
+    "Baseline unused Chooser context and unregistered DDCVar diagnostics remain"
+  ],
+  "evidence_sha256": {
+    "comparison.json": "aa559f184a28a7aff311649ba70c6e8924ea880e698ebb7f687c83ab4b1620f8",
+    "before-assets.json": "3ef420ea07b300727e5c5861c0172c7323b6ff2ea1fd2a996a583cb5e8707399",
+    "after-assets.json": "66d2eb655ec7f61216e8b54e66e31f907bb19f8cc686b99d99fa1233b6d783f5",
+    "blueprint-validation.json": "c8d54f92bc0bb01744f5c36d64b78ce5146b4a2b2445fc6828a182ac9471b069",
+    "cr-runtime.json": "b9083f1b0f83e421a71c4f08f8093e7b13d45b1d08f619fe1b3fde59e510de81",
+    "editor-build.log": "af5d3af42d8ed19c5ba99b45f2f178acb1e9bd3b0d8a446e8eee0ac5843cb53e",
+    "game-build.log": "becc9d21799ca402d773e37c998002a1dae02a8d2d32f060794dfecc56321f84",
+    "cr-runtime.log": "f69eb572aec3b55b00f42366b2cd9bcccaf29105c25c5426967cc08b4bf0a8db",
+    "storage-tests.log": "4a990c4139d482ebfe3b61ab28b535ad2f43bf6ed1012fcad08d7c2fe4ad99a0",
+    "mirror-tests.log": "f8c4aea95bf683057678e45e3db431bf8921801adb1b6846b70797befdac65c8"
+  }
+}

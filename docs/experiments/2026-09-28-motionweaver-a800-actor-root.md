@@ -97,6 +97,10 @@ Stop 测试说明有局部落脚改善，但 Walk Loop 仍明显滑，Crouch Sto
 
 ## 结论、限制与下一步
 
+2026-10-03 整理并提交了本轮已有的小型视觉证据：[Walk 同轨比较](assets/2026-09-28-motionweaver-a800-actor-root/walk_01403_comparison.mp4)、[Run 同轨比较](assets/2026-09-28-motionweaver-a800-actor-root/run_00820_comparison.mp4)、[Crouch 同轨比较](assets/2026-09-28-motionweaver-a800-actor-root/crouch_00145_comparison.mp4)、[CMC 蹲伏比较](assets/2026-09-28-motionweaver-a800-actor-root/crouch_00430_cmc.mp4)。它们是离线骨架渲染，并非 UE 蒙皮或实时玩家验证；原始输出及其余两段 CMC 视频仍留在上述本地目录。每段的 SHA-256、编码和帧数见 [媒体清单](assets/2026-09-28-motionweaver-a800-actor-root/media_manifest.json)。
+
+![CMC 站到蹲片段第 15 帧：来源已蹲下，20k 模型仍直立](assets/2026-09-28-motionweaver-a800-actor-root/crouch_00430_cmc.png)
+
 **这轮按用户要求完成了从零训练的 20000 步，但不通过“玩家可操控时姿态与位移一致、可靠蹲伏、无明显脚滑”的质量门槛。** 固定 validation Token CE 改善 21.93%，Walk Loop 姿态略好；Run/Crouch 姿态、Walk Loop 接触脚速以及 CMC 站→蹲仍有明确失败样例。模型不应替换当前 UE 试玩 ONNX 或宣称已有 UE 蒙皮实跑结果。
 
 当前 manifest 只有片段级 `action/category/phase` 等标签；`raw_*.npz` 只有 `positions/rotations/timestamps/root_track`，**没有逐帧 `desired_stance`、玩家蹲键或 CMC 状态轨道**。明确命名的 Stand↔Crouch 动画仅 4 条、每条 76 源帧：train 3（Stand→Crouch 1、Crouch→Stand 2）、test 1（Stand→Crouch）、validation 0。可从资产名区分稳态姿势候选，但不能用这份数据证明“按键触发蹲下”的因果响应；骨盆高度是实际姿态的几何结果，不能伪装成玩家输入。下一版若训练显式目标姿势条件，需要同步录制 UE 玩家输入、CMC/Mover 状态和 Actor Root，或给过渡资源建立可信的人工逐帧时序标注。
@@ -117,3 +121,4 @@ Stop 测试说明有局部落脚改善，但 Walk Loop 仍明显滑，Crouch Sto
 | --- | --- | --- |
 | 2026-09-28 | 建立进行中记录，记录上传包与 Actor Root 契约问题 | 本地代码/数据检查与远端 A800 连接核验 |
 | 2026-09-28 | 从零完成 20000 步，补固定 validation、来源与 CMC 推理及失败样例，关闭实验 | 检查点/日志、逐条报告与本地视频；A800 控制台关机状态 |
+| 2026-10-03 | 发布已有的四段小型离线比较视频与蹲伏失败帧，补媒体哈希和解码信息 | 原有文件；ffprobe 帧数核验；未重新训练或改变实验结论 |

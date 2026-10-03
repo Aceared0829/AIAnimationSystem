@@ -12,11 +12,12 @@
 
 | 日期 | 实验 | 类型 | 状态 | 主要证据 |
 | --- | --- | --- | --- | --- |
+| 2026-10-03 | [UMWSamplePreview 项目迁移与 CR 回归](2026-10-03-umw-project-migration.md) | UE 迁移 / 默认场景与工具回归 | 本页范围完成；未接模型或打包 | [前后对照与最终验证摘要](assets/2026-10-03-umw-project-migration/verification.json)；原始日志和 Content 留本机 |
 | 2026-09-25 | [P0 站蹲数据与审核基线审计](2026-09-25-p0-stance-data-audit.md) | 数据审计 / 离线视觉复核 | 完成；107 条按用户决定全部通过 | 4 条逐帧图、窗口跨度、13 组家族表、[107 条确认清单](assets/2026-09-25-p0-stance-data-audit/restart_2026-09-25/review_acceptance.csv) |
 | 2026-09-28 | [站蹲早期过渡与状态条件试验](2026-09-28-stance-transition-v2.md) | 数据索引 / 云端训练 / 本地推理评估 | B0、B1 试验完成；UE 玩家闭环未实现 | [B0](assets/2026-09-28-stance-transition-v2/b0_test.json)、[B1 冻结测试](assets/2026-09-28-stance-transition-v2/b1_test.json)、[全部窗口](assets/2026-09-28-stance-transition-v2/b1_test_all.json) |
 | 2026-09-28 | [UE 单机 CMC 站蹲与执行 Root 观测演示](2026-09-28-ue-cmc-preview.md) | UE 功能/碰撞试验 | 自动场景通过；未接入模型姿态 | [119 条观测 CSV](assets/2026-09-28-ue-cmc-preview/cmc_preview_20260928T110529Z.csv)、[摘要](assets/2026-09-28-ue-cmc-preview/summary.json)、本机截图 |
 | 2026-09-28 | [UE CMC + B1 本地在线姿态预览](2026-09-28-ue-b1-online-preview.md) | ONNX 导出 / UE 本地推理 | 接线通过；生成历史回灌质量未通过 | [源历史 40 行](assets/2026-09-28-ue-b1-online-preview/source_history.csv)、[回灌 40 行](assets/2026-09-28-ue-b1-online-preview/generated_feedback.csv)、本机截图 |
-| 2026-09-28 | [MotionWeaver Actor Root 条件训练与本地推理](2026-09-28-motionweaver-a800-actor-root.md) | A800 训练 / 本地推理 | 完成 20000 步；玩家 UE 质量门槛未通过 | [20k 验收汇总](assets/2026-09-28-motionweaver-a800-actor-root/motionweaver_20k_acceptance_summary_20260928.json)、[CMC 逐条报告](assets/2026-09-28-motionweaver-a800-actor-root/motionweaver_cmc_report.json)；视频留本地归档 |
+| 2026-09-28 | [MotionWeaver Actor Root 条件训练与本地推理](2026-09-28-motionweaver-a800-actor-root.md) | A800 训练 / 本地推理 | 完成 20000 步；玩家 UE 质量门槛未通过 | [20k 验收汇总](assets/2026-09-28-motionweaver-a800-actor-root/motionweaver_20k_acceptance_summary_20260928.json)、[CMC 逐条报告](assets/2026-09-28-motionweaver-a800-actor-root/motionweaver_cmc_report.json)、四段离线骨架视频与蹲伏失败帧；原始输出留本地归档 |
 | 2026-09-25 | [Closed-loop 优化](2026-09-25-closed-loop-optimization.md) | CMC Root / 接触消融 | 完成；保留失败与对照 | CMC Root、接触和两步预测指标资产 |
 | 2026-09-25 | [接触速度审计](2026-09-25-contact-speed-audit.md) | 数据审计 / 接触评价 | 完成 | 速度窗口、验证和审计脚本 |
 | 2026-09-25 | [已有动作诊断](2026-09-25-existing-motion-diagnostics.md) | 动作质量诊断 | 完成 | Root、接触和来源动作报告 |

@@ -8,6 +8,10 @@
 
 `raw/` 与 `prepared/`：本地数据，忽略提交。当前大数据物理目录为 `E:/AIAnimationSystemData/`，包括 `BONES-SEED/`、`MotionDataLibrary/`、`UE/AILocomotionDataset/` 和 `prepared/`；旧 D 盘入口可能是兼容 Junction，不能视为第二份数据。
 
+`tools/migrate_motion_storage_to_e.py` 是 Windows 本机的一次性存储迁移工具。默认只生成清单，`--execute` 才执行复制及切换旧路径；使用前停止修改来源数据的程序。它检查目录与链接边界、共享目标中的同名冲突，并以 SHA-256 验证复制结果，再删除已验证且未改变的来源文件、建立兼容 Junction。已有不同内容的目标文件、链接或再次迁移已切换的路径均会拒绝；校验读取全部数据，耗时和磁盘 I/O 随数据量增长。每次复制失败会保留来源，应根据清单与 Robocopy 日志恢复，不能将目录大小当作内容完整性证明。
+
+`migration_progress_server.py` 按清单观察复制进度；`migration_progress_lite_server.py` 和 `migration_progress_lite.js` 只扫描目标目录大小，使用当前机器的估算总量，不验证内容，也不能证明迁移完成。三个观察器只绑定 `127.0.0.1`，默认端口都是 `8767`，一次只运行其中一个；轻量 Python 版支持 `--root`、`--port`。回归验证使用 `python -m unittest discover -s tests -p test_motion_storage_migration.py -v`，只操作临时夹具，不运行实际数据迁移。
+
 已有 UE 导出数据的 Root/姿态条件索引与非学习基线全部使用 Python 离线处理，无需启动完整 UE 编辑器。契约、实测数量、局限和复现命令见 [Root 驱动与硬参考姿态数据契约](../docs/reference-guided-data-contract-v1.md)。新资产的采样或跨骨架重定向仍依赖 UE 资产系统，可走已有无界面批处理；编辑器用于最终视觉验收。
 
 根目录安装后运行：`python -m data.tools.prepare_unreal_dataset --help` 或 `python -m data.tools.motion_review_server --help`。

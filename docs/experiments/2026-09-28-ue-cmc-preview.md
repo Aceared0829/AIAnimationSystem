@@ -12,15 +12,15 @@
 
 问题是能否在真实 UE CharacterMovementComponent 下区分“希望站起”和“胶囊体实际能站起”，并同时观测已执行 Actor Root，而不让模型或 Mesh 再执行第二次世界位移。本轮只验证这一条单机输入/碰撞边界；不比较动画模型质量。
 
-新增独立的 `unreal-sample/MotionWeaverCMCPreview` 实验插件。以 `D:/GameAnimationSample` 为本机宿主，复制 `/Game/Levels/DefaultLevel` 和 `GM_Sandbox` 到插件内容，副本的默认 Pawn 指向现有 `SandboxCharacter_CMC`。新地图放置低矮立方体顶棚及 `AMotionWeaverCMCTraceActor`；原地图、原 GameMode、原 `AIAnimation` 推理插件均不修改。该 Actor 只读 `bWantsToCrouch`、`IsCrouched()`、Actor Root 与速度；青线绘制已执行 Root，紫线用**当前速度 × 0.75 秒**外推，是在线可得的诊断估计，**不是 CMC 的真实未来轨迹或 Model Root 预测**。姿态仍由 GASP 样例动画生成，没有加载 B1 权重。
+新增独立的 `unreal-script/MotionWeaverCMCPreview` 实验插件。以 `D:/GameAnimationSample` 为本机宿主，复制 `/Game/Levels/DefaultLevel` 和 `GM_Sandbox` 到插件内容，副本的默认 Pawn 指向现有 `SandboxCharacter_CMC`。新地图放置低矮立方体顶棚及 `AMotionWeaverCMCTraceActor`；原地图、原 GameMode、原 `AIAnimation` 推理插件均不修改。该 Actor 只读 `bWantsToCrouch`、`IsCrouched()`、Actor Root 与速度；青线绘制已执行 Root，紫线用**当前速度 × 0.75 秒**外推，是在线可得的诊断估计，**不是 CMC 的真实未来轨迹或 Model Root 预测**。姿态仍由 GASP 样例动画生成，没有加载 B1 权重。
 
 自动场景依次蹲下、沿 +X 走入顶棚、请求站起并等待、继续离开顶棚、再次确认站立。接受条件为顶棚下持续保持实际蹲伏，离开后实际站立；同时生成含时间戳的 CSV 和两张游戏内截图。头顶碰撞由 CMC 处理，观测器不改胶囊体或位移。
 
 ## 代码、环境与数据
 
-- 仓库基线 `e07aad29773bf24dcadd98e36271d3af1894e7fe`；本轮试验使用未提交工作树，相关变更为 `unreal-sample/MotionWeaverCMCPreview/`、`unreal-sample/create_cmc_preview.py`、`unreal-sample/verify_cmc_preview.py` 与本记录。仓库中另有前轮站蹲训练试验的未提交文件，本轮未清理或覆盖。
-- 宿主 `D:/GameAnimationSample/GameAnimationSample.uproject`，UE 5.8.2；插件以 junction 挂在宿主 `Plugins/MotionWeaverCMCPreview`，实际源码在当前工作树。GASP 原角色与 Content 未搬入仓库。
-- 生成的 `/MotionWeaverCMCPreview/Maps/L_CMCPreview` 和 `/MotionWeaverCMCPreview/Blueprints/BP_GM_CMCPreview` 仅在本机插件 `Content` 中；仓库规则忽略 `unreal-sample/**/Content/`。分别 SHA-256 为 `9533455a63a69a68092890ed4f9d2cbc477158983de3a77cf86a6b4372eb4514` 和 `9290420e7deed74e26cf3e76ac0275bab8746f0c537b84d7d1320a06b871a424`；其他机器需有合法 GASP 资产并运行创建脚本，不将本地 `.umap/.uasset` 当作可公开分发资产包。
+- 仓库基线 `e07aad29773bf24dcadd98e36271d3af1894e7fe`；本轮试验使用未提交工作树，相关变更为 `unreal-script/MotionWeaverCMCPreview/`、`unreal-sample/create_cmc_preview.py`、`unreal-sample/verify_cmc_preview.py` 与本记录。仓库中另有前轮站蹲训练试验的未提交文件，本轮未清理或覆盖。
+- 宿主 `D:/GameAnimationSample/GameAnimationSample.uproject`，UE 5.8.2；插件以 junction 挂在宿主 `Plugins/MotionWeaverCMCPreview`，实际源码位于当前工作树的 `unreal-script/MotionWeaverCMCPreview`。GASP 原角色与 Content 未搬入仓库。
+- 生成的 `/MotionWeaverCMCPreview/Maps/L_CMCPreview` 和 `/MotionWeaverCMCPreview/Blueprints/BP_GM_CMCPreview` 仅在本机插件 `Content` 中；仓库规则忽略 `unreal-script/MotionWeaverCMCPreview/Content/`。分别 SHA-256 为 `9533455a63a69a68092890ed4f9d2cbc477158983de3a77cf86a6b4372eb4514` 和 `9290420e7deed74e26cf3e76ac0275bab8746f0c537b84d7d1320a06b871a424`；其他机器需有合法 GASP 资产并运行创建脚本，不将本地 `.umap/.uasset` 当作可公开分发资产包。
 - 观测 CSV 最多 18000 行，名义每 1/30 秒尝试一次，每个游戏 Tick 最多采一帧；**低帧率时不补帧，不能直接当固定 30 Hz 训练输入**。`cmc_wants_crouch` 是 CMC 内部期望状态，不是原始玩家按键事件；`accepted_crouch` 为 `ACharacter::IsCrouched()`。无 train/validation/test 划分，所有采样来自同一自动场景。
 
 实际执行命令要点：
