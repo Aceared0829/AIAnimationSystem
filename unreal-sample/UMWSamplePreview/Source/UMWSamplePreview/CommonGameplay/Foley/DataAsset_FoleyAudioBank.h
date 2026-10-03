@@ -9,7 +9,7 @@
 
 class USoundBase;
 /**
- * 
+ *
  */
 UCLASS(Blueprintable,BlueprintType)
 class UMWSAMPLEPREVIEW_API UDataAsset_FoleyAudioBank : public UDataAsset
@@ -17,7 +17,7 @@ class UMWSAMPLEPREVIEW_API UDataAsset_FoleyAudioBank : public UDataAsset
 	GENERATED_BODY()
 public:
 	UDataAsset_FoleyAudioBank();
-	
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,DisplayName="资产")
 	TMap<FGameplayTag,TObjectPtr<USoundBase>> FoleyAudioAssets;
 

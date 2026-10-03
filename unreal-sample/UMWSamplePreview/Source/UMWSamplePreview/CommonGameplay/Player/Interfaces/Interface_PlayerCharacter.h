@@ -18,7 +18,7 @@ class UInterface_PlayerCharacter : public UInterface
 };
 
 /**
- * 
+ *
  */
 class UMWSAMPLEPREVIEW_API IInterface_PlayerCharacter
 {
@@ -26,16 +26,16 @@ class UMWSAMPLEPREVIEW_API IInterface_PlayerCharacter
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	
+
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent,Category="Setters")
 	void SetCharacterInputState(FMovementInputState NewInputState);
-	
+
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent,Category="Getters")
 	FCharacterPropertiesForAnimation GetCharacterPropertiesForAnimation() const;
-	
+
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent,Category="Getters")
 	FCharacterPropertiesForCamera GetCharacterPropertiesForCamera() const;
-	
+
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent,Category="Getters")
 	FCharacterPropertiesForTraversal GetCharacterPropertiesForTraversal() const;
 

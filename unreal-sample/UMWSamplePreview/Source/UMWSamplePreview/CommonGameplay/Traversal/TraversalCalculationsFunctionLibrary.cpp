@@ -1,4 +1,4 @@
-﻿#include "TraversalCalculationsFunctionLibrary.h"
+#include "TraversalCalculationsFunctionLibrary.h"
 
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"

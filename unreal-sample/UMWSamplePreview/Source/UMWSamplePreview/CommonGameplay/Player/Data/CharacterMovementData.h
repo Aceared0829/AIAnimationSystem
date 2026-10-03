@@ -15,7 +15,7 @@
 class UMotionWarpingComponent;
 
 USTRUCT(BlueprintType,DisplayName="移动输入状态")
-struct FMovementInputState 
+struct FMovementInputState
 {
 	[[nodiscard]] FMovementInputState(const bool bWantsToSprint, const bool bWantsToWalk, const bool bWantsToStrafe,
 		const bool bWantsToAim, const bool bWantsToCrouch)
@@ -29,24 +29,24 @@ struct FMovementInputState
 
 	GENERATED_BODY()
 	FMovementInputState() = default;
-	
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,DisplayName="想要冲刺")
 	bool bWantsToSprint = false;
-	
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,DisplayName="想要走路")
 	bool bWantsToWalk = false;
-	
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,DisplayName="想要扫射")
 	bool bWantsToStrafe = true;
-	
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,DisplayName="想要瞄准")
 	bool bWantsToAim = false;
-	
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,DisplayName="想要蹲伏")
 	bool bWantsToCrouch = false;
-	
+
 	auto operator<=>(const FMovementInputState&) const = default;
-	
+
 };
 
 UENUM(BlueprintType,DisplayName="移动状态")
@@ -143,23 +143,23 @@ struct FBlendStackInputs
 	// 动画资源（可为空）
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="Anim", MakeStructureDefaultValue="None"))
 	TObjectPtr<UAnimationAsset> Anim;
-	
+
 	// 是否循环播放
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="Loop", MakeStructureDefaultValue="False"))
 	bool bIsLoop;
-	
+
 	// 起始播放时间（秒）
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="StartTime", MakeStructureDefaultValue="0.000000"))
 	double StartTime;
-	
+
 	// 混合过渡时长（秒）
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="BlendTime", MakeStructureDefaultValue="0.000000"))
 	double BlendTime;
-	
+
 	// 混合权重曲线配置（可为空）
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="BlendProfile", MakeStructureDefaultValue="None"))
 	TObjectPtr<UBlendProfile> BlendProfile;
-	
+
 	// 附加标签列表，用于筛选或标记
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="Tags"))
 	TArray<FName> Tags;
@@ -190,7 +190,7 @@ struct FCharacterPropertiesForAnimation
 	 GroundNormal(FVector::ZeroVector),
 	 GroundLocation(FVector::ZeroVector)
 	{}
-	
+
 	[[nodiscard]] FCharacterPropertiesForAnimation(const FMovementInputState& InputState,
 		const TEnumAsByte<EAMovementMode>& MovementMode, const TEnumAsByte<EStance>& Stance,
 		const TEnumAsByte<ERotationMode>& RotationMode, const TEnumAsByte<EGait>& Gait,
@@ -219,49 +219,49 @@ struct FCharacterPropertiesForAnimation
 		  GroundLocation(GroundLocation)
 	{
 	}
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="InputState"))
 	FMovementInputState InputState;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="MovementMode", MakeStructureDefaultValue="OnGround"))
 	TEnumAsByte<EAMovementMode> MovementMode;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="Stance", MakeStructureDefaultValue="Stand"))
 	TEnumAsByte<EStance> Stance;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="RotationMode", MakeStructureDefaultValue="OrientToMovement"))
 	TEnumAsByte<ERotationMode> RotationMode;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="Gait", MakeStructureDefaultValue="Run"))
 	TEnumAsByte<EGait> Gait;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="MovementDirection", MakeStructureDefaultValue="F"))
 	TEnumAsByte<EMovementDirection> MovementDirection;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="ActorTransform", MakeStructureDefaultValue="0.000000,0.000000,0.000000|0.000000,0.000000,0.000000|1.000000,1.000000,1.000000"))
 	FTransform ActorTransform;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="Velocity", MakeStructureDefaultValue="0.000000,0.000000,0.000000"))
 	FVector Velocity;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="InputAcceleration", MakeStructureDefaultValue="0.000000,0.000000,0.000000"))
 	FVector InputAcceleration;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="CurrentMaxAcceleration", MakeStructureDefaultValue="0.000000"))
 	double CurrentMaxAcceleration;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="CurrentMaxDeceleration", MakeStructureDefaultValue="0.000000"))
 	double CurrentMaxDeceleration;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="OrientationIntent", MakeStructureDefaultValue="0.000000,0.000000,0.000000"))
 	FRotator OrientationIntent;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="AimingRotation", MakeStructureDefaultValue="0.000000,0.000000,0.000000"))
 	FRotator AimingRotation;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="JustLanded", MakeStructureDefaultValue="False"))
 	bool bJustLanded;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="LandVelocity", MakeStructureDefaultValue="0.000000,0.000000,0.000000"))
 	FVector LandVelocity;
 
@@ -289,7 +289,7 @@ struct  FCharacterPropertiesForTraversal
 	 Gait(EGait::Walk),
 	 Speed(0.0)
 	{}
-	
+
 	[[nodiscard]] FCharacterPropertiesForTraversal(const TObjectPtr<UCapsuleComponent>& Capsule,
 		const TObjectPtr<USkeletalMeshComponent>& Mesh,
 		const TObjectPtr<UMotionWarpingComponent>& MotionWarping,
@@ -304,7 +304,7 @@ struct  FCharacterPropertiesForTraversal
 		  Speed(Speed)
 	{
 	}
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="Capsule", MakeStructureDefaultValue="None"))
 	TObjectPtr<UCapsuleComponent> Capsule;
 
@@ -313,7 +313,7 @@ struct  FCharacterPropertiesForTraversal
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="MotionWarping", MakeStructureDefaultValue="None"))
 	TObjectPtr<UMotionWarpingComponent> MotionWarping;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="MovementMode", MakeStructureDefaultValue="OnGround"))
 	TEnumAsByte<EAMovementMode> MovementMode;
 
@@ -324,4 +324,3 @@ struct  FCharacterPropertiesForTraversal
 	double Speed;
 
 };
-

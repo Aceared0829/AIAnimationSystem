@@ -7,7 +7,7 @@ public class UMWSamplePreview : ModuleRules
 	public UMWSamplePreview(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
+
 		PublicIncludePaths.Add(ModuleDirectory);
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayTags", "PoseSearch" });
 		PrivateDependencyModuleNames.AddRange(new string[]

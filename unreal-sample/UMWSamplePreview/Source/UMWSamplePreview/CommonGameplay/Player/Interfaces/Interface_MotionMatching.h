@@ -18,7 +18,7 @@ class UInterface_MotionMatching : public UInterface
 };
 
 /**
- * 
+ *
  */
 class UMWSAMPLEPREVIEW_API IInterface_MotionMatching
 {

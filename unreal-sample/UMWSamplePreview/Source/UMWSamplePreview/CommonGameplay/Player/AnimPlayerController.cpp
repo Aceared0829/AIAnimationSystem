@@ -43,7 +43,7 @@ void AAnimPlayerController::SwitchInputMappingContextByCharacterState(const ECha
 	{
 		//如果是当前状态，则添加映射文本
 		if (NewInputState == ECharacterState::Common)
-		{	
+		{
 			continue;
 		}
 		else if (NewInputState == InputState.Key)

@@ -25,22 +25,22 @@ ACharacterBase::ACharacterBase()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	// 角色必须持续Tick以便在移动组件前插入自定义更新
- 
+
 	PreCMCTickComponent = CreateDefaultSubobject<UPreCMCTick>(TEXT("PreCMCTick"));
 	// PreCMC用于在CharacterMovementComponent运行前执行回调
 	checkf(PreCMCTickComponent,TEXT("PlayerCharacter必须拥有PreCMCTick组件"));
- 
+
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 	// MotionWarping驱动根运动与对齐逻辑
 	checkf(MotionWarpingComponent,TEXT("PlayerCharacter必须拥有MotionWarping组件"));
-	
+
 	if (!FoleyEventsComp)
 	{
 		FoleyEventsComp = CreateDefaultSubobject<UFoleyEventsComponent>(TEXT("FoleyEventsComponent"));
 		// FoleyEvents用于播放角色脚步音效等
 		checkf(FoleyEventsComp,TEXT("PlayerCharacter必须拥有FoleyEvents组件"));
 	}
-	
+
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->JumpZVelocity = 500.0f;
 	GetCharacterMovement()->AirControl = 0.35f;
@@ -67,7 +67,7 @@ ACharacterBase::ACharacterBase()
 			GetMesh()->SetAnimInstanceClass(AnimBPPath.Object->GeneratedClass);
 		}
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UCurveFloat> CurveFloatPath
 		(TEXT("/Script/Engine.CurveFloat'/Game/Blueprints/Data/Curve_StrafeSpeedMap.Curve_StrafeSpeedMap'"));
 		CurveFloatPath.Succeeded())
@@ -78,14 +78,14 @@ ACharacterBase::ACharacterBase()
 	{
 		StrafeSpeedMappingCurve = nullptr;
 	}
-	
+
 }
 
 // Called when the game starts or when spawned
 void ACharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (PreCMCTickComponent)
 	{
 		GetCharacterMovement()->AddTickPrerequisiteComponent(PreCMCTickComponent);
@@ -93,7 +93,7 @@ void ACharacterBase::BeginPlay()
 		PreCMCTickComponent->OnPreCMCTick.AddDynamic(this, &ACharacterBase::UpdateCMCRotation);
 		PreCMCTickComponent->OnPreCMCTick.AddDynamic(this, &ACharacterBase::UpdateCMCMovement);
 	}
-	
+
 	if (GetLocalRole()==ROLE_SimulatedProxy)
 	{
 		OnCharacterMovementUpdated.AddDynamic(this,&ACharacterBase::OnCharacterMovementUpdateEvent);
@@ -103,11 +103,11 @@ void ACharacterBase::BeginPlay()
 void ACharacterBase::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-	
+
 	// 服务器上会进这里，但不要在服务器/非本地去做相机逻辑
-	
+
 	OnPossessedByClient_Event();
-	
+
 }
 
 // Called every frame
@@ -300,9 +300,9 @@ EGait ACharacterBase::GetDesiredGait() const
 			MoveActionValue = FVector2D(NormalizedAccel.X, NormalizedAccel.Y);
 		}
 	}
-    
+
     const FVector2D MoveActionWorldSpaceValue = MoveActionValue;
-	
+
 	const bool bMoveMoreThanThreshold = MoveActionValue.Length() > AnalogWalkRunThreshold ||
 		MoveActionWorldSpaceValue.Length() > AnalogWalkRunThreshold;
 	bool FullMovementInput;
@@ -361,7 +361,7 @@ float ACharacterBase::CalculateMaxAcceleration() const
 	else //Gait == Sprint
 	{
 		return FMath::GetMappedRangeValueClamped(FVector2D{300.0f, 700.0f},
-												 FVector2D{800.0f, 300.0f}, 
+												 FVector2D{800.0f, 300.0f},
 												 GetCharacterMovement()->Velocity.Length());
 	}
 }
@@ -375,7 +375,7 @@ float ACharacterBase::CalculateBrakingDeceleration() const
     }
     return 2000.0f;
 }
- 
+
 float ACharacterBase::CalculateGroundFriction() const
 {
     if (Gait == Walk)
@@ -390,11 +390,11 @@ float ACharacterBase::CalculateGroundFriction() const
     {
         // 冲刺速度越快摩擦越低
         return FMath::GetMappedRangeValueClamped(FVector2D{0.0f, 500.0f},
-                                                 FVector2D{5.0f, 3.0f}, 
+                                                 FVector2D{5.0f, 3.0f},
                                                  GetCharacterMovement()->Velocity.Length());
     }
 }
- 
+
 float ACharacterBase::CalculateMaxSpeed() const
 {
 	// 使用移动方向与角色朝向的夹角查询映射曲线
@@ -447,7 +447,7 @@ float ACharacterBase::CalculateMaxCrouchSpeed() const
     const float MoveDirectionAngle = UKismetAnimationLibrary::CalculateDirection(CharacterVelocity, CharacterRotation);
     const float MoveDirAngleAbs = FMath::Abs(MoveDirectionAngle);
     const float MoveDirAngleFloatValue = StrafeSpeedMappingCurve->GetFloatValue(MoveDirAngleAbs);
-	
+
 	float StrafeSpeedMap;
 	if (GetCharacterMovement()->bOrientRotationToMovement)
 	{
@@ -473,7 +473,7 @@ bool ACharacterBase::HasMovementInputVector() const
 {
 	return UKismetMathLibrary::NotEqual_VectorVector
 	(GetPendingMovementInputVector(), FVector::ZeroVector, 0.0f);
-	
+
 }
 
 bool ACharacterBase::CanSprint() const
@@ -483,7 +483,7 @@ bool ACharacterBase::CanSprint() const
 	{
 		return false;
 	}
-	
+
 	const FVector CurrentAcceleration = CMC->GetCurrentAcceleration();
 	const FVector PendingInput = CMC->GetPendingInputVector();
 
@@ -684,5 +684,3 @@ void ACharacterBase::OnLanded_Event_Implementation(FVector InLandVelocity)
 		bJustLanded = false;
 	}, 0.3f, false);
 }
-
-

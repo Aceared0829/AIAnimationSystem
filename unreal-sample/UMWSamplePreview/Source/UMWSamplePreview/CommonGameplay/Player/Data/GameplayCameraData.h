@@ -36,7 +36,7 @@ struct FCharacterPropertiesForCamera
 	 Gait(EGait::Walk),
 	 Stance(EStance::Stand)
 	{}
-	
+
 	[[nodiscard]] FCharacterPropertiesForCamera(const TEnumAsByte<ECameraStyle>& CameraStyle,
 	                                            const TEnumAsByte<ECameraMode>& CameraMode,
 	                                            const TEnumAsByte<EGait>& Gait,
@@ -47,16 +47,16 @@ struct FCharacterPropertiesForCamera
 		  Stance(Stance)
 	{
 	}
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="CameraStyle", MakeStructureDefaultValue="NewEnumerator0"))
 	TEnumAsByte<ECameraStyle> CameraStyle;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="CameraMode", MakeStructureDefaultValue="NewEnumerator0"))
 	TEnumAsByte<ECameraMode> CameraMode;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="Gait", MakeStructureDefaultValue="Walk"))
 	TEnumAsByte<EGait> Gait;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="Stance", MakeStructureDefaultValue="Stand"))
 	TEnumAsByte<EStance> Stance;
 

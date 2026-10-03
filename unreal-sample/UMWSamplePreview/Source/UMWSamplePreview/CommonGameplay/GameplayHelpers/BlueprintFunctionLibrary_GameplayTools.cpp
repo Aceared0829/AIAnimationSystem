@@ -16,7 +16,7 @@ FInputActionValue UBlueprintFunctionLibrary_GameplayTools::GetInputActionValue(U
 {
 	if (const APlayerController* PC = Cast<APlayerController>(GWorld->GetFirstPlayerController()))
 	{
-		const UEnhancedInputLocalPlayerSubsystem* Subsystem = 
+		const UEnhancedInputLocalPlayerSubsystem* Subsystem =
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
 		if (Subsystem)
 		{

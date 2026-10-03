@@ -14,7 +14,7 @@ class UInterface_FoleyAudioBank : public UInterface
 };
 
 /**
- * 
+ *
  */
 class UMWSAMPLEPREVIEW_API IInterface_FoleyAudioBank
 {
@@ -22,7 +22,7 @@ class UMWSAMPLEPREVIEW_API IInterface_FoleyAudioBank
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	
+
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
 	bool CanPlayFoleyEvent();
 };

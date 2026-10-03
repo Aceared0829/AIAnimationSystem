@@ -18,7 +18,7 @@ protected:
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
-	
+
 public:
 	//跑酷计算常量。
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "默认")

@@ -23,4 +23,3 @@ void UPreCMCTick::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 	//每帧调用委托
 	OnPreCMCTick.Broadcast();
 }
-

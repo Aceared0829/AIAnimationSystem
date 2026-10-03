@@ -10,13 +10,13 @@ USTRUCT(Blueprintable)
 struct FDebugGraphLineProperties
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FString Name;
-	
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FLinearColor Color = FLinearColor::Transparent;
-	
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TArray<float> Values;
 };

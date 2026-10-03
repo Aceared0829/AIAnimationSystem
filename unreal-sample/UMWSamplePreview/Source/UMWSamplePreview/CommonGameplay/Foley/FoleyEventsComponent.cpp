@@ -20,7 +20,7 @@ UFoleyEventsComponent::UFoleyEventsComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UDataAsset_FoleyAudioBank> FoleyEventBankOfPath(
 		TEXT("/Script/UMWSamplePreview.DataAsset_FoleyAudioBank'/Game/Audio/Foley/DS_DefaultFoleyEventAudioBank.DS_DefaultFoleyEventAudioBank'"));
 		FoleyEventBankOfPath.Succeeded())
@@ -37,7 +37,7 @@ void UFoleyEventsComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
+
 }
 
 
@@ -56,12 +56,12 @@ bool UFoleyEventsComponent::CanPlayFoley() const
 	{
 		return true;
 	}
-	
+
 	if (FoleyEventBank->GetClass()->ImplementsInterface(UInterface_FoleyAudioBank::StaticClass()))
 	{
 		return IInterface_FoleyAudioBank::Execute_CanPlayFoleyEvent(FoleyEventBank);
 	}
-	
+
 	return true;
 }
 
@@ -106,7 +106,7 @@ UAudioComponent* UFoleyEventsComponent::PlayFoleyEvent(FGameplayTag Event, FFole
 	{
 		return nullptr;
 	}
-	
+
 	if (!FoleyEventBank)
 	{
 		return nullptr;
@@ -127,8 +127,7 @@ UAudioComponent* UFoleyEventsComponent::PlayFoleyEvent(FGameplayTag Event, FFole
 		Params.Volume, Params.Pitch, 0.0f,
 		nullptr, nullptr,
 		true);
-	
+
 	TriggerVisLog(Params);
 	return FoleyAudioComponent;
 }
-

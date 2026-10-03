@@ -25,11 +25,11 @@ class UMWSAMPLEPREVIEW_API AAnimPlayerController : public APlayerController
 	GENERATED_BODY()
 
 	virtual void BeginPlay() override;
-	
+
 public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="输入|映射",DisplayName="映射文本",meta=(AllowPrivateAccess="true"));
 	TMap<ECharacterState,TObjectPtr<UInputMappingContext>> InputMappingContexts;
-	
+
 	UFUNCTION(BlueprintCallable,DisplayName="根据角色状态切换输入映射文本",Category="输入")
 	void SwitchInputMappingContextByCharacterState(const ECharacterState& NewInputState);
 };

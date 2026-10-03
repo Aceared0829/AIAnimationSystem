@@ -1,9 +1,9 @@
-﻿#include "TraversalComponent.h"
+#include "TraversalComponent.h"
 
 UTraversalComponent::UTraversalComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	
+
 	MinLedgeWidth = 30.0f;
 	bPersistentShowTrace = false;
 	bShowTrace = false;
@@ -21,4 +21,3 @@ void UTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
-

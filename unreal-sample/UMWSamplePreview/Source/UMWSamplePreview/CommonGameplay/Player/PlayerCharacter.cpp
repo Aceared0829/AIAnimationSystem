@@ -28,19 +28,19 @@ APlayerCharacter::APlayerCharacter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
+
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	checkf(SpringArm,TEXT("PlayerCharacter必须拥有SpringArm组件"));
 	SpringArm->SetRelativeLocation(FVector{0.0f,0.0f,12.0f});
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bUsePawnControlRotation = true;
 	SpringArm->bEnableCameraLag = true;
-	
+
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	checkf(Camera,TEXT("PlayerCharacter必须拥有Camera组件"));
 	Camera->SetupAttachment(SpringArm);
 	Camera->bAutoActivate = false;
-	
+
 	GameplayPlayerCamera = CreateDefaultSubobject<UGameplayCameraComponent>(TEXT("PlayerCameraComponent"));
 	checkf(GameplayPlayerCamera,TEXT("PlayerCharacter必须拥有PlayerCamera组件"));
 	GameplayPlayerCamera->SetupAttachment(GetMesh());
@@ -56,7 +56,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		GameplayPlayerCamera->CameraReference.SetCameraAsset(nullptr);
 	}
-	
+
 	//默认输入映射
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> MoveActionPath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Move.IA_Move'"));
@@ -68,7 +68,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		MoveAction = nullptr;
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> MoveAction_WorldSpacePath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Move_WorldSpace.IA_Move_WorldSpace'"));
 		MoveAction_WorldSpacePath.Succeeded())
@@ -79,7 +79,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		MoveAction_WorldSpace = nullptr;
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> LookActionPath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Look.IA_Look'"));
 		LookActionPath.Succeeded())
@@ -90,7 +90,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		LookAction = nullptr;
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> LookAction_GamepadPath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Look_Gamepad.IA_Look_Gamepad'"));
 		LookAction_GamepadPath.Succeeded())
@@ -101,7 +101,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		LookAction_Gamepad = nullptr;
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> WalkActionPath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Walk.IA_Walk'"));
 		WalkActionPath.Succeeded())
@@ -112,7 +112,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		WalkAction = nullptr;
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> SprintActionPath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Sprint.IA_Sprint'"));
 		SprintActionPath.Succeeded())
@@ -123,7 +123,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		SprintAction = nullptr;
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> CrouchActionPath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Crouch.IA_Crouch'"));
 		CrouchActionPath.Succeeded())
@@ -134,7 +134,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		CrouchAction = nullptr;
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> StrafeActionPath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Strafe.IA_Strafe'"));
 		StrafeActionPath.Succeeded())
@@ -145,7 +145,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		StrafeAction = nullptr;
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> AimActionPath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Aim.IA_Aim'"));
 		AimActionPath.Succeeded())
@@ -156,7 +156,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		AimAction = nullptr;
 	}
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UInputAction> MouseWheelUpActionPath
 		(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_CameraSwitch.IA_CameraSwitch'"));
 		MouseWheelUpActionPath.Succeeded())
@@ -167,7 +167,7 @@ APlayerCharacter::APlayerCharacter()
 	{
 		CameraSwitchAction = nullptr;
 	}
-	
+
 	if (ConstructorHelpers::FObjectFinder<USoundWave> SoundPath(
 		TEXT(
 			"/Script/Engine.SoundWave'/Engine/VREditor/Sounds/UI/Object_Snaps_To_Another_Actor.Object_Snaps_To_Another_Actor'"))
@@ -186,7 +186,7 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 void APlayerCharacter::SetupCamera()

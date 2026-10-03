@@ -190,7 +190,7 @@ USTRUCT(BlueprintType)
 struct FTraversalChooserInputs
 {
 	GENERATED_BODY()
-	
+
 	[[nodiscard]] FTraversalChooserInputs():
 		ActionType(ETraversalActionType::None)
 		, HasFrontLedge(false)
@@ -205,7 +205,7 @@ struct FTraversalChooserInputs
 		, Speed(0.0)
 	{
 	}
-	
+
 	[[nodiscard]] FTraversalChooserInputs(
 		const ETraversalActionType InActionType,
 		const bool bHasFrontLedge,
@@ -233,7 +233,7 @@ struct FTraversalChooserInputs
 		  , PoseHistory(InPoseHistory)
 	{
 	}
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="ActionType"))
 	ETraversalActionType ActionType;
 
@@ -280,7 +280,7 @@ struct FTraversalChooserOutputs
 		, MontageStartTime(0.0)
 	{
 	}
-	
+
 	[[nodiscard]] FTraversalChooserOutputs(
 		const ETraversalActionType InActionType,
 		const double InMontageStartTime)
@@ -288,10 +288,10 @@ struct FTraversalChooserOutputs
 		  , MontageStartTime(InMontageStartTime)
 	{
 	}
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="ActionType"))
 	ETraversalActionType ActionType;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(DisplayName="MontageStartTime", MakeStructureDefaultValue="0.000000"))
 	double MontageStartTime;
 

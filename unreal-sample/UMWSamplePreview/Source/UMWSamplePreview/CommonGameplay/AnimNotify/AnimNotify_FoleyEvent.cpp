@@ -23,14 +23,14 @@ UAnimNotify_FoleyEvent::UAnimNotify_FoleyEvent()
 	Side = EFoleyEventSide::None;
 	VolumeMultiplier = 1.0f;
 	PitchMultiplier = 1.0f;
-	
+
 	if (const ConstructorHelpers::FObjectFinder<UDataAsset_FoleyAudioBank> FoleyEventBankOfPath(
 		TEXT("/Script/UMWSamplePreview.DataAsset_FoleyAudioBank'/Game/Audio/Foley/DS_DefaultFoleyEventAudioBank.DS_DefaultFoleyEventAudioBank'"));
 		FoleyEventBankOfPath.Succeeded())
 	{
 		DefaultBank = FoleyEventBankOfPath.Object.Get();
 	}
-	
+
 #if WITH_EDITORONLY_DATA
 	NotifyColor = FColor(255,200,200,255);
 	bShouldFireInEditor = true;

@@ -10,13 +10,13 @@
 
 class UInputAction;
 /**
- * 
+ *
  */
 UCLASS()
 class UMWSAMPLEPREVIEW_API UBlueprintFunctionLibrary_GameplayTools : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
-	
+
 public:
 	UFUNCTION(BlueprintPure,BlueprintCallable, DisplayName="获取InputAction的值",Category="输入|工具")
 	static FInputActionValue GetInputActionValue(UPARAM(DisplayName="输入动作") UInputAction* InputAction);
