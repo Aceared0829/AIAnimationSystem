@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "experiment_id": "2026-09-28-motionweaver-a800-actor-root",
+  "verified_at": "2026-10-03",
+  "scope": "Existing offline skeleton renders; no UE runtime or training rerun",
+  "files": [
+    {
+      "file": "walk_01403_comparison.mp4",
+      "bytes": 356252,
+      "sha256": "8a6dda1a308019336a0349ba4ea168e941ac0f328f39e3cadb754c95e3f847c0",
+      "video": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 720,
+        "avg_frame_rate": "15/1",
+        "nb_read_frames": "28"
+      }
+    },
+    {
+      "file": "run_00820_comparison.mp4",
+      "bytes": 402505,
+      "sha256": "cd731e09fb4f574e69a7f5cb9e2560f06c260c9dc8e2aff11f400cd46757e2c1",
+      "video": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 720,
+        "avg_frame_rate": "15/1",
+        "nb_read_frames": "28"
+      }
+    },
+    {
+      "file": "crouch_00145_comparison.mp4",
+      "bytes": 394467,
+      "sha256": "3e134122f9305057af3c061b2d648c10c12353ed771bb97ee8d21e5caf8192ef",
+      "video": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 720,
+        "avg_frame_rate": "15/1",
+        "nb_read_frames": "28"
+      }
+    },
+    {
+      "file": "crouch_00430_cmc.mp4",
+      "bytes": 190261,
+      "sha256": "f648a9b7775d2e15bcaa0c2f9e0095891902a1ee8f4d293260a282db7002e3ee",
+      "video": {
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 720,
+        "avg_frame_rate": "15/1",
+        "nb_read_frames": "28"
+      }
+    },
+    {
+      "file": "crouch_00430_cmc.png",
+      "bytes": 50036,
+      "sha256": "ee1f44a6657e615c54f405c2a9d1994664430eb0d362499c6ff1d20bbb61da9e"
+    }
+  ]
+}

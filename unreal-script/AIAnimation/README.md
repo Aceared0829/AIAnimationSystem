@@ -2,6 +2,10 @@
 
 ## UE 编辑器预览工作台（2026-09-23）
 
+2026-09-23 的实际界面见 [工作台截图](docs/images/preview-workbench-live-20260923.png)。另有 [界面概念图](docs/images/preview-workbench-ui-concept.png) 和 [分层架构概念图](docs/images/preview-workbench-architecture-concept.png)，用于讨论设计；概念图中的控件、数值和功能不作为已实现能力或实测指标。
+
+![2026-09-23 的 UE 预览工作台实际截图](docs/images/preview-workbench-live-20260923.png)
+
 推荐从仓库根目录运行 `./unreal-script/AIAnimation/Run-PreviewWorkbench.ps1`：它打开独立的 AIAnimation 窗口，隐藏原编辑器主窗口，跳过上次打开的关卡和启动资产，并将帧率限制为 30 FPS（可用 `-MaxFPS` 调整）。独立窗口仍依赖 UnrealEditor 进程和编辑器资产系统；节省的是关卡加载与隐藏视口的开销，不等同于轻量运行时程序。关闭独立窗口会退出该编辑器进程。也可在 GASP 项目的普通编辑器菜单 **工具 → AIAnimation 预览工作台** 打开停靠版本，或在控制台执行 `AIAnimation.OpenWorkbench`。
 
 工作台默认加载低障碍翻越动画与 Candidate24 模型，动画和模型均可用资产选择器切换。视口沿用 UE 编辑器相机操作，三路依次显示同时间点的源动画、GPU 软输出、GPU 加硬参考结果；底部支持播放、暂停、逐帧和时间轴定位。拖动滑块时三路画面随滑块实时定位，内部会补齐模型历史；松开后仍保持暂停。逐帧也保持暂停；靠近片尾时，最大可到达姿态仍受推理延迟限制。
