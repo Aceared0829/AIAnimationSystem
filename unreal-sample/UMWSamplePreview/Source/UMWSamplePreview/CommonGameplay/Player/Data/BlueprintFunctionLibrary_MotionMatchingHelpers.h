@@ -15,7 +15,7 @@ struct FDebugGraphLineProperties
 	FString Name;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	FLinearColor Color;
+	FLinearColor Color = FLinearColor::Transparent;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TArray<float> Values;

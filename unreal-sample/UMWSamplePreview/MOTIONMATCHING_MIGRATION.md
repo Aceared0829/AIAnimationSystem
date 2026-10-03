@@ -39,8 +39,9 @@
 | GameMode、Pawn、Controller、输入资产、Mesh、AnimBP、CMC 参数及原生组件 | 迁移前后配置一致（仅规范化路径） |
 | PIE | 移动、蹲下、站起实测通过；角色与动画实例有效，骨骼数量均为 88 |
 | 初始角色位置与相机位置 | 迁移前后完全一致 |
+| CR 后构建与 PIE | Editor/Game 再次编译成功；idle/walk/crouch/stand 复测通过，角色与相机初始位置不变；原生属性初始化错误 0 |
 
-默认链路仍为 `DefaultLevel → GM_Sandbox → SandboxCharacter_CMC / PC_Sandbox → ABP_PlayerCharacter`，现在这些资产全部位于 `/Game`。Gameplay 逻辑与角色参数未重写；源码正文除路径/API 宏转换外，仅增加上述 Editor 专用字段的构建保护。
+默认链路仍为 `DefaultLevel → GM_Sandbox → SandboxCharacter_CMC / PC_Sandbox → ABP_PlayerCharacter`，现在这些资产全部位于 `/Game`。Gameplay 逻辑与角色参数未重写；源码正文除路径/API 宏转换外，增加上述 Editor 专用字段的构建保护。提交后的 CR 另将 `FDebugGraphLineProperties::Color` 显式初始化为透明黑，消除原生反射属性初始化错误，保持默认零值且不改变已保存的 Blueprint 属性。
 
 本机证据位于仓库 `.build/mmcpp-migration/`：`content-manifest.json`、`comparison.json`、`before-assets.json`、`after-assets.json`、`blueprint-validation.json`、构建和 UE 日志，以及迁移前后的 idle/walk/crouch/stand 截图。截图采样时刻不同，不作为逐帧动画或像素相等的证明。原始备份位于同目录的 `backup/`。
 
@@ -51,7 +52,7 @@
 以下诊断在迁移前日志中已有记录，不能把上述验证理解为全套 UE 自动化检查通过：
 
 - `CHT_RotationOffsetCurve` 缺少 Context Object/Struct。当前 Registry 中没有其他项目资产依赖该 Chooser，默认演示验证未使用它。
-- `FDebugGraphLineProperties::Color` 未显式初始化，UE 的反射属性初始化检查报错；本次保留其原有声明。
+- `FDebugGraphLineProperties::Color` 未显式初始化，UE 的反射属性初始化检查报错；后续 CR 修复了此项。
 - 多个 `DDCVar.*` 控制台变量未注册，默认演示中的 Blueprint 输出相关提示；本次保留原有回退行为。
 
 迁移前的两处 Blueprint 结构体加载错误在原生重存、重新编译后未再出现；缺失 Foley Gameplay Tag 的提示在补齐项目配置后消失。
