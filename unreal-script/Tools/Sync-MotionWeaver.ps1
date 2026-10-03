@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $sourceRoot = Join-Path $repositoryRoot 'unreal-sample\UMWSamplePreview\Plugins\MotionWeaver'
 $mirrorRoot = Join-Path $repositoryRoot 'unreal-script\MotionWeaver'
-$excludedDirectories = @('Binaries', 'Intermediate', 'Saved')
+$excludedDirectories = @('Binaries', 'Intermediate', 'Saved', 'Content')
 
 if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
 	throw "MotionWeaver 源插件不存在：$sourceRoot"
@@ -17,6 +17,10 @@ if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
 
 function Get-RelativePath([string]$Root, [string]$Path)
 {
+	$prefix = $Root.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+	if (-not $Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
+		throw "路径超出插件目录：$Path"
+	}
 	return $Path.Substring($Root.Length).TrimStart('\', '/')
 }
 
@@ -26,13 +30,48 @@ function Test-IsExcludedPath([string]$RelativePath)
 	return [bool]($segments | Where-Object { $excludedDirectories -contains $_ })
 }
 
-$sourceFiles = @(
-	Get-ChildItem -LiteralPath $sourceRoot -File -Recurse |
-		Where-Object {
-			$relativePath = Get-RelativePath $sourceRoot $_.FullName
-			-not (Test-IsExcludedPath $relativePath)
+function Assert-NoReparseParents([string]$Path)
+{
+	$current = [IO.Path]::GetFullPath($Path)
+	while ($current -ne $repositoryRoot) {
+		if (-not $current.StartsWith($repositoryRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+			throw "路径超出仓库：$current"
 		}
-)
+		if (Test-Path -LiteralPath $current) {
+			$item = Get-Item -LiteralPath $current -Force
+			if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+				throw "同步目录包含链接，拒绝读写或删除：$current"
+			}
+		}
+		$current = Split-Path -Parent $current
+	}
+}
+
+function Get-PluginFiles([string]$Root)
+{
+	Assert-NoReparseParents $Root
+	if (-not (Test-Path -LiteralPath $Root -PathType Container)) {
+		return
+	}
+	$pending = [Collections.Generic.Stack[string]]::new()
+	$pending.Push($Root)
+	while ($pending.Count -gt 0) {
+		foreach ($item in Get-ChildItem -LiteralPath $pending.Pop() -Force) {
+			$relativePath = Get-RelativePath $Root $item.FullName
+			if (Test-IsExcludedPath $relativePath) {
+				continue
+			}
+			Assert-NoReparseParents $item.FullName
+			if ($item.PSIsContainer) {
+				$pending.Push($item.FullName)
+			} else {
+				$item
+			}
+		}
+	}
+}
+
+$sourceFiles = @(Get-PluginFiles $sourceRoot)
 
 $sourceByRelativePath = @{}
 foreach ($sourceFile in $sourceFiles) {
@@ -42,19 +81,15 @@ foreach ($sourceFile in $sourceFiles) {
 
 $mirrorFiles = @()
 if (Test-Path -LiteralPath $mirrorRoot -PathType Container) {
-	$mirrorFiles = @(
-		Get-ChildItem -LiteralPath $mirrorRoot -File -Recurse |
-			Where-Object {
-				$relativePath = Get-RelativePath $mirrorRoot $_.FullName
-				-not (Test-IsExcludedPath $relativePath)
-			}
-	)
+	$mirrorFiles = @(Get-PluginFiles $mirrorRoot)
 }
+Assert-NoReparseParents $mirrorRoot
 
 $mismatches = [System.Collections.Generic.List[string]]::new()
 foreach ($sourceFile in $sourceFiles) {
 	$relativePath = Get-RelativePath $sourceRoot $sourceFile.FullName
 	$mirrorPath = Join-Path $mirrorRoot $relativePath
+	Assert-NoReparseParents $mirrorPath
 	if (-not (Test-Path -LiteralPath $mirrorPath -PathType Leaf)) {
 		$mismatches.Add("缺少 $relativePath")
 		continue
@@ -87,6 +122,7 @@ if ($Check) {
 foreach ($sourceFile in $sourceFiles) {
 	$relativePath = Get-RelativePath $sourceRoot $sourceFile.FullName
 	$mirrorPath = Join-Path $mirrorRoot $relativePath
+	Assert-NoReparseParents $mirrorPath
 	$mirrorDirectory = Split-Path -Parent $mirrorPath
 	if (-not (Test-Path -LiteralPath $mirrorDirectory -PathType Container)) {
 		if ($PSCmdlet.ShouldProcess($mirrorDirectory, '创建镜像目录')) {
@@ -101,21 +137,11 @@ foreach ($sourceFile in $sourceFiles) {
 
 foreach ($mirrorFile in $mirrorFiles) {
 	$relativePath = Get-RelativePath $mirrorRoot $mirrorFile.FullName
+	Assert-NoReparseParents $mirrorFile.FullName
 	if (-not $sourceByRelativePath.ContainsKey($relativePath) -and
 		$PSCmdlet.ShouldProcess($mirrorFile.FullName, '删除过期镜像文件')) {
 		Remove-Item -LiteralPath $mirrorFile.FullName -Force
 	}
-}
-
-if (Test-Path -LiteralPath $mirrorRoot -PathType Container) {
-	Get-ChildItem -LiteralPath $mirrorRoot -Directory -Recurse |
-		Sort-Object FullName -Descending |
-		Where-Object { @(Get-ChildItem -LiteralPath $_.FullName -Force).Count -eq 0 } |
-		ForEach-Object {
-			if ($PSCmdlet.ShouldProcess($_.FullName, '删除空的过期镜像目录')) {
-				Remove-Item -LiteralPath $_.FullName -Force
-			}
-		}
 }
 
 Write-Output "MotionWeaver 已从 Sample 同步到：$mirrorRoot"

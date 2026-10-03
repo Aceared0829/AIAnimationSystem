@@ -19,4 +19,4 @@
 & .\unreal-script\Tools\Sync-MotionWeaver.ps1 -Check
 ```
 
-同步脚本只复制插件源码和元数据，排除 `Binaries/`、`Intermediate/`、`Saved/` 等 UE 生成物，并删除镜像中已从源插件移除的文件。`-Check` 返回非零状态时，说明合并前镜像尚未同步。
+同步脚本只复制插件源码和元数据，排除 `Content/` 和 `Binaries/`、`Intermediate/`、`Saved/` 等 UE 生成物，并删除镜像中已从源插件移除的文件。它拒绝通过非排除目录中的 Junction 或其他链接读写、删除文件；保留排除目录和空目录。`-Check` 返回非零状态时，说明合并前镜像尚未同步。

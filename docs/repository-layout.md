@@ -56,7 +56,7 @@ AIAnimationSystem/
 └── pyproject.toml
 ```
 
-`unreal-sample/UMWSamplePreview/` 目前仅为实验宿主的工程/插件源码与文本配置，供后续接入 UE 内推理及动画工具链；不处理动作数据，也尚未接入模型或 AnimGraph。默认地图与插件角色依赖暂未发布的 Content，不能把源码检出视作可玩示例。边界与历史宿主的区别见 [Unreal 实验宿主说明](../unreal-sample/README.md)。
+`unreal-sample/UMWSamplePreview/` 保存实验宿主的项目 Gameplay 源码、独立 MotionWeaver 插件与文本配置，供后续接入 UE 内推理及动画工具链；不处理动作数据，也尚未接入模型或推理 AnimGraph。MotionMatchingInCpp 的 CommonGameplay 已并入项目模块，原插件已移除，默认地图与角色使用 `/Game` 下暂未发布的 Content。干净源码检出不能视作可玩示例。`unreal-script/MotionWeaver/` 为 Sample 插件的同步镜像；历史 GASP 预览插件位于 `unreal-script/MotionWeaverCMCPreview/`。边界与历史宿主的区别见 [Unreal 实验宿主说明](../unreal-sample/README.md)。
 
 `data/raw/`、`model-weight/pretrained/`、`finetuned/`、`exported/` 按实际产物需要创建，已配置本地忽略规则。目录名不表示训练、后训练或示例已经完成。
 
