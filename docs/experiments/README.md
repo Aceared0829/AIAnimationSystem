@@ -12,6 +12,7 @@
 
 | 日期 | 实验 | 类型 | 状态 | 主要证据 |
 | --- | --- | --- | --- | --- |
+| 2026-10-03 | [UMWSamplePreview 项目迁移与 CR 回归](2026-10-03-umw-project-migration.md) | UE 迁移 / 默认场景与工具回归 | 本页范围完成；未接模型或打包 | [前后对照与最终验证摘要](assets/2026-10-03-umw-project-migration/verification.json)；原始日志和 Content 留本机 |
 | 2026-09-25 | [P0 站蹲数据与审核基线审计](2026-09-25-p0-stance-data-audit.md) | 数据审计 / 离线视觉复核 | 完成；107 条按用户决定全部通过 | 4 条逐帧图、窗口跨度、13 组家族表、[107 条确认清单](assets/2026-09-25-p0-stance-data-audit/restart_2026-09-25/review_acceptance.csv) |
 | 2026-09-28 | [站蹲早期过渡与状态条件试验](2026-09-28-stance-transition-v2.md) | 数据索引 / 云端训练 / 本地推理评估 | B0、B1 试验完成；UE 玩家闭环未实现 | [B0](assets/2026-09-28-stance-transition-v2/b0_test.json)、[B1 冻结测试](assets/2026-09-28-stance-transition-v2/b1_test.json)、[全部窗口](assets/2026-09-28-stance-transition-v2/b1_test_all.json) |
 | 2026-09-28 | [UE 单机 CMC 站蹲与执行 Root 观测演示](2026-09-28-ue-cmc-preview.md) | UE 功能/碰撞试验 | 自动场景通过；未接入模型姿态 | [119 条观测 CSV](assets/2026-09-28-ue-cmc-preview/cmc_preview_20260928T110529Z.csv)、[摘要](assets/2026-09-28-ue-cmc-preview/summary.json)、本机截图 |
