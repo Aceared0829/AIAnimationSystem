@@ -5,9 +5,10 @@ import os
 import shutil
 import sqlite3
 from pathlib import Path
+
 import numpy as np
 from motionbricks.data.motion_catalog import MotionCatalog
-from motionbricks.data.unreal_dataset import file_sha256, UnrealMotionDataset
+from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
 
 
 def write_json(path, value):
@@ -59,10 +60,14 @@ def close(library,validation_path,cohort_path=None,commit=False,auto_stage=False
         raise ValueError('训练回执与整批初筛范围不一致')
     if any(r['integrity_errors'] for r in screen['reports']):
         raise ValueError('完整性错误不能被人工通过覆盖')
+    unresolved={'heading_not_validated','contacts_not_validated','visual_quality_not_validated'}
+    if auto_accept and any(set(r['review_flags'])-unresolved for r in screen['reports']):
+        raise ValueError('几何异常必须进入二审，禁止自动入库和清理')
     decisions={}
     if cohort:
+        assert cohort_path is not None
         with sqlite3.connect(f'file:{library / "reviews/decisions.sqlite3"}?mode=ro',uri=True) as db:
-            decisions={mid:dict(status=status,note=note,updated=updated) for mid,status,note,updated in db.execute('SELECT id,status,note,updated FROM decisions WHERE cohort=?',(cohort_path.name,))}
+            decisions={mid:{'status': status,'note': note,'updated': updated} for mid,status,note,updated in db.execute('SELECT id,status,note,updated FROM decisions WHERE cohort=?',(cohort_path.name,))}
         if not cohort['entries'] or any(decisions.get(e['id'],{}).get('status')!='approved' for e in cohort['entries']):
             raise ValueError('人工验收尚未全部通过')
         unresolved={'heading_not_validated','contacts_not_validated','visual_quality_not_validated'}
@@ -96,7 +101,7 @@ def close(library,validation_path,cohort_path=None,commit=False,auto_stage=False
         digest=file_sha256(path)
         if expected and digest!=expected:
             raise ValueError('源身份变化：'+str(path))
-        cleanup[str(path)]=dict(path=str(path),sha256=digest,bytes=path.stat().st_size,kind=kind)
+        cleanup[str(path)]={'path': str(path),'sha256': digest,'bytes': path.stat().st_size,'kind': kind}
     try:
         if catalog.db.execute("SELECT COUNT(*) FROM motions WHERE state='retarget_running'").fetchone()[0]:
             raise ValueError('存在在途重定向')
@@ -122,14 +127,14 @@ def close(library,validation_path,cohort_path=None,commit=False,auto_stage=False
             sources=[]
             for variant,source in catalog.db.execute('SELECT variant,path FROM sources WHERE motion_id=?',(mid,)):
                 source=Path(source).resolve()
-                allowed={'soma_uniform':Path('D:/BONES-SEED/soma_uniform').resolve(),'soma_proportional':Path('C:/BONES-SEED/soma_proportional').resolve(),'g1':Path('D:/BONES-SEED/g1').resolve()}
+                allowed={variant:Path('D:/BONES-SEED',variant).resolve() for variant in ('soma_uniform','soma_proportional','g1')}
                 if variant not in allowed or not source.is_relative_to(allowed[variant]) or source==allowed[variant]:
                     raise ValueError('原始数据物理路径越界')
                 candidate(source,'source_'+variant,evidence['source_sha256'] if variant=='soma_uniform' else None)
                 sources.append(dict(variant=variant,**cleanup[str(source)]))
-            item=dict(id=mid,name=row[0],metadata=json.loads(row[1]),source_output=str(path),sha256=row[4],
-                      file='animations/'+mid+'.npz',skeleton='skeletons/'+sk_hash+'.json',skeleton_sha256=sk_hash,
-                      sources=sources,ue_evidence=evidence,review=decisions.get(mid,dict(status='batch_sample_accepted')))
+            item={'id': mid,'name': row[0],'metadata': json.loads(row[1]),'source_output': str(path),'sha256': row[4],
+                      'file': 'animations/'+mid+'.npz','skeleton': 'skeletons/'+sk_hash+'.json','skeleton_sha256': sk_hash,
+                      'sources': sources,'ue_evidence': evidence,'review': decisions.get(mid,{'status': 'batch_sample_accepted'})}
             items.append(item)
             run=Path(evidence['run']).resolve()
             runs.setdefault(run,set()).add(mid)
@@ -159,28 +164,28 @@ def close(library,validation_path,cohort_path=None,commit=False,auto_stage=False
                     if file.is_file():
                         if not file.resolve().is_relative_to(assets.resolve()):raise ValueError('UE 资产链接越界')
                         candidate(file,'ue_asset')
-        plan=dict(schema_version=1,batch=identity,target=str(target),count=len(items),
-                  acceptance=acceptance,
-                  known_contract='UE exported root orientation retained; no additional facing reinterpretation',
-                  training_snapshot=str(snapshot),cohort=cohort,decisions=decisions,items=items,
-                  cleanup=list(cleanup.values()),cleanup_bytes=sum(c['bytes'] for c in cleanup.values()),
-                  cleanup_deferred=auto_stage)
+        plan={'schema_version': 1,'batch': identity,'target': str(target),'count': len(items),
+                  'acceptance': acceptance,
+                  'known_contract': 'UE exported root orientation retained; no additional facing reinterpretation',
+                  'training_snapshot': str(snapshot),'cohort': cohort,'decisions': decisions,'items': items,
+                  'cleanup': list(cleanup.values()),'cleanup_bytes': sum(c['bytes'] for c in cleanup.values()),
+                  'cleanup_deferred': auto_stage}
         plan_path=library/'reports'/('close_'+identity+'.json')
         if commit:
             # 保留可重新派生训练特征的无损 UE 轨道；批统计量快照不是跨批次模型统计量。
             review_state='pending' if auto_stage else ('user_authorized_automatic_acceptance' if auto_accept else 'approved')
-            write_json(target/'manifest.json',dict(schema_version=1,kind='uefn_motion_library',items=items,acceptance=plan['acceptance'],training_snapshot=str(snapshot),human_review=review_state))
+            write_json(target/'manifest.json',{'schema_version': 1,'kind': 'uefn_motion_library','items': items,'acceptance': plan['acceptance'],'training_snapshot': str(snapshot),'human_review': review_state})
             for item in items:
                 if file_sha256(target/item['file'])!=item['sha256'] or file_sha256(target/item['skeleton'])!=item['skeleton_sha256']:
                     raise ValueError('最终库回读失败')
             with catalog.db:
                 for item in items:
                     catalog.db.execute("UPDATE motions SET state=?,output_path=?,output_sha256=? WHERE id=? AND state='retargeted_pending_quality'",(target_state,str(target/item['file']),item['sha256'],item['id']))
-                    catalog.db.execute('INSERT INTO events(motion_id,state,detail) VALUES(?,?,?)',(item['id'],target_state,json.dumps(dict(batch=identity,manifest=str(target/'manifest.json'),acceptance=plan['acceptance']))))
+                    catalog.db.execute('INSERT INTO events(motion_id,state,detail) VALUES(?,?,?)',(item['id'],target_state,json.dumps({'batch': identity,'manifest': str(target/'manifest.json'),'acceptance': plan['acceptance']})))
             catalog.db.execute('PRAGMA wal_checkpoint(FULL)')
         plan['published']=commit
         write_json(plan_path,plan)
-        print(json.dumps(dict(plan=str(plan_path),count=len(items),published=commit,cleanup_gib=plan['cleanup_bytes']/1024**3,target=str(target))),flush=True)
+        print(json.dumps({'plan': str(plan_path),'count': len(items),'published': commit,'cleanup_gib': plan['cleanup_bytes']/1024**3,'target': str(target)}),flush=True)
     finally:
         catalog.close()
 

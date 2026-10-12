@@ -5,3 +5,6 @@
 .camera-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .hint{font-size:11px;line-height:1.5}
 .view-mode-label{background:#1c2738;border:1px solid #344156;border-radius:7px;color:var(--text);font-size:11px;padding:7px 12px;white-space:nowrap}
+
+.preload-button{width:100%;margin:10px 0 6px;background:#285053;border-color:#528888;color:#d5f6ee}
+#preloadStatus{display:block;color:var(--muted);font-size:11px;line-height:1.5;margin-bottom:8px}

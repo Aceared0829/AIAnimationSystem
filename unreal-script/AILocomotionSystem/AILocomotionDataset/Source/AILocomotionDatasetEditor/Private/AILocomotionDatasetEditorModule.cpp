@@ -96,9 +96,17 @@ namespace
 			}
 		}
 		const TArray<FName> Required = { Settings->LeftHipBone, Settings->RightHipBone, Settings->LeftFootBone, Settings->LeftToeBone, Settings->RightFootBone, Settings->RightToeBone, Settings->LeftHandBone, Settings->RightHandBone };
-		if (Names.IsEmpty() || Names.Num() > 512 || FrameCount * Names.Num() > 250000)
+		// JSON 在内存中构建；长片段可显式提高预算，但保留默认限额和有限的硬上限。
+		int32 MaxBoneSamples = 250000;
+		FParse::Value(FCommandLine::Get(), TEXT("AILocomotionMaxBoneSamples="), MaxBoneSamples);
+		if (MaxBoneSamples < 250000 || MaxBoneSamples > 4000000)
 		{
-			Error = LOCTEXT("InvalidSkeleton", "骨骼数超过 512，或帧数乘骨骼数超过 250000；请检查配置或拆分动画。").ToString();
+			Error = LOCTEXT("InvalidSampleBudget", "AILocomotionMaxBoneSamples 必须在 250000 到 4000000 之间。").ToString();
+			return false;
+		}
+		if (Names.IsEmpty() || Names.Num() > 512 || int64(FrameCount) * Names.Num() > MaxBoneSamples)
+		{
+			Error = FText::Format(LOCTEXT("InvalidSkeleton", "骨骼数超过 512，或帧数乘骨骼数超过 {0}；可通过 AILocomotionMaxBoneSamples 显式调整导出预算。"), FText::AsNumber(MaxBoneSamples)).ToString();
 			return false;
 		}
 		TSet<FName> RoleNames;
