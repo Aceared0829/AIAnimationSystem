@@ -1,10 +1,9 @@
 """导航帧缓存初始化与待机重规划的回归检查。"""
 import unittest
-from types import SimpleNamespace
 
 import torch
-
 from inference.demo.full_agent import full_navigation_agent
+from motionbricks.motion_backbone.demo.clips import clip_holder_G1
 
 
 class NavigationRegenerationTests(unittest.TestCase):
@@ -13,7 +12,9 @@ class NavigationRegenerationTests(unittest.TestCase):
             with self.subTest(previous=previous, current=current):
                 agent = full_navigation_agent.__new__(full_navigation_agent)
                 torch.nn.Module.__init__(agent)
-                agent._clip_holder = SimpleNamespace(CLIPS={'idle': {}, 'walk': {}})
+                holder = clip_holder_G1.__new__(clip_holder_G1)
+                torch.nn.Module.__init__(holder)
+                agent._clip_holder = holder
                 agent.frames = {} if previous is None else {'mode': torch.tensor([previous])}
                 self.assertEqual(agent._should_regenerate({'mode': torch.tensor([current])}), expected)
 
