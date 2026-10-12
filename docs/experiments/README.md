@@ -12,6 +12,8 @@
 
 | 日期 | 实验 | 类型 | 状态 | 主要证据 |
 | --- | --- | --- | --- | --- |
+| 2026-10-04 | [10 条拒绝动作的完整片段重定向修复](2026-10-04-seed-review-repair.md) | UE 重定向 / 完整片段 / 二审 | 10 条重跑完成，2 条疑似穿地，待二审 | 完整 5541 帧预览、逐条回执、初筛与 25 项检查 |
+| 2026-10-04 | [E 盘持续处理与异常二审](2026-10-04-continuous-secondary-review.md) | 数据处理 / 人工二审 | 二审服务已启动；持续处理启动被自动审批拒绝 | 19 项检查、[运行配置](assets/2026-10-04-continuous-secondary-review/startup.json)、本机服务日志 |
 | 2026-10-03 | [UMWSamplePreview 项目迁移与 CR 回归](2026-10-03-umw-project-migration.md) | UE 迁移 / 默认场景与工具回归 | 本页范围完成；未接模型或打包 | [前后对照与最终验证摘要](assets/2026-10-03-umw-project-migration/verification.json)；原始日志和 Content 留本机 |
 | 2026-09-25 | [P0 站蹲数据与审核基线审计](2026-09-25-p0-stance-data-audit.md) | 数据审计 / 离线视觉复核 | 完成；107 条按用户决定全部通过 | 4 条逐帧图、窗口跨度、13 组家族表、[107 条确认清单](assets/2026-09-25-p0-stance-data-audit/restart_2026-09-25/review_acceptance.csv) |
 | 2026-09-28 | [站蹲早期过渡与状态条件试验](2026-09-28-stance-transition-v2.md) | 数据索引 / 云端训练 / 本地推理评估 | B0、B1 试验完成；UE 玩家闭环未实现 | [B0](assets/2026-09-28-stance-transition-v2/b0_test.json)、[B1 冻结测试](assets/2026-09-28-stance-transition-v2/b1_test.json)、[全部窗口](assets/2026-09-28-stance-transition-v2/b1_test_all.json) |

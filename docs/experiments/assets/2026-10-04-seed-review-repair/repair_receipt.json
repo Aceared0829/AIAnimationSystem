@@ -1,0 +1,398 @@
+{
+  "items": [
+    {
+      "id": "0f40f5c809960d6aaafc2f7e9ca8b26f2876c20b97bbc7ab4472c1c99c59d833",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_991068b94f18449fa9aef982cf234517\\export_audit\\clip_00000.npz",
+      "sha256": "c04b71d0f93d255752ad403088c16f6b1114af85462d2efd0712e7c424335656",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_991068b94f18449fa9aef982cf234517",
+        "source_sha256": "1d8c165b3fa08e532a0ddbc1a1a04e15398cebe92d35b394bdccf8bbf1f55296",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_72632dc0d3ddd221/TargetRepair/UEFN_1d8c165b3fa08e532a0ddbc1x.UEFN_1d8c165b3fa08e532a0ddbc1x",
+          "fps": 120,
+          "frames": 5135,
+          "bones": 79,
+          "max_bone_length_error_cm": 1.1723955140041653e-13,
+          "root_range_cm": [
+            14.961939334869385,
+            17.61418390274048,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            19.307945251464844
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 7.779415880745937,
+            "foot_r": 7.663100882259826,
+            "ball_l": 0.5597692504820619,
+            "ball_r": 0.35475038208243426
+          },
+          "ue_export_sha256": "10bae16e26316dbe7f41813d17d0c315525a070ce32738b4ad4a8d53350317ed",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "c04b71d0f93d255752ad403088c16f6b1114af85462d2efd0712e7c424335656"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": false,
+        "max_reference_correction_cm": 0.0
+      }
+    },
+    {
+      "id": "0f2ea24ab51b389caef3e899a59a1391c714b461a04f061b93676fb7a002ba24",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_991068b94f18449fa9aef982cf234517\\export_audit\\clip_00001.npz",
+      "sha256": "550a9dd9465acdf6cd2c7208fcd4593d07d1d7284779ba9a5280f4165e186cc3",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_991068b94f18449fa9aef982cf234517",
+        "source_sha256": "4e047b89761c860448877d88b25d2aa3fbd2b50487c6386436099c6f53e89bf8",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_72632dc0d3ddd221/TargetRepair/UEFN_4e047b89761c860448877d88x.UEFN_4e047b89761c860448877d88x",
+          "fps": 120,
+          "frames": 3370,
+          "bones": 79,
+          "max_bone_length_error_cm": 1.2079226507921703e-13,
+          "root_range_cm": [
+            23.85926342010498,
+            21.143261790275574,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            7.332435607910156
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 8.801392417699745,
+            "foot_r": 8.5567007659443,
+            "ball_l": 1.9321475028900368,
+            "ball_r": 0.9210732829906867
+          },
+          "ue_export_sha256": "6e20f3764b7699d2ba4b8598c2dfa1a5e4dece1da8adb2c2d0a0a1a23e2348b7",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "550a9dd9465acdf6cd2c7208fcd4593d07d1d7284779ba9a5280f4165e186cc3"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": false,
+        "max_reference_correction_cm": 0.0
+      }
+    },
+    {
+      "id": "0f33d11819b60d42df1eab7df5feb7efbfcde96841e294844a358aa0b47c2243",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_991068b94f18449fa9aef982cf234517\\export_audit\\clip_00002.npz",
+      "sha256": "92cc8d6b61b5e5eda8554a58d88d3aebf4df121a9b6b8c897c84b2234c968c57",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_991068b94f18449fa9aef982cf234517",
+        "source_sha256": "bbe6634d537e173935b069d18888b3b3445bd709a12869e70bd98887a0e8e8c9",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_72632dc0d3ddd221/TargetRepair/UEFN_bbe6634d537e173935b069d1x.UEFN_bbe6634d537e173935b069d1x",
+          "fps": 120,
+          "frames": 3560,
+          "bones": 79,
+          "max_bone_length_error_cm": 9.237055564881302e-14,
+          "root_range_cm": [
+            59.40130805969238,
+            484.60986137390137,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            22.870018005371094
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 5.4864839317272285,
+            "foot_r": 6.357496147509622,
+            "ball_l": -1.8192274192752107,
+            "ball_r": -0.8263472722004694
+          },
+          "ue_export_sha256": "b093503fa912a9bb5b7a93530be377d5f844f321b701bbed30d4d6fadb58cabe",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "92cc8d6b61b5e5eda8554a58d88d3aebf4df121a9b6b8c897c84b2234c968c57"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": false,
+        "max_reference_correction_cm": 0.0
+      }
+    },
+    {
+      "id": "0f11e5201c2831dd38710bf986d55e4d502db557beb6b61d3d2c684213dc52e8",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_991068b94f18449fa9aef982cf234517\\export_audit\\clip_00003.npz",
+      "sha256": "535f0ba46afd330ab48f75db783d9ba5786b62b3be72e789abcbff3b11ddbc32",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_991068b94f18449fa9aef982cf234517",
+        "source_sha256": "bd4a7ad0ae2259c796e21457edef90bb8dbbab7dad7f90be5dd0738380e83019",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_72632dc0d3ddd221/TargetRepair/UEFN_bd4a7ad0ae2259c796e21457x.UEFN_bd4a7ad0ae2259c796e21457x",
+          "fps": 120,
+          "frames": 5541,
+          "bones": 79,
+          "max_bone_length_error_cm": 1.2079226507921703e-13,
+          "root_range_cm": [
+            19.704418182373047,
+            17.213630437850952,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            22.77387237548828
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 7.75444488814157,
+            "foot_r": 7.1999094123916905,
+            "ball_l": -0.012677262264148226,
+            "ball_r": 0.14195120771044234
+          },
+          "ue_export_sha256": "55fb4e0bf2103fe60ac533b51f5692281db5aff5765bab0568845988def12f09",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "535f0ba46afd330ab48f75db783d9ba5786b62b3be72e789abcbff3b11ddbc32"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": false,
+        "max_reference_correction_cm": 0.0
+      }
+    },
+    {
+      "id": "0f2b0703888e95de765944066519c86bd1e233823060858074a3dbea95db990c",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d\\export_audit\\clip_00000.npz",
+      "sha256": "d56cbb873549a19a46d8f0d1fa51008fde51b1a81e1e5681ef40cd23f588867d",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d",
+        "source_sha256": "124f8e92c283ed3dc8ba16e4a9bc108954e861261ea4edc58ccd270647526843",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_a48fd1522cd1633e/TargetRepair/UEFN_124f8e92c283ed3dc8ba16e4x.UEFN_124f8e92c283ed3dc8ba16e4x",
+          "fps": 120,
+          "frames": 872,
+          "bones": 79,
+          "max_bone_length_error_cm": 8.171241461241152e-14,
+          "root_range_cm": [
+            10.012431979179382,
+            123.74610090255737,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            3.4107933044433594
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 7.888906559320294,
+            "foot_r": 8.470852434842534,
+            "ball_l": 4.624790675786425,
+            "ball_r": 5.842391077710719
+          },
+          "ue_export_sha256": "98ef184673d86e8209c01a8dbfca687caa7e912b627b260c702e930045104f1b",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "d56cbb873549a19a46d8f0d1fa51008fde51b1a81e1e5681ef40cd23f588867d"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": true,
+        "max_reference_correction_cm": 0.1180317664358477
+      }
+    },
+    {
+      "id": "0f4a1059e901deb704292d5a3f4b2bdf4bbb7e0611fac538048c8b2c4bb834ef",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d\\export_audit\\clip_00001.npz",
+      "sha256": "e6d69c5cbbe098bf6d35dacb5203b4844b53147c34f11fcc7110337afc4aa7c9",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d",
+        "source_sha256": "3b24e169045684d0e4c8d318924015edd55bfb166a33d02f7e87b64f74ed4be2",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_a48fd1522cd1633e/TargetRepair/UEFN_3b24e169045684d0e4c8d318x.UEFN_3b24e169045684d0e4c8d318x",
+          "fps": 120,
+          "frames": 428,
+          "bones": 79,
+          "max_bone_length_error_cm": 8.171241461241152e-14,
+          "root_range_cm": [
+            42.19149208068848,
+            55.98927593231201,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            88.01724576950073
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 5.3851577495786564,
+            "foot_r": 8.12532569455729,
+            "ball_l": 4.247808609243801,
+            "ball_r": 1.209105960439202
+          },
+          "ue_export_sha256": "9b7367697641f5cbcce8f497a1e0df8771e08f457adea7fc9017e973a9212385",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "e6d69c5cbbe098bf6d35dacb5203b4844b53147c34f11fcc7110337afc4aa7c9"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": true,
+        "max_reference_correction_cm": 0.15019328933515505
+      }
+    },
+    {
+      "id": "0f29564d8c68d0188060994d8670f532caa51bb2330c18673c6fb02311af85b1",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d\\export_audit\\clip_00002.npz",
+      "sha256": "c974173b915605fcec0a8b40fe49cd50b01029814e4ba137a7629d98c667f78a",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d",
+        "source_sha256": "4ecc55f1deba9ca29e5c89882356d89a13f87a4e995e38698b6d2fbf74700059",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_a48fd1522cd1633e/TargetRepair/UEFN_4ecc55f1deba9ca29e5c8988x.UEFN_4ecc55f1deba9ca29e5c8988x",
+          "fps": 120,
+          "frames": 378,
+          "bones": 79,
+          "max_bone_length_error_cm": 8.526512829121202e-14,
+          "root_range_cm": [
+            4.021051689982414,
+            44.02049970626831,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            88.72946882247925
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 3.9301297190102886,
+            "foot_r": 4.309094776950452,
+            "ball_l": -3.287096204247897,
+            "ball_r": -2.9823923161642494
+          },
+          "ue_export_sha256": "133ea2d50f762815bf38bbb615104b78910a0d7f332917575d75710be75277c5",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "c974173b915605fcec0a8b40fe49cd50b01029814e4ba137a7629d98c667f78a"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": true,
+        "max_reference_correction_cm": 0.0070471797364647
+      }
+    },
+    {
+      "id": "0f13eb1d3b0f93ae8fc36eeac4e90dd63c4015f9fbc65559babb4b44676c4294",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d\\export_audit\\clip_00003.npz",
+      "sha256": "640cd4553dafcc35eeb8f6eb7ce3d7d2d257fdee7377168417e31ff673365a3d",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d",
+        "source_sha256": "539d5011f7eab0cc1b6441c9f10a492b2fa08ec1a37323b21257a146436636bc",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_a48fd1522cd1633e/TargetRepair/UEFN_539d5011f7eab0cc1b6441c9x.UEFN_539d5011f7eab0cc1b6441c9x",
+          "fps": 120,
+          "frames": 510,
+          "bones": 79,
+          "max_bone_length_error_cm": 9.592326932761353e-14,
+          "root_range_cm": [
+            1.040239617228508,
+            2.6082706451416016,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            0.584686279296875
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 10.983752999900375,
+            "foot_r": 11.07234777985429,
+            "ball_l": 4.243076830005686,
+            "ball_r": 3.821676448109896
+          },
+          "ue_export_sha256": "2b6e3b85a22f6a4e91d3a60d5890f50bada52e8d073477f17170806cad97ce19",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "640cd4553dafcc35eeb8f6eb7ce3d7d2d257fdee7377168417e31ff673365a3d"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": true,
+        "max_reference_correction_cm": 0.016107992516525893
+      }
+    },
+    {
+      "id": "0f42674f5aa7a53f592dd2c4ba75c2530b522428f2ce704d599d80fe92a264c1",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d\\export_audit\\clip_00004.npz",
+      "sha256": "c990c2be6c02cd678c9155ed90008b3e578e39415f1ffcbb329d46cb479e6433",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d",
+        "source_sha256": "d7a50d7a68807e6cd7bfd394f999163865a08d4c284cddd94e4fbbc548e4703b",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_a48fd1522cd1633e/TargetRepair/UEFN_d7a50d7a68807e6cd7bfd394x.UEFN_d7a50d7a68807e6cd7bfd394x",
+          "fps": 120,
+          "frames": 1130,
+          "bones": 79,
+          "max_bone_length_error_cm": 8.526512829121202e-14,
+          "root_range_cm": [
+            17.436928749084473,
+            64.24153077602386,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            88.37622261047363
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 3.2967088842714602,
+            "foot_r": 2.6290064325249016,
+            "ball_l": -4.1794941774597225,
+            "ball_r": -1.4144242721544078
+          },
+          "ue_export_sha256": "5d6ae3d37467b45863deb6b26b703509ad0a868540001c19fa9aa1510d8ab891",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "c990c2be6c02cd678c9155ed90008b3e578e39415f1ffcbb329d46cb479e6433"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": true,
+        "max_reference_correction_cm": 0.04837428688234171
+      }
+    },
+    {
+      "id": "0f23761617dc6ad9dae7173f5d521e2e2a9a2c222e9114bc0afd63ad43438e10",
+      "output": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d\\export_audit\\clip_00005.npz",
+      "sha256": "36370a0a6b4d4ecf3d05deafae824644f10f59602016b14a9518872fe878469e",
+      "evidence": {
+        "run": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\queue_repair_caf35bdafa9c403aa3f4b3baa885ca2d",
+        "source_sha256": "edc640451eed951042756368277c58b4d6414226e722495a728c67acdfce7829",
+        "audit": {
+          "asset": "/Game/MotionPipeline/B_a48fd1522cd1633e/TargetRepair/UEFN_edc640451eed951042756368x.UEFN_edc640451eed951042756368x",
+          "fps": 120,
+          "frames": 803,
+          "bones": 79,
+          "max_bone_length_error_cm": 9.592326932761353e-14,
+          "root_range_cm": [
+            23.940970420837402,
+            23.544708251953125,
+            0.0
+          ],
+          "pelvis_relative_range_cm": [
+            0.0,
+            0.0,
+            4.059764862060547
+          ],
+          "foot_min_z_cm": {
+            "foot_l": 6.263089988732333,
+            "foot_r": 7.450918209769075,
+            "ball_l": 3.610946313519201,
+            "ball_r": 4.583669794622333
+          },
+          "ue_export_sha256": "b9e39fd64aa62a438d3fdf7380395c1dd77c69c5c0a714a33bedc5a26706a28f",
+          "training_ready": false,
+          "source_deleted": false,
+          "output_sha256": "36370a0a6b4d4ecf3d05deafae824644f10f59602016b14a9518872fe878469e"
+        },
+        "repair_session": "E:\\AIAnimationSystemData\\MotionDataLibrary\\work\\repair10_e9030fdf357c421cae19b19769139c69",
+        "source_reference_normalized": true,
+        "max_reference_correction_cm": 0.10670106845307818
+      }
+    }
+  ],
+  "count": 10,
+  "segmented": false,
+  "source_deleted": false,
+  "training_ready": false
+}
