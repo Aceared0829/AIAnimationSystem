@@ -2,11 +2,22 @@
 import argparse
 import json
 from pathlib import Path
+
 import numpy as np
 import torch
+
+from inference.export.export_unreal_animgraph import (
+    UnrealPoseReconstruction,
+    pack_raw_pose,
+)
+from inference.profiling.evaluate_unreal_streaming import (
+    localize,
+    metric,
+    positions,
+    rms,
+    simulate,
+)
 from inference.runtime.checkpoint import load_vqvae
-from inference.export.export_unreal_animgraph import UnrealPoseReconstruction, pack_raw_pose
-from inference.profiling.evaluate_unreal_streaming import localize, positions, simulate, metric, rms
 
 
 def phase_candidates(packed, names):
@@ -79,7 +90,7 @@ def evaluate(output, override=None):
             for phase in phases:
                 if type(phase['frame']) is not int or not 0<=phase['frame']<len(packed):raise ValueError('阶段帧越界')
             manifest[clip['asset']]=phases
-            anchors=sorted(set(p['frame'] for p in phases))
+            anchors=sorted({p['frame'] for p in phases})
             source=localize(packed,parents)
             windows={v:{} for v in ('endpoints2','phase','phase_band')}
             item={'asset':clip['asset'],'split':clip['split'],'phases':phases,'reference_count':len(anchors),'variants':{},'decoder_reference_audit':[]}

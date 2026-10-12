@@ -3,7 +3,9 @@ import http.client
 import json
 import threading
 import unittest
+
 import numpy as np
+
 from inference.profiling.pose_reference_lab import Lab, make_server
 
 
@@ -58,7 +60,7 @@ class LabHttpTests(unittest.TestCase):
         self.lab.lock.acquire()
         self.assertEqual(self.request(body)[0],409)
         self.lab.lock.release()
-        def fail(*args):raise RuntimeError('test failure')
+        def fail(refs,mode,edges):raise RuntimeError('test failure')
         self.lab.infer=fail
         self.assertEqual(self.request(body)[0],500)
         self.assertFalse(self.lab.lock.locked())

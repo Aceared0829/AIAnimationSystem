@@ -1,21 +1,25 @@
-import numpy as np
-import torch as t
-import torch
-import torch.nn as nn
 import xml.etree.ElementTree as ET
-import os
-import torch.nn.functional as F
-from typing import List
-from motionbricks.motionlib.core.motion_reps import MotionRepBase
-from motionbricks.motionlib.core.motion_reps.tools.changing_t_pose import get_global_offset
-from motionbricks.motionlib.core.utils.rotations import cont6d_to_matrix, quaternion_to_matrix
-from motionbricks.motionlib.core.utils.torch_utils import compute_idx_levels
-from motionbricks.motionlib.core.skeletons import SkeletonBase
 
+import numpy as np
+import torch
+import torch as t
+import torch.nn.functional as F
+from torch import nn
 
 # using this matrix_to_quaternion instead of the one in motionbricks.motionlib.core.utils.rotations
 # to avoid some tensorrt issues
 from motionbricks.geometry.quaternions import matrix_to_quaternion
+from motionbricks.motionlib.core.motion_reps import MotionRepBase
+from motionbricks.motionlib.core.motion_reps.motion_reps_base.seperate_root_local_body import (
+    SeparatedRootLocalBody,
+)
+from motionbricks.motionlib.core.skeletons import SkeletonBase
+from motionbricks.motionlib.core.utils.rotations import (
+    cont6d_to_matrix,
+    quaternion_to_matrix,
+)
+from motionbricks.motionlib.core.utils.torch_utils import compute_idx_levels
+
 
 # redefining this function in motionbricks.motionlib.core.motion_rep.tools.changing_t_pose as
 # tensorrt complains about capital letters in t.einsum()
@@ -50,7 +54,7 @@ def forward_kinematics(
     rot_mats,
     joints,
     parents: t.Tensor,
-    idx_levs: List[t.Tensor],
+    idx_levs: list[t.Tensor],
     root_idx: int,
 ):
     """Perform forward kinematics to compute posed joints and global rotation matrices.
@@ -151,7 +155,7 @@ class mujoco_qpos_converter(nn.Module):
             if "dummy", the dead joints's global rotations are set to identity matrix;
             if "parent", the dead joints's global rotations are set to the parent's rotation.
         """
-        super(mujoco_qpos_converter, self).__init__()
+        super().__init__()
         self.xml_path = xml_path
         self.motion_rep = motion_rep
         self._prepare_transforms()
@@ -172,13 +176,16 @@ class mujoco_qpos_converter(nn.Module):
         root = tree.getroot()
 
         xml_classes = [x for x in tree.findall('.//default') if "class" in x.attrib]
-        joint_axes = dict()
+        joint_axes = {}
         for xml_class in xml_classes:
             j = xml_class.findall("joint")
             if j:
                 joint_axes[xml_class.get("class")] = j[0].get("axis")
 
-        mujoco_hinge_joints = root.find("worldbody").findall(".//joint")  # skip the base joint
+        worldbody = root.find("worldbody")
+        if worldbody is None:
+            raise ValueError("MuJoCo XML is missing worldbody")
+        mujoco_hinge_joints = worldbody.findall(".//joint")  # skip the base joint
         self._mujoco_joint_axis_values_motion_space = \
             t.zeros((len(mujoco_hinge_joints), 3), dtype=t.float32)  # mujoco order but motion space
         self._mujoco_joint_axis_values_mujoco_space = \
@@ -196,9 +203,10 @@ class mujoco_qpos_converter(nn.Module):
         self._mujoco_joint_including_root_list = ['pelvis_skel']
 
         for joint_id_in_csv, joint in enumerate(mujoco_hinge_joints):
-            joint_name_in_skeleton = joint.get("name").replace("_joint", "_skel")
+            joint_name_in_skeleton = joint.attrib["name"].replace("_joint", "_skel")
             joint_parent_name_in_skeleton = self.motion_rep.skeleton.bone_parents[joint_name_in_skeleton]
 
+            assert joint_parent_name_in_skeleton is not None
             self._mujoco_joint_including_root_list.append(joint_name_in_skeleton)
             self._mujoco_joint_including_root_parent_list[joint_id_in_csv + 1] = \
                 self._mujoco_joint_including_root_list.index(joint_parent_name_in_skeleton)
@@ -242,7 +250,7 @@ class mujoco_qpos_converter(nn.Module):
             body = parent_map[joint]
             if "quat" in body.attrib:
                 rot = Rotation.from_quat(
-                    [float(x) for x in body.get("quat").strip().split(" ")],
+                    [float(x) for x in body.attrib["quat"].strip().split(" ")],
                     scalar_first=True
                 )
                 idx = self._mujoco_indices_to_motion_indices[i]
@@ -277,6 +285,7 @@ class mujoco_qpos_converter(nn.Module):
         """
         # Get joint output from motion representation
         batch_size, num_frames, nb_joints = motion_features.shape[0], motion_features.shape[1], motion_rep.skeleton.nbjoints
+        assert isinstance(motion_rep, SeparatedRootLocalBody)
         motion_rep = motion_rep.to(motion_features.device)
         if is_normalized:
             motion_features = motion_rep.unnormalize(motion_features)
@@ -332,10 +341,10 @@ class mujoco_qpos_converter(nn.Module):
         """ @brief: the inverse process of convert_motion_features_to_mujoco_qpos """
         raise NotImplementedError("Not implemented yet")
 
-    def convert_mujoco_qpos_to_motion_transforms(self, mujoco_qpos: t.Tensor) -> t.Tensor:
+    def convert_mujoco_qpos_to_motion_transforms(self, mujoco_qpos: t.Tensor) -> tuple[t.Tensor, t.Tensor]:
         """ @brief: the inverse process of convert_motion_features_to_mujoco_qpos """
         batch_size, num_frames = mujoco_qpos.shape[:2]
-        device, dtype = mujoco_qpos.device, mujoco_qpos.dtype
+        device, _dtype = mujoco_qpos.device, mujoco_qpos.dtype
 
         # the obtain the root (pelvis) information
         root_translation_mujoco = mujoco_qpos[:, :, :3]

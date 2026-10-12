@@ -1,17 +1,19 @@
 import math
 import os
-from typing import Optional
+from typing import Literal, overload
 
 import einops
 import torch
 
 from motionbricks.motionlib.core.skeletons import (
-    G1Skeleton,
     G1Skeleton32,
     G1Skeleton34,
     SkeletonBase,
 )
-from motionbricks.motionlib.core.utils.rotations import exp_map_to_matrix, quaternion_to_matrix
+from motionbricks.motionlib.core.utils.rotations import (
+    exp_map_to_matrix,
+    quaternion_to_matrix,
+)
 from motionbricks.motionlib.core.utils.torch_utils import batch_rigid_transform
 
 
@@ -40,10 +42,37 @@ def _local_rot_offset_from_old_neutral_to_new_T(
     return const_rot_mats
 
 
+@overload
 def get_global_offset(
     t_pose: str,
     skeleton: SkeletonBase,
-    neutral_joints: Optional[torch.Tensor] = None,
+    neutral_joints: torch.Tensor | None = None,
+    return_neutral_joints: Literal[False] = False,
+    base_path: str = "./",  # this is helpful when using the package as a submodule in other projects
+) -> torch.Tensor: ...
+
+@overload
+def get_global_offset(
+    t_pose: str,
+    skeleton: SkeletonBase,
+    neutral_joints: torch.Tensor | None = None,
+    *, return_neutral_joints: Literal[True],
+    base_path: str = "./",  # this is helpful when using the package as a submodule in other projects
+) -> tuple[torch.Tensor, torch.Tensor]: ...
+
+@overload
+def get_global_offset(
+    t_pose: str,
+    skeleton: SkeletonBase,
+    neutral_joints: torch.Tensor | None = None,
+    return_neutral_joints=False,
+    base_path: str = "./",  # this is helpful when using the package as a submodule in other projects
+) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]: ...
+
+def get_global_offset(
+    t_pose: str,
+    skeleton: SkeletonBase,
+    neutral_joints: torch.Tensor | None = None,
     return_neutral_joints=False,
     base_path: str = "./",  # this is helpful when using the package as a submodule in other projects
 ):
@@ -109,7 +138,7 @@ def change_t_pose_global_mats(
     global_mats: torch.Tensor,
     t_pose_to: str,
     skeleton: SkeletonBase,
-    t_pose_from: Optional[str] = None,
+    t_pose_from: str | None = None,
 ):
     if t_pose_from is None:
         t_pose_from = skeleton.t_pose
@@ -141,7 +170,7 @@ def change_t_pose_local_mats(
     t_pose_to: str,
     skeleton: SkeletonBase,
     return_global_rots=False,
-    t_pose_from: Optional[str] = None,
+    t_pose_from: str | None = None,
 ):
     if t_pose_from is None:
         t_pose_from = skeleton.t_pose

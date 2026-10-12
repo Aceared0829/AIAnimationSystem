@@ -1,17 +1,22 @@
 # Modified by the AIAnimationSystem maintainers: localized inference warnings.
 
-from typing import Dict, TYPE_CHECKING
-import torch as t
+from typing import TYPE_CHECKING
+
 import numpy as np
+import torch as t
 from motionbricks.motion_backbone.sampling import gumbel_sample
+
 if TYPE_CHECKING:
-    from motionbricks.motion_backbone.models.pose_model import MotionModel as pose_model_cls
-    from motionbricks.motion_backbone.models.root_model import MotionModel as root_model_cls
-from motionbricks.vqvae.neural_modules.vqvae import VQVAE as vqvae
+    from motionbricks.motion_backbone.models.pose_model import (
+        MotionModel as pose_model_cls,
+    )
+    from motionbricks.motion_backbone.models.root_model import (
+        MotionModel as root_model_cls,
+    )
 
 from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+from motionbricks.vqvae.neural_modules.vqvae import VQVAE as vqvae
 
-import copy
 
 class motion_inference(t.nn.Module):
     """ @brief: For simplicity, we are mostly likely ONLY CONSIDER batch_size=1 cases
@@ -26,8 +31,8 @@ class motion_inference(t.nn.Module):
     INTERNAL_POSE_FEATURE_MODE = "joint_positions_and_rotations_and_hip_height"
     EPS = 1e-5
 
-    def __init__(self, models: list, args: Dict, device: str = 'cuda'):
-        super(motion_inference, self).__init__()
+    def __init__(self, models: dict, args: dict, device: str = 'cuda'):
+        super().__init__()
         self._pose_model: pose_model_cls = models['pose'].eval().to(device)
         self._root_model: root_model_cls = models['root'].eval().to(device)
         self._vqvae_pose_model: vqvae = self._pose_model.supporting_nets['pose_net'].eval().to(device)
@@ -44,14 +49,18 @@ class motion_inference(t.nn.Module):
             and self._root_model.vqvae_model_loaded, "The model should be initialized before inference."
         assert not self._IS_ROOT_MODEL_TOKENIZED, "The root model is not tokenized."
 
+    @property
+    def dual_rep(self):
+        return self._pose_model.dual_rep
+
     def predict(self,
                 global_root_values: t.Tensor, has_global_root_values: t.Tensor,
                 local_root_values: t.Tensor, has_local_root_values: t.Tensor,
                 local_poses: t.Tensor, has_local_poses: t.Tensor,
                 num_tokens: t.Tensor,
-                text_embeddings: t.Tensor = None, has_text_embeddings: t.Tensor = None,
-                allowed_pred_num_tokens: t.Tensor = None,
-                config: dict = {}, info: dict= {}):
+                text_embeddings: t.Tensor | None = None, has_text_embeddings: t.Tensor | None = None,
+                allowed_pred_num_tokens: t.Tensor | None = None,
+                config: dict | None = None, info: dict | None= None):
 
         """ @param input_data: a dictionary containing the following keys:
         All these values are in unnormalized form. Note the root/pose information of the first 4 frames are always
@@ -69,6 +78,10 @@ class motion_inference(t.nn.Module):
         @input num_tokens: [batch, 1]                                      # optional
 
         """
+        if config is None:
+            config = {}
+        if info is None:
+            info = {}
         batch_size, device, dtype = has_global_root_values.shape[0], has_global_root_values.device, local_poses.dtype
         num_frames_per_token = self._pose_model.backbone_net.get_num_frames_per_token()
         if not (t.all(has_global_root_values[:, :num_frames_per_token]) and
@@ -98,6 +111,7 @@ class motion_inference(t.nn.Module):
         )
         global_height_values = \
             recentered_global_root_values[:, :, self.global_motion_rep.indices['global_root_pos'][[1]]]
+        assert self.local_motion_rep.stats is not None
         mean = self.local_motion_rep.stats.mean[None, None, local_pose_feat_idx].to(device=device, dtype=dtype)
         std = self.local_motion_rep.stats.std[None, None, local_pose_feat_idx].to(device=device, dtype=dtype)
         batch['local_poses'] = \
@@ -195,10 +209,14 @@ class motion_inference(t.nn.Module):
         batch['pred_global_poses'][:, :, self.global_motion_rep.indices['global_root_heading']] = new_heading
         return batch['pred_global_poses']
 
-    def _predict_root_trajectories(self, batch: dict = {}, config: dict = {}):
+    def _predict_root_trajectories(self, batch: dict | None = None, config: dict | None = None):
         """ @brief: run the root module here to pred how many frames are between the keyframes and predict the local
         and global root trajectories.
         """
+        if batch is None:
+            batch = {}
+        if config is None:
+            config = {}
         # NOTE: the root module's output is the global root values; it has to be "root" in feature mode
         assert self._root_model.args['local_root_feature'] == self.EXTERNAL_ROOT_FEATURE_MODE, \
             self._root_model.args['global_root_feature'] == self.EXTERNAL_ROOT_FEATURE_MODE
@@ -225,7 +243,7 @@ class motion_inference(t.nn.Module):
             pred_global_root_values[:, :config['debug_ground_truth_root_trajectories'].shape[1]] = \
                 config['debug_ground_truth_root_trajectories']  # both normalized
         pred_local_root_values = \
-            self.motion_rep.dual_rep.global_to_local(pred_global_root_values, is_normalized=True, to_normalize=True,
+            self.dual_rep.global_to_local(pred_global_root_values, is_normalized=True, to_normalize=True,
                                                      lengths=pred_num_tokens * num_frames_per_token)
 
         # now be very careful with the final root motion; since the raw calculation could be very incorrect
@@ -244,8 +262,14 @@ class motion_inference(t.nn.Module):
 
         return pred_num_tokens, pred_global_root_values, pred_local_root_values
 
-    def _predict_pose_tokens(self, batch: dict = {}, config: dict = {}, info: dict = {}):
+    def _predict_pose_tokens(self, batch: dict | None = None, config: dict | None = None, info: dict | None = None):
         """ @brief: run the pose module here to pred the pose tokens."""
+        if batch is None:
+            batch = {}
+        if config is None:
+            config = {}
+        if info is None:
+            info = {}
         # NOTE: the root module's output is the global root values; it has to be "root" in feature mode
         assert self._pose_model.args['local_pose_feature'] == self.INTERNAL_POSE_FEATURE_MODE
         assert self.INTERNAL_POSE_FEATURE_MODE == "joint_positions_and_rotations_and_hip_height"
@@ -272,7 +296,7 @@ class motion_inference(t.nn.Module):
         has_pose_cond = \
             t.concat([batch['has_local_poses'][:, :num_frames_per_token],
                       t.zeros([batch_size, (self._args['max_tokens'] - 1) * num_frames_per_token],
-                               dtype=bool).to(device)], dim=1)
+                               dtype=t.bool).to(device)], dim=1)
 
         for i in range(num_frames_per_token):  # assign the target pose information dynamically
             onehot_idx = t.nn.functional.one_hot(
@@ -319,8 +343,14 @@ class motion_inference(t.nn.Module):
 
         return pose_tokens, pose_cond, has_pose_cond  # pose cond and has_pose cond are re-used in the decoder
 
-    def _decode_motions_from_predicted_root_and_pose_tokens(self, batch: dict = {}, config: dict = {}, info: dict = {}):
+    def _decode_motions_from_predicted_root_and_pose_tokens(self, batch: dict | None = None, config: dict | None = None, info: dict | None = None):
         """ @brief: decode the pose tokens and root prediction to reconstruct the poses"""
+        if batch is None:
+            batch = {}
+        if config is None:
+            config = {}
+        if info is None:
+            info = {}
         if getattr(self._pose_model.args, 'pose_vqvae_motion_rep', 'local'):
             assert self._vqvae_pose_model.motion_rep.name == 'local'
             assert self._vqvae_pose_model.decoder_external_cond_feature_mode == \
@@ -371,11 +401,11 @@ class motion_inference(t.nn.Module):
             # NOTE: the pred_global_poses has incorrect heading since the accumlation function of `local_to_global`
             # does not have initial heading information; luckily the inverse function which reconstruct the final
             # results will not use the heading feature at all so it won't affect the final pose outputs
-            pred_global_poses = self.motion_rep.dual_rep.local_to_global(pred_poses, is_normalized=True,
+            pred_global_poses = self.dual_rep.local_to_global(pred_poses, is_normalized=True,
                                                                          to_normalize=False, lengths=num_pred_frames)
             pred_local_poses = self.local_motion_rep.unnormalize(pred_poses)
         else:
-            pred_local_poses = self.motion_rep.dual_rep.global_to_local(pred_poses, is_normalized=True,
+            pred_local_poses = self.dual_rep.global_to_local(pred_poses, is_normalized=True,
                                                                         to_normalize=False, lengths=num_pred_frames)
             pred_global_poses = self.global_motion_rep.unnormalize(pred_poses)
 

@@ -1,10 +1,13 @@
-from typing import Optional
 
 import einops
 import torch
 
 from motionbricks.motionlib.core.skeletons import SkeletonBase
-from motionbricks.motionlib.core.utils.rotations import diff_angles, diff_between_two_angles, quat_apply
+from motionbricks.motionlib.core.utils.rotations import (
+    diff_angles,
+    diff_between_two_angles,
+    quat_apply,
+)
 from motionbricks.motionlib.core.utils.torch_utils import normalize_vec
 
 
@@ -23,9 +26,7 @@ def calc_heading(compute_heading_method: str, **kwargs):
     else:
         if compute_heading_method == "quat":
             heading = get_y_heading(**kwargs)
-        elif compute_heading_method == "refdir":
-            heading = calc_heading_refdir(**kwargs)
-        elif compute_heading_method == "refdir_inter":
+        elif compute_heading_method == "refdir" or compute_heading_method == "refdir_inter":
             heading = calc_heading_refdir(**kwargs)
         else:
             raise NotImplementedError
@@ -34,10 +35,10 @@ def calc_heading(compute_heading_method: str, **kwargs):
 
 def calc_heading_refdir(
     root_quat: torch.Tensor,
-    lengths: Optional[torch.Tensor] = None,
-    return_quat: Optional[bool] = False,
-    inverse: Optional[bool] = False,
-    fix_rot: Optional[bool] = False,
+    lengths: torch.Tensor | None = None,
+    return_quat: bool | None = False,
+    inverse: bool | None = False,
+    fix_rot: bool | None = False,
     **kwargs,
 ):
     """Compute the heading direction from the root quaternion, by computing the changes from a
@@ -95,8 +96,8 @@ def calc_heading_refdir(
 def calc_heading_from_joints_pos(
     posed_joints: torch.Tensor,
     skeleton: SkeletonBase,
-    return_quat: Optional[bool] = False,
-    inverse: Optional[bool] = False,
+    return_quat: bool | None = False,
+    inverse: bool | None = False,
     **kargs,
 ):
     """Compute the heading direction from the joint positions, by looking at the hip vector.
@@ -155,8 +156,8 @@ def calc_heading_from_joints_pos(
 
 def get_y_heading(
     root_quat: torch.Tensor,
-    return_quat: Optional[bool] = False,
-    inverse: Optional[bool] = False,
+    return_quat: bool | None = False,
+    inverse: bool | None = False,
     **kargs,
 ) -> torch.Tensor:
     """Compute the heading direction from the root quaternion, by computing the changes from a
@@ -193,7 +194,7 @@ def get_y_heading(
 def fix_discountinuity_interpolation(
     heading: torch.Tensor,
     rot_dir: torch.Tensor,
-    lengths: torch.Tensor,
+    lengths: torch.Tensor | None,
     threshold=0.5,
 ):
     """Fix discountinuity in rotation
@@ -205,17 +206,17 @@ def fix_discountinuity_interpolation(
     """
 
     # make it [X, T]
-    heading, ps = einops.pack([heading], "* nbframes")
+    heading, _ps = einops.pack([heading], "* nbframes")
     # make it [X, T, 3]
     rot_dir, _ = einops.pack([rot_dir], "* nbframes dim")
 
     # difference of angles
-    dangle = diff_angles(heading)
+    dangle = diff_angles(heading, fps=1.0)
 
     unreliable_mask = rot_dir[..., 1].abs() > 0.5
 
     # Find the indices where the mask changes value (True -> False or False -> True)
-    change_indices = torch.diff(unreliable_mask.to(int))
+    change_indices = torch.diff(unreliable_mask.to(torch.int64))
 
     # Start of True intervals
     starts = torch.where(change_indices == 1)[0] + 1
@@ -264,8 +265,8 @@ def fix_discountinuity_interpolation(
                 # (that's why "+1", and "-")
                 hend -= dangle[b + 1]
 
-        total_diff = diff_between_two_angles(hend, hstart)
-        total_elements = b - a + 1
+        total_diff = diff_between_two_angles(hend, hstart, fps=1.0)
+        total_elements = int((b - a + 1).item())
         if total_elements > 1:
             indexes = torch.arange(0, total_elements)
             test_fill = indexes * total_diff / (total_elements - 1) + hstart
@@ -275,7 +276,7 @@ def fix_discountinuity_interpolation(
             # a = b
             heading[a] = (hstart + hend) / 2
 
-    dangle = diff_angles(heading)
+    dangle = diff_angles(heading, fps=1.0)
 
     # negative value because of xz
     return -heading

@@ -1,12 +1,13 @@
 # Modified by the AIAnimationSystem maintainers: localized comments and runtime messages.
 
-import os
 import argparse
-from omegaconf import OmegaConf, open_dict
-from motionbricks.helper.pl_util import load_motion_rep
-from hydra.utils import instantiate
 import copy
+import os
+
+from hydra.utils import instantiate
+from motionbricks.helper.pl_util import load_motion_rep
 from motionbricks.repository import base_weights
+from omegaconf import OmegaConf, open_dict
 
 DEFAULT_RESULT_DIR = str(base_weights())
 LOCAL_RESULT_DIR = ['./out', 'out/']
@@ -33,7 +34,7 @@ def get_path_dir(exp):
             'root_model_path': root_model_path, 'root_model_ckpt': root_model_ckpt,
             'vqvae_path': vqvae_path, 'vqvae_ckpt': vqvae_ckpt}
 
-def test(args: argparse.Namespace = None):
+def test(args: argparse.Namespace | None = None):
     if args is None:
         parser = argparse.ArgumentParser(description="模型测试")
         parser.add_argument("--result_dir", type=str, default=DEFAULT_RESULT_DIR)
@@ -105,7 +106,7 @@ def test(args: argparse.Namespace = None):
             pose_vqvae_network = None
 
         # 获取进程序号
-        global_rank = get_rank()
+        global_rank = get_rank() or 0
         import tempfile
         run_dir = tempfile.mkdtemp(prefix="motionbricks_")
         conf.out_dir = run_dir

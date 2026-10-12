@@ -2,22 +2,29 @@
 
 from __future__ import annotations
 
-import queue
-import threading
-import tkinter as tk
-from tkinter import ttk
 import ctypes
-from ctypes import wintypes
 import os
 import platform
+import queue
+import threading
 import time
+import tkinter as tk
+from ctypes import wintypes
+from tkinter import ttk
+from typing import Literal, TypeAlias
+
+PanelCommand: TypeAlias = (
+    tuple[Literal["reset"], bool]
+    | tuple[Literal["camera"], tuple[float, float, float]]
+    | tuple[Literal["display"], dict[str, bool]]
+)
 
 
 class ChineseControlPanel:
     """在独立窗口中提供线程安全的中文演示控制。"""
 
     def __init__(self) -> None:
-        self._commands: queue.SimpleQueue[tuple[str, object]] = queue.SimpleQueue()
+        self._commands: queue.SimpleQueue[PanelCommand] = queue.SimpleQueue()
         self._closed = threading.Event()
         self._paused = threading.Event()
         self._host_ready = threading.Event()
@@ -34,7 +41,7 @@ class ChineseControlPanel:
     def is_paused(self) -> bool:
         return self._paused.is_set()
 
-    def poll_commands(self) -> list[tuple[str, object]]:
+    def poll_commands(self) -> list[PanelCommand]:
         """取出界面线程发来的全部待处理命令。"""
         commands = []
         while True:

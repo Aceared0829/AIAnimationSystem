@@ -1,7 +1,9 @@
 import unittest
+
 import numpy as np
 from scipy.spatial.transform import Rotation
-from inference.profiling.hard_pose_constraints import constrain_poses,rotation_errors
+
+from inference.profiling.hard_pose_constraints import constrain_poses, rotation_errors
 
 
 class HardPoseTests(unittest.TestCase):
@@ -35,8 +37,10 @@ class HardPoseTests(unittest.TestCase):
     def test_invalid_timebase_and_parameters_are_rejected(self):
         for frames in ([0]*30,list(range(0,60,2))):
             with self.assertRaises(ValueError):constrain_poses(self.soft,self.target,frames,[12])
-        for options in ({'radius':0},{'radius':True},{'smoothness':-1},{'smoothness':float('nan')}):
-            with self.assertRaises(ValueError):constrain_poses(self.soft,self.target,list(range(30)),[12],**options)
+        for radius in (0, True):
+            with self.assertRaises(ValueError):constrain_poses(self.soft,self.target,list(range(30)),[12],radius=radius)
+        for smoothness in (-1, float('nan')):
+            with self.assertRaises(ValueError):constrain_poses(self.soft,self.target,list(range(30)),[12],smoothness=smoothness)
         with self.assertRaises(ValueError):constrain_poses(self.soft,self.target,list(range(30)),[True])
 
     def test_invalid_anchor_quaternion_is_rejected(self):

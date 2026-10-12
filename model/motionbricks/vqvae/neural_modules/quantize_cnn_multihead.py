@@ -1,9 +1,10 @@
 # NOTE: taken from MotionGPT code base
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 from vector_quantize_pytorch import VectorQuantize
+
 
 class QuantizeEMAResetMultiHead(nn.Module):
     def __init__(self, nb_code: int, code_dim: int, args):
@@ -13,7 +14,7 @@ class QuantizeEMAResetMultiHead(nn.Module):
         self.mu = args.mu                       # the decay for ema reset
         self.num_heads = args.num_heads
         assert self.code_dim % self.num_heads == 0, "code dim cannot be divided by the number of heads."
-        self.nb_code_per_head = int(round(2 ** (np.log2(self.nb_code) / self.num_heads)))
+        self.nb_code_per_head = round(2 ** (np.log2(self.nb_code) / self.num_heads))
         assert self.nb_code_per_head ** self.num_heads == self.nb_code, \
             "the specified number of code is not compatible with the number of heads."
         self.vq = VectorQuantize(
@@ -73,7 +74,7 @@ class QuantizeEMAResetMultiHead(nn.Module):
         return x
 
     def forward(self, x):
-        N, width, T = x.shape
+        N, _width, T = x.shape
         # expected the shape of the input to vq: (1, 1024, 256) --> batch, Timesteps, feat_dim
         # The input to x is batch, width(feat_dim), T
         x = x.permute(0, 2, 1).contiguous()
@@ -102,7 +103,7 @@ class QuantizeEMAResetMultiHead(nn.Module):
         return x_d, commit_loss, perplexity
 
     def forward_into_idx(self, x, fetch_overall_indices: bool = True):
-        N, width, T = x.shape
+        _N, _width, _T = x.shape
 
         # expected the shape of the input: (1, 1024, 256) --> batch, T, width
         # The input to x is batch, width, T

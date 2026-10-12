@@ -7,10 +7,10 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+from motionbricks.data.unreal_dataset import apply_authoritative_root, read_json
 from scipy.spatial.transform import Rotation
 
 from data.runtime.conditioned_motion import CONTRACT_ID, load_window, with_references
-from motionbricks.data.unreal_dataset import apply_authoritative_root, read_json
 
 
 def select_windows(index_file, contract, split, per_clip):
@@ -67,7 +67,7 @@ def _interpolate_rotations(visible):
 
 
 def predict(visible, method):
-    future, bones = visible["reference_bone_mask"].shape
+    future, _bones = visible["reference_bone_mask"].shape
     if method == "hold":
         pose = np.repeat(visible["history_pose"][-1:], future, axis=0).copy()
         rotations = np.repeat(visible["history_rotations"][-1:], future, axis=0).copy()

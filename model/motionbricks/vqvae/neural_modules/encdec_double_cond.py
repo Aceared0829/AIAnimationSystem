@@ -1,6 +1,8 @@
-import torch.nn as nn
 import torch
+from torch import nn
+
 from motionbricks.vqvae.neural_modules.resnet import Resnet1D
+
 
 class DoubleCondDecoder(nn.Module):
     def __init__(self,
@@ -11,7 +13,7 @@ class DoubleCondDecoder(nn.Module):
                  depth: int = 3,
                  dilation_growth_rate: int = 3,
                  activation: str = 'relu',
-                 norm: str = None,
+                 norm: str | None = None,
                  target_cond_dim: int = -1,
                  external_cond_dim: int = -1,
                  cond_fusion_last_layer=False):
@@ -74,9 +76,9 @@ class DoubleCondDecoder(nn.Module):
                 target_cond_blocks.append(nn.ReLU())
             self.target_cond_blocks = nn.ModuleList(target_cond_blocks)
 
-    def forward(self, x: torch.Tensor, external_cond: torch.Tensor = None,
-                target_cond: torch.Tensor = None, has_target_cond: torch.Tensor = None,
-                token_mask: torch.Tensor = None):
+    def forward(self, x: torch.Tensor, external_cond: torch.Tensor | None = None,
+                target_cond: torch.Tensor | None = None, has_target_cond: torch.Tensor | None = None,
+                token_mask: torch.Tensor | None = None):
         """ @brief: the decoder could take the external condition and target condition as input.
         @params x: shape -> [batch, feat_dim, timesteps // (2 ** down_t)]
         @params external_cond: shape -> [batch, timesteps, feat_dim]
@@ -122,11 +124,13 @@ class DoubleCondDecoder(nn.Module):
                 continue
 
             # step 3: the main model
-            h = self.model[i + 2][0](h, token_mask)
-            h = self.model[i + 2][1](h)  # upsampling
+            block = self.model[i + 2]
+            assert isinstance(block, nn.Sequential)
+            h = block[0](h, token_mask)
+            h = block[1](h)  # upsampling
             token_mask = token_mask.repeat_interleave(2, 1) if token_mask is not None else None
             h = h * token_mask[:, None, :] if token_mask is not None else h  # zeroing out padded tokens' embeddings
-            h = self.model[i + 2][2](h)  # conv1d                                       # [batch, feat_dim, numPosition]
+            h = block[2](h)  # conv1d                                       # [batch, feat_dim, numPosition]
 
         # post process
         h = h * token_mask[:, None, :] if token_mask is not None else h  # zeroing out the padded tokens' embeddings

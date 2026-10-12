@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Tuple, Union
+from typing import Literal, overload
 
 import numpy as np
 import torch
@@ -24,9 +24,9 @@ class DualRootLocalBody(SeparatedRootLocalBody):
         name: str,
         *,
         # keywords only args
-        global_class: GlobalRootLocalBody,
-        local_class: LocalRootLocalBody,
-        stats: Optional[Stats] = None,
+        global_class: type[GlobalRootLocalBody],
+        local_class: type[LocalRootLocalBody],
+        stats: Stats | None = None,
     ):
         global_motion_rep = global_class(fps=fps, skeleton=skeleton, name="global")
         local_motion_rep = local_class(fps=fps, skeleton=skeleton, name="local")
@@ -112,7 +112,7 @@ class DualRootLocalBody(SeparatedRootLocalBody):
 
     def get_motion_rep_subset(
         self, mode: str = "global"
-    ) -> Union[GlobalRootLocalBody, LocalRootLocalBody]:
+    ) -> GlobalRootLocalBody | LocalRootLocalBody:
         """Get the motion representation object for either global or local features.
 
         Args:
@@ -167,7 +167,7 @@ class DualRootLocalBody(SeparatedRootLocalBody):
         is_normalized: bool,
         to_normalize: bool,
         mode: str,
-        lengths: Optional[torch.Tensor] = None,
+        lengths: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Convert features between global and local representations.
 
@@ -238,7 +238,7 @@ class DualRootLocalBody(SeparatedRootLocalBody):
         features: torch.Tensor,
         is_normalized: bool,
         to_normalize: bool,
-        lengths: Optional[torch.Tensor] = None,
+        lengths: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Convert features from global to local representation.
 
@@ -264,7 +264,7 @@ class DualRootLocalBody(SeparatedRootLocalBody):
         features: torch.Tensor,
         is_normalized: bool,
         to_normalize: bool,
-        lengths: Optional[torch.Tensor] = None,
+        lengths: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Convert features from local to global representation.
 
@@ -310,17 +310,47 @@ class DualRootLocalBody(SeparatedRootLocalBody):
         # global_body and local body should be the same
 
         assert (local_body == global_body).all()
-        motion = torch.cat([global_root, local_root, local_body], axis=-1)
+        motion = torch.cat([global_root, local_root, local_body], dim=-1)
         return motion
+
+    @overload
+    def change_first_heading(
+        self,
+        motion: torch.Tensor,
+        first_heading_angle: float | torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: Literal[False] = False,
+    ) -> torch.Tensor: ...
+
+    @overload
+    def change_first_heading(
+        self,
+        motion: torch.Tensor,
+        first_heading_angle: float | torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        *, return_numpy: Literal[True],
+    ) -> np.ndarray: ...
+
+    @overload
+    def change_first_heading(
+        self,
+        motion: torch.Tensor,
+        first_heading_angle: float | torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: bool = False,
+    ) -> torch.Tensor | np.ndarray: ...
 
     def change_first_heading(
         self,
         motion: torch.Tensor,
-        first_heading_angle: float,
+        first_heading_angle: float | torch.Tensor,
         is_normalized: bool,
         to_normalize: bool,
         return_numpy: bool = False,
-    ) -> Union[torch.Tensor, np.ndarray]:
+    ):
         """Transform motion to be relative to the first frame.
 
         Args:
@@ -338,14 +368,14 @@ class DualRootLocalBody(SeparatedRootLocalBody):
         if is_normalized:
             motion = self.unnormalize(motion)
 
-        new_global_rep_motion = self.global_motion_rep.change_first_heading(  # noqa
+        new_global_rep_motion = self.global_motion_rep.change_first_heading(
             self.get_feature_subset(motion, mode="global"),
             first_heading_angle,
             is_normalized=False,
             to_normalize=False,
         )
 
-        new_local_rep_motion = self.local_motion_rep.change_first_heading(  # noqa
+        new_local_rep_motion = self.local_motion_rep.change_first_heading(
             self.get_feature_subset(motion, mode="local"),
             first_heading_angle,
             is_normalized=False,
@@ -364,7 +394,7 @@ class DualRootLocalBody(SeparatedRootLocalBody):
 
     def compute_root_pos_and_rot(
         self, motion: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute root position and rotation from the representation.
 
         Returns:

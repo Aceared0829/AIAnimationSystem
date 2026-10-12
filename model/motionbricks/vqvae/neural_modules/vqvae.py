@@ -1,14 +1,20 @@
+from types import SimpleNamespace
+
+import numpy as np
 import torch as t
 from torch import nn
-import numpy as np
-from motionbricks.vqvae.neural_modules.quantize_cnn_multihead import QuantizeEMAResetMultiHead
-from motionbricks.vqvae.neural_modules.encdec_double_cond import DoubleCondDecoder
-from motionbricks.vqvae.neural_modules.encdec import Encoder
-from typing import Mapping, Tuple, List, Any
-from types import SimpleNamespace
+
+from motionbricks.helper.data_training_util import (
+    convert_sparse_cond_to_dense_cond_if_needed,
+    extract_feature_from_motion_rep,
+)
 from motionbricks.motionlib.core.motion_reps import MotionRepBase
-from motionbricks.helper.data_training_util import convert_sparse_cond_to_dense_cond_if_needed
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+from motionbricks.vqvae.neural_modules.encdec import Encoder
+from motionbricks.vqvae.neural_modules.encdec_double_cond import DoubleCondDecoder
+from motionbricks.vqvae.neural_modules.quantize_cnn_multihead import (
+    QuantizeEMAResetMultiHead,
+)
+
 
 class VQVAE(nn.Module):
     ALLOWED_FEATURE_MODE = [
@@ -28,7 +34,7 @@ class VQVAE(nn.Module):
 
                  decoder_target_cond_dim: int,
                  decoder_external_cond_dim: int,
-                 feature_mode: List,
+                 feature_mode: list,
 
                  # network config
                  quantizer_strategy: str = 'multihead_ema_reset',
@@ -44,7 +50,7 @@ class VQVAE(nn.Module):
                  activation: str = 'relu',
                  num_heads: int = 4,
                  kmeans_init: bool = True,
-                 norm: str = None,
+                 norm: str | None = None,
                  calculate_per_head_perplexity: bool = True,
                  **kwargs):
         """ @brief:
@@ -104,7 +110,7 @@ class VQVAE(nn.Module):
         feature = self._pose_root_mode if feature == "" else feature
         return extract_feature_from_motion_rep(x, self._motion_rep, feature)
 
-    def forward(self, x, target_cond: t.Tensor, has_target_cond: t.Tensor = None, external_cond: t.Tensor = None):
+    def forward(self, x, target_cond: t.Tensor, has_target_cond: t.Tensor | None = None, external_cond: t.Tensor | None = None):
         """ @brief: full encoder decoder path that goes from x to z to x
         @params x: [batch_size, numFrames, feat_dim]
         @params target_cond: [batch_size, numFrames, feat_dim]
@@ -123,6 +129,7 @@ class VQVAE(nn.Module):
 
         # decoder
         if target_cond is not None:
+            assert has_target_cond is not None
             target_cond, has_target_cond = \
                 convert_sparse_cond_to_dense_cond_if_needed(target_cond, has_target_cond, num_expected_frames)
             target_cond = self.extract_feature(target_cond, self.decoder_target_cond_feature_mode)
@@ -143,8 +150,8 @@ class VQVAE(nn.Module):
         return code_idx
 
     def forward_decoder(self, x,
-                        target_cond: t.Tensor, has_target_cond: t.Tensor = None, external_cond: t.Tensor = None,
-                        use_overall_indices: bool = True, token_mask: t.Tensor = None):
+                        target_cond: t.Tensor, has_target_cond: t.Tensor | None = None, external_cond: t.Tensor | None = None,
+                        use_overall_indices: bool = True, token_mask: t.Tensor | None = None):
         """ @brief: decoder part of the @forward function
         @param x: the code indices.
         """
@@ -155,6 +162,7 @@ class VQVAE(nn.Module):
 
         # decoder
         if target_cond is not None:
+            assert has_target_cond is not None
             target_cond, has_target_cond = \
                 convert_sparse_cond_to_dense_cond_if_needed(target_cond, has_target_cond, num_expected_frames)
             target_cond = self.extract_feature(target_cond, self.decoder_target_cond_feature_mode)
@@ -165,7 +173,7 @@ class VQVAE(nn.Module):
 
     def get_codebook(self):
         if self.quant_strategy == "ema_reset":
-            return self.quantizer.codebook.clone()
+            raise NotImplementedError("ema_reset quantization is not supported by this VQVAE")
         elif self.quant_strategy == "multihead_ema_reset":
             return self.quantizer.vq.codebook.clone()
         else:

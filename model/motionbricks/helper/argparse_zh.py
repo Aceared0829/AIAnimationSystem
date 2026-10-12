@@ -2,7 +2,7 @@
 
 import argparse
 import sys
-
+from collections.abc import Callable
 
 _TRANSLATIONS = {
     "usage: ": "用法：",
@@ -19,12 +19,12 @@ _TRANSLATIONS = {
 
 def enable_chinese_argparse() -> None:
     """启用 argparse 中文内置文案，并尽量将标准输出切换为 UTF-8。"""
-    original_translate = argparse._
+    original_translate: Callable[[str], str] = getattr(argparse, "_")
 
     def translate(message: str) -> str:
         return _TRANSLATIONS.get(message, original_translate(message))
 
-    argparse._ = translate
+    setattr(argparse, "_", translate)
 
     for stream_name in ("stdout", "stderr"):
         stream = getattr(sys, stream_name)

@@ -12,12 +12,11 @@ from pathlib import Path
 
 import torch
 from hydra.utils import instantiate
-from omegaconf import OmegaConf, open_dict
-
+from motionbricks.data.motionweaver_root import actor_track_to_condition
 from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
 from motionbricks.helper.pl_util import load_motion_rep
-from motionbricks.data.motionweaver_root import actor_track_to_condition
 from motionbricks.motion_backbone.inference.motion_inference import motion_inference
+from omegaconf import DictConfig, OmegaConf, open_dict
 
 
 class MotionWeaverInference(motion_inference):
@@ -305,6 +304,8 @@ def load_motionweaver_pose(pose_checkpoint, *, vqvae_checkpoint, dataset_dir=Non
     del vqvae_state
 
     conf = OmegaConf.create(pose_contract["config"])
+    if not isinstance(conf, DictConfig):
+        raise ValueError("Pose checkpoint config must be a mapping")
     profile = conf.get("motionweaver_profile")
     if (conf.model._target_ != "motionbricks.motion_backbone.models.motionweaver_pose_model.MotionWeaverPoseModel"
             or profile not in {"online_history4_compact_v1", "actor_root_history4_compact_v1"}):

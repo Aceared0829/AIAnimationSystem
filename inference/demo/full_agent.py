@@ -1,19 +1,21 @@
-from motionbricks.motion_backbone.inference.motion_inference import motion_inference
-from copy import deepcopy
-import torch as t
-from torch.utils.data import DataLoader
-from motionbricks.motion_backbone.demo.clips import clip_holder_G1
-from motionbricks.helper.mujoco_helper import get_mujoco_converter
 import time
-from scipy.spatial.transform import Rotation as R
-from motionbricks.motionlib.core.utils.rotations import angle_to_Y_rotation_matrix, matrix_to_cont6d, quat_apply, quat_mul
-from motionbricks.motionlib.core.utils.rotations import quaternion_to_matrix
+from copy import deepcopy
+
+import torch as t
 
 # using this matrix_to_quaternion instead of the one in motionbricks.motionlib.core.utils.rotations
 # to avoid some tensorrt issues
 from motionbricks.geometry.quaternions import matrix_to_quaternion
+from motionbricks.helper.mujoco_helper import get_mujoco_converter
+from motionbricks.motion_backbone.demo.clips import clip_holder_G1
+from motionbricks.motion_backbone.inference.motion_inference import motion_inference
+from motionbricks.motionlib.core.utils.rotations import (
+    angle_to_Y_rotation_matrix,
+    matrix_to_cont6d,
+    quaternion_to_matrix,
+)
+from torch.utils.data import DataLoader
 
-import os
 
 def angle_to_Z_rotation_matrix(angle):
     """Create rotation matrix around Z-axis for Z-up coordinate system"""
@@ -34,8 +36,8 @@ class full_navigation_agent(t.nn.Module):
     NUM_FRAMES_PER_TOKEN = 4
     DEFAULT_PRED_OFFSETS = 4
 
-    def __init__(self, inferencer: motion_inference, train_dataloader: DataLoader, device: str = 'cuda',
-                 speed_scale: list[float] = [1.0, 1.0], target_root_realignment: bool = True,
+    def __init__(self, inferencer: motion_inference, train_dataloader: DataLoader | None, device: str = 'cuda',
+                 speed_scale: list[float] | None = None, target_root_realignment: bool = True,
                  source_root_realignment: bool = True,
                  pred_offsets: int = DEFAULT_PRED_OFFSETS,
                  skeleton_xml: str = "assets/skeletons/g1/g1.xml",
@@ -43,11 +45,13 @@ class full_navigation_agent(t.nn.Module):
                  force_canonicalization: bool = True, clips: str = "G1",
                  bypass_spring_model: bool = False,
                  skip_ending_target_cond: bool = True,
-                 ckpt_path: str = None,
+                 ckpt_path: str | None = None,
                  reprocess_clips: bool = False,
-                 val_dataloader: DataLoader = None,
+                 val_dataloader: DataLoader | None = None,
                  use_spring_root_instead: bool = False):
-        super(full_navigation_agent, self).__init__()
+        if speed_scale is None:
+            speed_scale = [1.0, 1.0]
+        super().__init__()
         self._inferencer = inferencer.eval().to(device)
         self._motion_rep = deepcopy(inferencer.motion_rep).to(device)  # make a copy to avoid gpu cpu transfer
         self._converter = get_mujoco_converter(self._motion_rep, skeleton_xml).to(device)
@@ -66,14 +70,7 @@ class full_navigation_agent(t.nn.Module):
         self.BYPASS_SPRING_MODEL = bypass_spring_model
         self.SKIP_ENDING_TARGET_COND = skip_ending_target_cond
 
-        self.frames = {
-            # model features are the output from the model inference. The actual inference runs here
-            "model_features": None,  # [batch_size, num_frames, feature_dim (390)]
-
-            # qpos feature is the feature understood by the mujoco simulator
-            "mujoco_qpos": None,   # [batch_size, num_frames, 32]
-            "mode": None,
-        }
+        self.frames: dict[str, t.Tensor] = {}
         self._speed_scale_min, self._speed_scale_max = speed_scale  # in case you want to perturb the speed
         self._initialize_frames()
         self._has_prebaked_inference_engine = False
@@ -185,6 +182,7 @@ class full_navigation_agent(t.nn.Module):
             assert not self.FORCE_CANONICALIZATION, "not implemented yet."
             output_results = self._motion_rep.inverse(input['context_motion_features'],
                                                       is_normalized=False, return_quat=False, return_all=False)
+            assert 'posed_joints' in output_results and 'global_joint_rots' in output_results
             context_global_joint_positions, context_global_joint_rotations = \
                 output_results['posed_joints'], output_results['global_joint_rots']  # [batch, numF, numJ, ...]
         else:
@@ -322,7 +320,7 @@ class full_navigation_agent(t.nn.Module):
         """ @brief: generate the target joint transforms
         """
         # based on the mode and random seeds, fetch the target poses
-        NUM_FRAMES_PER_TOKEN, batch_size = self.NUM_FRAMES_PER_TOKEN, input['mode'].shape[0]
+        NUM_FRAMES_PER_TOKEN, _batch_size = self.NUM_FRAMES_PER_TOKEN, input['mode'].shape[0]
         random_seed = input.get('random_seed', t.randint(0, 10000, (1,))).to(self._device)
 
         onehot_mode = t.nn.functional.one_hot(input['mode'].view(-1), len(self._clip_holder.CLIPS))
@@ -391,7 +389,7 @@ class full_navigation_agent(t.nn.Module):
         return global_joint_positions, global_joint_rotations, global_root_positions
 
     def _generate_inbetween_frames(self, input: dict):
-        start_time = time.time()
+        _start_time = time.time()
         batch_size, MASKED_NUM_TOKENS = 1, self._inferencer._root_model.backbone_net.MASKED_NUM_TOKENS
         fps = self._inferencer.local_motion_rep.fps
         root_joint_idx = 0
@@ -589,8 +587,5 @@ class full_navigation_agent(t.nn.Module):
     def _should_regenerate(self, input: dict):
 
         idle_mode_id = list(self._clip_holder.CLIPS.keys()).index('idle')
-        if self.frames['mode'] is not None and self.frames['mode'].item() == idle_mode_id and \
-                input['mode'].item() == idle_mode_id:
-            return False
-
-        return True
+        previous_mode = self.frames.get('mode')
+        return not (previous_mode is not None and previous_mode.item() == idle_mode_id and input['mode'].item() == idle_mode_id)

@@ -1,15 +1,17 @@
 """导出无损 FP32 推理包：删除训练状态，保留完整码本、骨架、统计量与重建配置。"""
 import argparse
+import hashlib
 import json
 import shutil
-import hashlib
 from pathlib import Path
+
 import torch
 from hydra.utils import instantiate
-from omegaconf import OmegaConf, open_dict
-from inference.runtime.checkpoint import load_vqvae
+from motionbricks.data.unreal_dataset import file_sha256, training_signature
 from motionbricks.helper.pl_util import load_motion_rep
-from motionbricks.data.unreal_dataset import training_signature, file_sha256
+from omegaconf import DictConfig, OmegaConf, open_dict
+
+from inference.runtime.checkpoint import load_vqvae
 
 
 def load_package(folder):
@@ -22,6 +24,8 @@ def load_package(folder):
             if file_sha256(folder / "weights.pt") != manifest["weights_sha256"]:
                 raise ValueError("推理权重校验失败，文件已改变")
     conf = OmegaConf.load(folder / "config.yaml")
+    if not isinstance(conf, DictConfig):
+        raise ValueError("Configuration must be a mapping")
     with open_dict(conf):
         conf.data.folder = str(folder)
         conf.skeleton.folder = str(folder)
@@ -36,7 +40,7 @@ def load_package(folder):
 
 def export(checkpoint, output, decoder_only=False):
     checkpoint, output = Path(checkpoint).resolve(), Path(output).resolve()
-    net, rep, contract = load_vqvae(checkpoint)
+    net, _rep, contract = load_vqvae(checkpoint)
     output.mkdir(parents=True, exist_ok=False)
     conf = OmegaConf.create(contract["config"])
     source = Path(conf.data.folder)

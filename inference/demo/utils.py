@@ -1,22 +1,23 @@
 # Modified by the AIAnimationSystem maintainers: localized controller error messages.
 
 import os
-import numpy as np
-import mujoco
 from types import SimpleNamespace
-import torch as t
-from motionbricks.motion_backbone.inference.motion_inference import motion_inference
-from motionbricks.motion_backbone.demo.controllers import WASD_controller, random_controller
-from motionbricks.exp_setup.experiment import test
-from motionbricks.repository import repository_root, base_weights
 
-class navigation_demo(object):
+import mujoco
+import numpy as np
+import torch as t
+from motionbricks.exp_setup.experiment import test
+from motionbricks.motion_backbone.demo.controllers import (
+    WASD_controller,
+    random_controller,
+)
+from motionbricks.motion_backbone.inference.motion_inference import motion_inference
+from motionbricks.repository import base_weights, repository_root
+
+
+class navigation_demo:
     def __init__(self, args):
         self.args = args
-        self.full_agent = None
-        self.controller = None
-        self.mj_model = None
-        self.mj_data = None
         self._parse_args()
         self._initialize_inference_modles()
         self._initialize_controller()
@@ -54,12 +55,18 @@ class navigation_demo(object):
     def _initialize_inference_modles(self):
         reprocess_clips = getattr(self.args, 'reprocess_clips', False)  # useful for debugging & development
         if self.args.clips_ckpt is None or (not os.path.exists(self.args.clips_ckpt)) or reprocess_clips:
-            models, confs, train_dataloader, val_dataloader = test(self.args)
+            loaded = test(self.args)
+            if loaded is None or len(loaded) != 4:
+                raise ValueError("Clip preprocessing requires models, configs and both dataloaders")
+            models, confs, train_dataloader, val_dataloader = loaded
             self.args.train_dataloader = train_dataloader
             self.args.val_dataloader = val_dataloader
         else:
             self.args.return_dataloader = False
-            models, confs = test(self.args)
+            loaded = test(self.args)
+            if loaded is None or len(loaded) != 2:
+                raise ValueError("Demo loading requires models and configs")
+            models, confs = loaded
             self.args.train_dataloader = None
             self.args.val_dataloader = None
 
@@ -112,7 +119,7 @@ class navigation_demo(object):
         self.mj_model, self.mj_data = build_mj_simulator(self.args.humanoid_scene_xml, self.inferencer.motion_rep.fps)
 
 
-def build_mj_simulator(humanoid_xml: str, fps: int = 30, build_dummy_mj_simulator: bool = False):
+def build_mj_simulator(humanoid_xml: str, fps: float = 30, build_dummy_mj_simulator: bool = False):
     if build_dummy_mj_simulator:
         # mj_model provide a value called qpos
         mj_model = SimpleNamespace(opt=SimpleNamespace(timestep=1 / fps))

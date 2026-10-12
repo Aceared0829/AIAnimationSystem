@@ -57,6 +57,7 @@ def render(report_path, baseline_name='endpoints2', candidate_name='targeted4', 
     video = report_path.with_name(prefix+'_traversal_comparison.mp4')
     command = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{width}x{height}', '-r', '30', '-i', '-', '-an', '-c:v', 'libx264', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', str(video)]
     process = subprocess.Popen(command, stdin=subprocess.PIPE)
+    assert process.stdin is not None
     try:
         count = max(len(arrays[key+'_source']) for key, _ in selected)
         for _ in range(3):

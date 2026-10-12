@@ -1,19 +1,27 @@
 # Modified by the AIAnimationSystem maintainers: localized messages and ensured at least one supervised token per sample.
 
-from motionbricks.vqvae.neural_modules import vqvae
-from motionbricks.motion_backbone.neural_modules.pose_backbone import pose_backbone_network
-import torch as t
-import os
 import logging
-from typing import Callable, Optional, Union, Dict
+import os
+from collections.abc import Callable, Iterable
 
-import torch
-from pytorch_lightning import LightningModule
-from motionbricks.motionlib.core.motion_reps import MotionRepBase
 import numpy as np
-from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import GlobalRootGlobalJoints, LocalRootGlobalJoints
-from motionbricks.helper.data_training_util import sample_motion_segments_from_motion_clips
-from motionbricks.helper.data_training_util import sample_keyframes, extract_feature_from_motion_rep
+import torch
+import torch as t
+from motionbricks.helper.data_training_util import (
+    extract_feature_from_motion_rep,
+    sample_keyframes,
+    sample_motion_segments_from_motion_clips,
+)
+from motionbricks.motion_backbone.neural_modules.pose_backbone import (
+    pose_backbone_network,
+)
+from motionbricks.motionlib.core.motion_reps import MotionRepBase
+from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import (
+    GlobalRootGlobalJoints,
+    LocalRootGlobalJoints,
+)
+from motionbricks.vqvae.neural_modules import vqvae
+from pytorch_lightning import LightningModule
 
 log = logging.getLogger(__name__)
 
@@ -33,16 +41,21 @@ class MotionModel(LightningModule):
 
     def __init__(self,
                  pose_vqvae_network: vqvae.VQVAE,
-                 root_vqvae_network: Union[None, vqvae.VQVAE],
+                 root_vqvae_network: None | vqvae.VQVAE,
                  backbone_network: pose_backbone_network,
                  motion_rep: MotionRepBase,
-                 optimizer: Callable[[list], torch.optim.Optimizer] = None,
-                 scheduler: Optional[Callable[[torch.optim.Optimizer], torch.optim.lr_scheduler.LRScheduler]] = None,
-                 device: Optional[Union[str, torch.device]] = None,
-                 args: Dict = None,
+                 optimizer: Callable[[Iterable[torch.nn.Parameter]], torch.optim.Optimizer] | None = None,
+                 scheduler: Callable[[torch.optim.Optimizer], torch.optim.lr_scheduler.LRScheduler] | None = None,
+                 device: str | torch.device | None = None,
+                 args: dict | None = None,
                  # the other key args here: most of them for compatibility only and won't be used at all
                  **kwargs):
         super().__init__()
+        assert isinstance(motion_rep, GlobalRootGlobalJoints)
+        assert motion_rep.dual_rep is not None
+        dual_rep = motion_rep.dual_rep
+        assert isinstance(dual_rep.global_motion_rep, GlobalRootGlobalJoints)
+        assert isinstance(dual_rep.local_motion_rep, LocalRootGlobalJoints)
 
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -51,10 +64,12 @@ class MotionModel(LightningModule):
         self.backbone_net = backbone_network
 
         self.motion_rep: GlobalRootGlobalJoints = motion_rep
-        self.global_motion_rep: GlobalRootGlobalJoints = motion_rep.dual_rep.global_motion_rep
-        self.local_motion_rep: LocalRootGlobalJoints = motion_rep.dual_rep.local_motion_rep
+        self.global_motion_rep: GlobalRootGlobalJoints = dual_rep.global_motion_rep
+        self.local_motion_rep: LocalRootGlobalJoints = dual_rep.local_motion_rep
 
         self.DEFAULT_NUM_JOINTS = self.motion_rep.num_joints
+        if args is None:
+            raise ValueError("Model configuration is required")
         self._args = args
         self.one_logger_callback = kwargs.get("one_logger_callback", None)
         self.callbacks = []
@@ -77,7 +92,7 @@ class MotionModel(LightningModule):
         """ @brief: load the vqvae models and init the backbone's input embedding.
         """
         self._vqvae_model_loaded = False
-        vqvae_model_ckpt_path = self._args.vqvae_model_ckpt_path
+        vqvae_model_ckpt_path = self._args['vqvae_model_ckpt_path']
         if os.path.exists(vqvae_model_ckpt_path):
             vqvae_model_weights = t.load(vqvae_model_ckpt_path)['state_dict']
             with t.no_grad():
@@ -99,9 +114,17 @@ class MotionModel(LightningModule):
         else:
             print("未找到 VQ-VAE 模型检查点路径；假定 VQ-VAE 权重已集成到模型中。")
 
+    @property
+    def dual_rep(self):
+        dual_rep = self.motion_rep.dual_rep
+        assert dual_rep is not None
+        return dual_rep
+
     def configure_optimizers(self):
         if self.one_logger_callback is not None:
             self.one_logger_callback.on_optimizer_init_start()
+        if self.optimizer is None:
+            raise ValueError("An optimizer is required for training")
         optimizer = self.optimizer(self.parameters())
         if self.one_logger_callback is not None:
             self.one_logger_callback.on_optimizer_init_end()
@@ -118,17 +141,21 @@ class MotionModel(LightningModule):
     def configure_callbacks(self):
         return self.callbacks
 
-    def inference_step(self, batch, batch_idx, requires_grad=False, meta_info: Dict = {}):
+    def inference_step(self, batch, batch_idx, requires_grad=False, meta_info: dict | None = None):
+        if meta_info is None:
+            meta_info = {}
         if not hasattr(self, "_printed_inference_warning"):
             self._printed_inference_warning = True
             print("警告：姿态模型没有显式推理步骤，将复用训练步骤。")
         with t.no_grad():
             return self.training_step(batch, batch_idx, use_outside_training=True, meta_info=meta_info)
 
-    def training_step(self, batch, batch_idx, use_outside_training: bool = False, meta_info: Dict = {}):
+    def training_step(self, batch, batch_idx, use_outside_training: bool = False, meta_info: dict | None = None):
         """ @brief: the training step takes input a normalized motion representation.
             batch.keys() -> dict_keys(['motion', 'motion_len', 'motion_pad_mask', 'batch_size'])
         """
+        if meta_info is None:
+            meta_info = {}
         assert self.training or use_outside_training, \
             "It's possible to use training_step on evaluation set. But otherwise self.training should be true."
 
@@ -165,7 +192,7 @@ class MotionModel(LightningModule):
         global_motions = self.global_motion_rep.change_first_heading(
             global_motions, first_frame_heading_angle, is_normalized=True, to_normalize=True
         )  # note this `change_first_heading` also moves the first frame to the origin
-        local_motions = self.motion_rep.dual_rep.global_to_local(
+        local_motions = self.dual_rep.global_to_local(
             global_motions, is_normalized=True, to_normalize=True,
             lengths=t.full([actual_batch_size], global_motions.shape[1]).to(device)
         )
@@ -232,7 +259,7 @@ class MotionModel(LightningModule):
             batch['global_motions'], self.global_motion_rep, self._args['cond_root_feature']
         )
 
-    def loss(self, batch: Dict, model_output_batch: Dict):
+    def loss(self, batch: dict, model_output_batch: dict):
         """ @brief: calculate the cross-entropy loss between the predicted pose tokens and the groundtruth.
         """
         batch_size, num_positions = \
@@ -294,13 +321,13 @@ class MotionModel(LightningModule):
                                            random_order < num_focus_tokens)
 
         # step 4: the mask / incorrect level
-        mask_percentage = masked_token_mask.sum(dim=-1, keepdims=True) / num_all_tokens_per_sample
-        incorrect_percentage = incorrect_token_mask.sum(dim=-1, keepdims=True) / num_all_tokens_per_sample
+        mask_percentage = masked_token_mask.sum(dim=-1, keepdim=True) / num_all_tokens_per_sample
+        incorrect_percentage = incorrect_token_mask.sum(dim=-1, keepdim=True) / num_all_tokens_per_sample
 
         return focused_token_mask, masked_token_mask, incorrect_token_mask, \
             correct_token_mask, mask_percentage, incorrect_percentage
 
-    def _generate_tokens_for_training(self, batch: Dict):
+    def _generate_tokens_for_training(self, batch: dict):
         """ @brief: based on the mask and the number of steps, change the tokens accordingly.
         """
         batch_size, num_positions_in_a_sample = \
@@ -331,9 +358,11 @@ class MotionModel(LightningModule):
         if self._supporting_networks['pose_net'].training:  # just make sure they are in eval mode
             self._supporting_networks['pose_net'] = self._supporting_networks['pose_net'].eval()
 
-    def _construct_keyframe_prob(self, max_num_keyframes: int = None, no_keyframe_prob: float = 0.0):
+    def _construct_keyframe_prob(self, max_num_keyframes: int | None = None, no_keyframe_prob: float = 0.0):
         """ @brief: generate the prob to sample each keyframe during training.
         """
+        if max_num_keyframes is None:
+            raise ValueError("A maximum keyframe count is required")
         scheduled_max_num_keyframes = max_num_keyframes * \
             (self.trainer.global_step / self.args['keyframe_num_warmup_steps'])
         scheduled_max_num_keyframes = int(max(1, min(scheduled_max_num_keyframes, max_num_keyframes)))
@@ -348,7 +377,7 @@ class MotionModel(LightningModule):
         prob_num_keyframes /= prob_num_keyframes.sum()
         return prob_num_keyframes
 
-    def _sample_the_local_pose_conditions(self, local_motions, num_frames: int, text_embedding: t.Tensor = None):
+    def _sample_the_local_pose_conditions(self, local_motions, num_frames: int, text_embedding: t.Tensor | None = None):
         """ @brief: generate the local pose cond during training. Note the sampling for starting frames, ending frames
         and middle frames are done separately.
         """
@@ -381,7 +410,7 @@ class MotionModel(LightningModule):
             has_text_emb = t.rand([text_embedding.shape[0], 1], device=text_embedding.device) < \
                 self._args.get('prob_provide_text_emb', 0.2)
             # provide text emb if end keyframes are not there
-            # has_text_emb = t.logical_or(has_text_emb, component_has_pose_cond['end'].sum(dim=1, keepdims=True) < 1)
+            # has_text_emb = t.logical_or(has_text_emb, component_has_pose_cond['end'].sum(dim=1, keepdim=True) < 1)
             text_embedding = t.where(has_text_emb, text_embedding, t.zeros_like(text_embedding))
         else:
             text_embedding = has_text_emb = None

@@ -3,15 +3,25 @@
 import copy
 import importlib.util
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 
 import numpy as np
 import torch
+from motionbricks.data.unreal_dataset import (
+    UE_TO_MOTION,
+    UnrealMotionDataset,
+    UnrealSkeleton,
+    apply_authoritative_root,
+    convert_clip,
+    convert_root_track,
+    derive_motion_annotations,
+    derive_motion_labels,
+    validate_clip,
+    world_foot_contacts,
+)
 from scipy.spatial.transform import Rotation
-
-from motionbricks.data.unreal_dataset import UE_TO_MOTION, UnrealMotionDataset, UnrealSkeleton, apply_authoritative_root, convert_clip, convert_root_track, derive_motion_annotations, derive_motion_labels, validate_clip, world_foot_contacts
 
 
 def fixture():
@@ -59,6 +69,7 @@ def pose_only_fixture():
 def prepare_module():
     path = Path(__file__).resolve().parents[1] / "data/tools/prepare_unreal_dataset.py"
     spec = importlib.util.spec_from_file_location("prepare_unreal", path)
+    assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -73,6 +84,7 @@ class UnrealDatasetTests(unittest.TestCase):
         clip = pose_only_fixture()
         positions, _, _ = convert_clip(clip)
         root_track = convert_root_track(clip)
+        assert root_track is not None
         np.testing.assert_allclose(positions[:, 0], np.tile([0, 1, 0], (len(positions), 1)), atol=1e-6)
         self.assertGreater(root_track[-1, 2], root_track[0, 2])
         clip["root_frames"] = clip["root_frames"][:-1]
@@ -83,6 +95,7 @@ class UnrealDatasetTests(unittest.TestCase):
         clip = pose_only_fixture()
         positions, _, _ = convert_clip(clip)
         root_track = convert_root_track(clip)
+        assert root_track is not None
         world = apply_authoritative_root(positions, root_track)
         np.testing.assert_allclose(world[:, 0, 2], root_track[:, 2], atol=1e-6)
         self.assertGreater(np.linalg.norm(world[-1, 0] - world[0, 0]), 0.4)
@@ -90,6 +103,7 @@ class UnrealDatasetTests(unittest.TestCase):
     def test_motion_annotations_use_root_track_without_inventing_environment(self):
         clip = pose_only_fixture()
         root_track = convert_root_track(clip)
+        assert root_track is not None
         annotations = derive_motion_annotations("/Game/Animations/Traversal/Hurdle_low_run", root_track, np.arange(len(root_track)) / clip["fps"])
         self.assertEqual(annotations["trajectory_source"], "exported_ue_root")
         self.assertEqual(annotations["obstacle_height_class"], "low")
@@ -105,6 +119,7 @@ class UnrealDatasetTests(unittest.TestCase):
         clip = pose_only_fixture()
         positions, _, _ = convert_clip(clip)
         root_track = convert_root_track(clip)
+        assert root_track is not None
         with tempfile.TemporaryDirectory() as temp:
             folder = Path(temp)
             metadata = {key: clip[key] for key in ("roles", "coordinate_system", "fps", "root_bone", "pelvis_bone", "root_policy", "pose_policy")}
@@ -112,6 +127,7 @@ class UnrealDatasetTests(unittest.TestCase):
             metadata["neutral_joints"] = [bone["position"] for bone in clip["bones"]]
             (folder / "skeleton.json").write_text(json.dumps(metadata), encoding="utf-8")
             contacts = world_foot_contacts(positions, root_track, UnrealSkeleton(folder), clip["fps"])
+            assert contacts is not None
             self.assertEqual(contacts.shape, (100, 4))
             self.assertTrue(torch.isfinite(contacts).all())
 
@@ -193,6 +209,7 @@ class UnrealDatasetTests(unittest.TestCase):
         loss = masked_mean(values, torch.tensor([[True, True, False]]))
         loss.backward()
         self.assertEqual(loss.item(), 1.5)
+        assert values.grad is not None
         self.assertEqual(values.grad[0, 2, 0].item(), 0.)
 
     def test_native_timestamps_and_train_only_statistics(self):
@@ -210,6 +227,7 @@ class UnrealDatasetTests(unittest.TestCase):
                         clip["timestamps_seconds"] = (np.arange(len(clip["frames"])) / 60).tolist()
                         return clip
             train_clip, test_clip = named_clip(5), named_clip(0)
+            assert train_clip is not None and test_clip is not None
             for frame in test_clip["frames"]:
                 for joint in frame:
                     joint[2] += 1000
@@ -240,11 +258,14 @@ class UnrealDatasetTests(unittest.TestCase):
             self.assertEqual(dataset[0]["motion"].shape[1], 90)
             self.assertEqual(dataset[0]["labels"]["action"], "walk")
             self.assertTrue(np.isfinite(dataset[0]["motion"].numpy()).all())
-            from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import GlobalRootGlobalJoints
+            from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import (
+                GlobalRootGlobalJoints,
+            )
             from motionbricks.motionlib.core.utils.stats import Stats
             representation = GlobalRootGlobalJoints(fps=30, skeleton=UnrealSkeleton(output), name="unreal_dual_root_global_joints", stats=Stats(output / "stats"))
             restored = representation.inverse(dataset[0]["motion"], is_normalized=True, return_quat=False)
             positions, rotations, _ = convert_clip(fixture())
+            assert "posed_joints" in restored and "global_joint_rots" in restored
             np.testing.assert_allclose(restored["posed_joints"].numpy(), positions, atol=1e-5)
             np.testing.assert_allclose(restored["global_joint_rots"].numpy(), rotations, atol=1e-5)
             with self.assertRaises(FileExistsError):

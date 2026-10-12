@@ -1,20 +1,29 @@
 # Modified by the AIAnimationSystem maintainers: localized inference warnings.
 
-from motionbricks.vqvae.neural_modules import vqvae
-from motionbricks.motion_backbone.neural_modules.pose_backbone import pose_backbone_network
-from motionbricks.motion_backbone.neural_modules.root_backbone import root_backbone_network
-import torch as t
-import os
 import logging
-from typing import Callable, Optional, Union, Dict
+from collections.abc import Callable, Iterable
 
-import torch
-from pytorch_lightning import LightningModule
-from motionbricks.motionlib.core.motion_reps import MotionRepBase
 import numpy as np
-from motionbricks.helper.data_training_util import sample_motion_segments_from_motion_clips
-from motionbricks.helper.data_training_util import sample_keyframes, extract_feature_from_motion_rep
-from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import GlobalRootGlobalJoints, LocalRootGlobalJoints
+import torch
+import torch as t
+from motionbricks.helper.data_training_util import (
+    extract_feature_from_motion_rep,
+    sample_keyframes,
+    sample_motion_segments_from_motion_clips,
+)
+from motionbricks.motion_backbone.neural_modules.pose_backbone import (
+    pose_backbone_network,
+)
+from motionbricks.motion_backbone.neural_modules.root_backbone import (
+    root_backbone_network,
+)
+from motionbricks.motionlib.core.motion_reps import MotionRepBase
+from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import (
+    GlobalRootGlobalJoints,
+    LocalRootGlobalJoints,
+)
+from motionbricks.vqvae.neural_modules import vqvae
+from pytorch_lightning import LightningModule
 
 log = logging.getLogger(__name__)
 
@@ -36,29 +45,37 @@ class MotionModel(LightningModule):
     """
 
     def __init__(self,
-                 pose_vqvae_network: Optional[vqvae.VQVAE],
-                 root_vqvae_network: Optional[vqvae.VQVAE],
-                 backbone_network: Union[pose_backbone_network, root_backbone_network],
+                 pose_vqvae_network: vqvae.VQVAE | None,
+                 root_vqvae_network: vqvae.VQVAE | None,
+                 backbone_network: pose_backbone_network | root_backbone_network,
                  motion_rep: MotionRepBase,
-                 optimizer: Callable[[list], torch.optim.Optimizer] = None,
-                 scheduler: Optional[Callable[[torch.optim.Optimizer], torch.optim.lr_scheduler.LRScheduler]] = None,
-                 device: Optional[Union[str, torch.device]] = None,
-                 args: Dict = None,
+                 optimizer: Callable[[Iterable[torch.nn.Parameter]], torch.optim.Optimizer] | None = None,
+                 scheduler: Callable[[torch.optim.Optimizer], torch.optim.lr_scheduler.LRScheduler] | None = None,
+                 device: str | torch.device | None = None,
+                 args: dict | None = None,
                  # the other key args here: most of them for compatibility only and won't be used at all
                  **kwargs):
         super().__init__()
+        assert isinstance(motion_rep, GlobalRootGlobalJoints)
+        assert motion_rep.dual_rep is not None
+        dual_rep = motion_rep.dual_rep
+        assert isinstance(dual_rep.global_motion_rep, GlobalRootGlobalJoints)
+        assert isinstance(dual_rep.local_motion_rep, LocalRootGlobalJoints)
 
         self.optimizer = optimizer
         self.scheduler = scheduler
 
         self._supporting_networks = {'pose_net': pose_vqvae_network, 'root_net': root_vqvae_network}
+        assert isinstance(backbone_network, root_backbone_network)
         self.backbone_net = backbone_network
 
         self.motion_rep: GlobalRootGlobalJoints = motion_rep
-        self.global_motion_rep: GlobalRootGlobalJoints = motion_rep.dual_rep.global_motion_rep
-        self.local_motion_rep: LocalRootGlobalJoints = motion_rep.dual_rep.local_motion_rep
+        self.global_motion_rep: GlobalRootGlobalJoints = dual_rep.global_motion_rep
+        self.local_motion_rep: LocalRootGlobalJoints = dual_rep.local_motion_rep
 
         self.DEFAULT_NUM_JOINTS = self.motion_rep.num_joints
+        if args is None:
+            raise ValueError("Model configuration is required")
         self._args = args
         self.one_logger_callback = kwargs.get("one_logger_callback", None)
         self.callbacks = []
@@ -74,9 +91,17 @@ class MotionModel(LightningModule):
     def _load_vqvae_models(self):
         self._vqvae_model_loaded = True  # root model does not use a VQVAE
 
+    @property
+    def dual_rep(self):
+        dual_rep = self.motion_rep.dual_rep
+        assert dual_rep is not None
+        return dual_rep
+
     def configure_optimizers(self):
         if self.one_logger_callback is not None:
             self.one_logger_callback.on_optimizer_init_start()
+        if self.optimizer is None:
+            raise ValueError("An optimizer is required for training")
         optimizer = self.optimizer(self.parameters())
         if self.one_logger_callback is not None:
             self.one_logger_callback.on_optimizer_init_end()
@@ -93,17 +118,21 @@ class MotionModel(LightningModule):
     def configure_callbacks(self):
         return self.callbacks
 
-    def inference_step(self, batch, batch_idx, requires_grad=False, meta_info: Dict = {}):
+    def inference_step(self, batch, batch_idx, requires_grad=False, meta_info: dict | None = None):
+        if meta_info is None:
+            meta_info = {}
         if not hasattr(self, "_printed_inference_warning"):
             self._printed_inference_warning = True
             print("警告：根节点模型没有显式推理步骤，将复用训练步骤。")
         with t.no_grad():
             return self.training_step(batch, batch_idx, use_outside_training=True, meta_info=meta_info)
 
-    def training_step(self, batch, batch_idx, use_outside_training: bool = False, meta_info: Dict = {}):
+    def training_step(self, batch, batch_idx, use_outside_training: bool = False, meta_info: dict | None = None):
         """ @brief: the training step takes input a normalized motion representation.
             batch.keys() -> dict_keys(['motion', 'motion_len', 'motion_pad_mask', 'batch_size'])
         """
+        if meta_info is None:
+            meta_info = {}
         assert self.training or use_outside_training, \
             "It's possible to use training_step on evaluation set. But otherwise self.training should be true."
 
@@ -144,7 +173,7 @@ class MotionModel(LightningModule):
         global_motions = self.global_motion_rep.change_first_heading(
             global_motions, first_frame_heading_angle, is_normalized=True, to_normalize=True
         )  # note this `change_first_heading` also moves the first frame to the origin
-        local_motions = self.motion_rep.dual_rep.global_to_local(
+        local_motions = self.dual_rep.global_to_local(
             global_motions, is_normalized=True, to_normalize=True,
             lengths=t.full([actual_batch_size], global_motions.shape[1]).to(device)
         )
@@ -192,14 +221,14 @@ class MotionModel(LightningModule):
                      on_epoch=True, sync_dist=True, batch_size=batch["batch_size"])
         return losses['loss']
 
-    def loss(self, batch: Dict, model_output_batch: Dict):
+    def loss(self, batch: dict, model_output_batch: dict):
         """ @brief: calculate the root prediction loss and num-token classification loss.
         """
         losses = {}
         batch_size, num_valid_frames, device = \
             batch['global_motions'].shape[0], batch['global_motions'].shape[1], batch['global_motions'].device
 
-        pred_local_root_motions = self.motion_rep.dual_rep.global_to_local(
+        pred_local_root_motions = self.dual_rep.global_to_local(
             model_output_batch['pred_global_root_values'][:, :num_valid_frames, ],
             is_normalized=True, to_normalize=True, lengths=t.full([batch_size], num_valid_frames).to(device)
         )
@@ -246,9 +275,11 @@ class MotionModel(LightningModule):
     def move_supporting_nets_to_device(self, device):
         pass  # both networks are empty
 
-    def _construct_keyframe_prob(self, max_num_keyframes: int = None, no_keyframe_prob: float = 0.0):
+    def _construct_keyframe_prob(self, max_num_keyframes: int | None = None, no_keyframe_prob: float = 0.0):
         """ @brief: generate the prob to sample each keyframe during training.
         """
+        if max_num_keyframes is None:
+            raise ValueError("A maximum keyframe count is required")
         scheduled_max_num_keyframes = max_num_keyframes * \
             (self.trainer.global_step / self.args['keyframe_num_warmup_steps'])
         scheduled_max_num_keyframes = int(max(1, min(scheduled_max_num_keyframes, max_num_keyframes)))
@@ -286,9 +317,12 @@ class MotionModel(LightningModule):
 
         return cond, has_cond  # dense condition and the has_target
 
-    def _sample_text_embedding(self, text_embedding: t.Tensor = None, has_global_root_values: t.Tensor = None,
-                               has_local_root_values: t.Tensor = None, has_local_poses: t.Tensor = None):
+    def _sample_text_embedding(self, text_embedding: t.Tensor | None = None, has_global_root_values: t.Tensor | None = None,
+                               has_local_root_values: t.Tensor | None = None, has_local_poses: t.Tensor | None = None):
         if text_embedding is not None:
+            assert has_global_root_values is not None
+            assert has_local_root_values is not None
+            assert has_local_poses is not None
             assert self.backbone_net.ACCEPT_TEXT_EMB_INPUT, "The model does not accept text embedding as input."
             has_text_emb = t.rand([text_embedding.shape[0], 1], device=text_embedding.device) < \
                 self._args.get('prob_provide_text_emb', 0.2)
@@ -298,7 +332,7 @@ class MotionModel(LightningModule):
             has_end_target_info = t.logical_or(t.logical_or(has_global_root_values[:, -NUM_END_FRAMES:],
                                                             has_local_root_values[:, -NUM_END_FRAMES:]),
                                                has_local_poses[:, -NUM_END_FRAMES:])
-            has_text_emb = t.logical_or(has_text_emb, has_end_target_info.sum(dim=1, keepdims=True) < 1)
+            has_text_emb = t.logical_or(has_text_emb, has_end_target_info.sum(dim=1, keepdim=True) < 1)
             text_embedding = t.where(has_text_emb, text_embedding, t.zeros_like(text_embedding))
         else:
             text_embedding = has_text_emb = None

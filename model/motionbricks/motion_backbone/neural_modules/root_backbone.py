@@ -1,22 +1,31 @@
-import torch as t
-import torch
-from torch import nn
-from typing import Dict, Optional
-import numpy as np
-from motionbricks.motion_backbone.neural_modules.position_embedding import PositionEmbedding
-from motionbricks.motionlib.core.motion_reps import MotionRepBase
-from motionbricks.motion_backbone.neural_modules.mlp import FCBlock as mlp
 from functools import cached_property
-from motionbricks.vqvae.neural_modules.encdec_double_cond import DoubleCondDecoder
+
+import numpy as np
+import torch
+import torch as t
+from torch import nn
+
 from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+from motionbricks.motion_backbone.neural_modules.mlp import FCBlock as mlp
+from motionbricks.motion_backbone.neural_modules.position_embedding import (
+    PositionEmbedding,
+)
+from motionbricks.motionlib.core.motion_reps import MotionRepBase
+from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import (
+    GlobalRootGlobalJoints,
+)
+from motionbricks.vqvae.neural_modules.encdec_double_cond import DoubleCondDecoder
+
 
 class root_backbone_network(nn.Module):
-    def __init__(self, args: Dict, motion_rep: MotionRepBase):
+    def __init__(self, args: dict, motion_rep: MotionRepBase):
         """ @brief: root backbone network for motion generation.
         """
         super().__init__()
         self._args = args
 
+        assert isinstance(motion_rep, GlobalRootGlobalJoints)
+        assert motion_rep.dual_rep is not None
         self.motion_rep = motion_rep
         self.global_motion_rep = motion_rep.dual_rep.global_motion_rep
         self.local_motion_rep = motion_rep.dual_rep.local_motion_rep
@@ -119,9 +128,9 @@ class root_backbone_network(nn.Module):
     def forward(self, global_root_values: t.Tensor, has_global_root_values: t.Tensor,
                 local_root_values: t.Tensor, has_local_root_values: t.Tensor,
                 poses: t.Tensor, has_poses: t.Tensor, num_tokens: t.Tensor,
-                text_embeddings: Optional[t.Tensor] = None, has_text_embeddings: Optional[t.Tensor] = None,
-                groundtruth_num_tokens: t.Tensor = None,
-                allowed_pred_num_tokens: t.Tensor = None, config: dict = {}):
+                text_embeddings: t.Tensor | None = None, has_text_embeddings: t.Tensor | None = None,
+                groundtruth_num_tokens: t.Tensor | None = None,
+                allowed_pred_num_tokens: t.Tensor | None = None, config: dict | None = None):
         """ @brief:
         @input global_root_values: [batch, numConstrainFrames=[0, 8], 5]   # required, also used in root decoder
         @input has_global_root_values: [batch, 8]                          # required
@@ -136,6 +145,8 @@ class root_backbone_network(nn.Module):
 
         groundtruth_num_tokens: [batch, 1]                                 # optional; only valid in training
         """
+        if config is None:
+            config = {}
         batch_size, device = poses.shape[0], poses.device
         num_frames_per_token = self.get_num_frames_per_token()
 
@@ -169,7 +180,9 @@ class root_backbone_network(nn.Module):
         first_stage_input_emb = t.concat([first_stage_time_emb, positioned_frame_emb], dim=1)
 
         if self.ACCEPT_TEXT_EMB_INPUT and text_embeddings is not None:
+            assert has_text_embeddings is not None
             text_embeddings = self._proj_text_embeddings(text_embeddings)[:, None, :]
+            assert text_embeddings is not None
             first_stage_input_emb = \
                 t.concat([text_embeddings, first_stage_input_emb], dim=1)  # [batch, 1+num_positions, n_embd]
             first_stage_mask = t.zeros([batch_size, 1 + 1 + num_frames_per_token * 2],
@@ -283,7 +296,7 @@ class root_backbone_network(nn.Module):
             num_heads = self._args[vqvae]['num_heads']
             code_dim = self._args[vqvae]['code_dim']
             assert code_dim % num_heads == 0, "code dim cannot be divided by the number of heads."
-            num_codes_per_head[vqvae] = int(round(2 ** (np.log2(nb_code) / num_heads)))
+            num_codes_per_head[vqvae] = round(2 ** (np.log2(nb_code) / num_heads))
             assert num_codes_per_head[vqvae] ** num_heads == nb_code, \
                 "the specified number of code is not compatible with the number of heads."
 
@@ -302,7 +315,7 @@ class root_backbone_network(nn.Module):
 
     @cached_property
     def ACCEPT_TEXT_EMB_INPUT(self):
-        return True if self._args.get('text_embeddings', None) is not None else False
+        return self._args.get('text_embeddings', None) is not None
 
     @property
     def TRANSFORMER_TIME_LOGIT_ID(self):

@@ -7,12 +7,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from scipy.spatial.transform import Rotation
-
-from inference.runtime.checkpoint import load_vqvae
 from motionbricks.data.unreal_dataset import UE_TO_MOTION
 from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
 from motionbricks.motionlib.core.utils.rotations import cont6d_to_matrix
+from scipy.spatial.transform import Rotation
+
+from inference.runtime.checkpoint import load_vqvae
 
 
 def matrix_product(left, right):
@@ -26,6 +26,14 @@ def matrix_product(left, right):
 
 class UnrealPoseReconstruction(torch.nn.Module):
     """输入 cm 与行优先旋转矩阵；输出同一 Root 空间的姿态，不输出权威位移。"""
+
+    endpoint_mask: torch.Tensor
+    basis: torch.Tensor
+    reference: torch.Tensor
+    neutral: torch.Tensor
+    mean: torch.Tensor
+    scale: torch.Tensor
+    horizontal: torch.Tensor
 
     def __init__(self, net, rep, skeleton, window_frames=16, pose_condition="none"):
         super().__init__()
@@ -160,13 +168,15 @@ def export(checkpoint, output, window_frames=16, pose_condition="none"):
             inputs.append(sample.numpy())
             expected.append(reference.numpy())
             comparisons.append({"asset": item["asset"], "category": item["labels"]["category"], "reference_max_abs_error": error})
-        torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda graph, tensor: tensor, 17)
+        torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda graph, tensor: tensor, 17)  # pyright: ignore[reportPrivateImportUsage] -- Public legacy ONNX API, omitted from torch.__all__.
         torch.onnx.export(wrapper, (torch.from_numpy(inputs[0]),), str(output / "model.onnx"), input_names=["pose_history"],
                           output_names=["reconstructed_pose"], opset_version=17, dynamo=False)
     onnx.checker.check_model(str(output / "model.onnx"))
     session = onnxruntime.InferenceSession(str(output / "model.onnx"), providers=["CPUExecutionProvider"])
     for index, (sample, reference) in enumerate(zip(inputs, expected)):
         actual = session.run(None, {"pose_history": sample})[0]
+        if not isinstance(actual, np.ndarray):
+            raise TypeError("ONNX pose output must be a dense array")
         error = float(np.max(np.abs(actual - reference)))
         if error > .01 or not np.isfinite(actual).all():
             raise ValueError(f"ONNX 数值校验失败：{error}")

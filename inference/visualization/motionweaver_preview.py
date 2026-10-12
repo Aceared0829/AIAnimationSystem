@@ -18,12 +18,10 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from PIL import Image, ImageDraw, ImageFont
-from scipy.spatial.transform import Rotation
-
 from motionbricks.data.unreal_dataset import apply_authoritative_root
 from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
-
+from PIL import Image, ImageDraw, ImageFont
+from scipy.spatial.transform import Rotation
 
 SIZE = (1280, 720)
 KEEP_BONES = {
@@ -106,7 +104,7 @@ def timing_summary(clips, repeats, device):
         "device": device,
         "device_name": torch.cuda.get_device_name(0) if device == "cuda" else "CPU",
         "implementation": "Python eager; one untimed warmup per clip; synchronized forward only",
-        "clips": len(clips), "measured_forwards": int(len(samples)),
+        "clips": len(clips), "measured_forwards": len(samples),
         "measured_forwards_per_clip": repeats,
         "p50_ms": float(np.percentile(samples, 50)),
         "p95_ms": float(np.percentile(samples, 95)),
@@ -346,6 +344,7 @@ def render_video(output, source, generated, root, contacts, skeleton, category, 
                "-i", "-", "-an", "-c:v", "libx264", "-crf", "22", "-pix_fmt", "yuv420p",
                "-movflags", "+faststart", str(output)]
     process = subprocess.Popen(command, stdin=subprocess.PIPE)
+    assert process.stdin is not None
     try:
         for frame in range(len(source)):
             process.stdin.write(draw_frame(frame, source, generated, root, contacts,

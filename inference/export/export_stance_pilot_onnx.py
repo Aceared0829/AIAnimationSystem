@@ -8,10 +8,10 @@ import numpy as np
 import onnx
 import onnxruntime as ort
 import torch
+from motionbricks.data.unreal_dataset import read_json
 from torch import nn
 
 from data.runtime.conditioned_motion import sha256
-from motionbricks.data.unreal_dataset import read_json
 from training.pretrain.train_stance_pilot import StanceGuidedPose
 
 
@@ -83,6 +83,8 @@ def export(checkpoint_path, stance_contract_dir, output_dir):
     session = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
     actual = session.run(None, {"history": history.numpy(), "future_root_local": root.numpy(),
                                 "goal_crouch": goal.numpy()})[0]
+    if not isinstance(actual, np.ndarray):
+        raise TypeError("ONNX pose output must be a dense array")
     maximum = float(np.max(np.abs(actual - expected)))
     if actual.shape != (1, 24, contract["bone_count"] * 9) or maximum > 0.01:
         raise ValueError(f"ONNX 数值或形状不匹配：{actual.shape}, max_abs={maximum}")

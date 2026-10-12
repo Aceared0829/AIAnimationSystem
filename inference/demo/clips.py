@@ -1,43 +1,84 @@
 # Modified by the AIAnimationSystem maintainers: adapted preview comments and localized error messages.
 
-import torch as t
-import numpy as np
-import mujoco
-from scipy.spatial.transform import Rotation as R
-from torch.utils.data import DataLoader
 import os
-from motionbricks.motionlib.core.utils.rotations import angle_to_Y_rotation_matrix, matrix_to_cont6d
-from motionbricks.motion_backbone.inference.motion_inference import motion_inference
-from motionbricks.helper.mujoco_helper import motion_feature_to_mujoco_qpos
-from copy import deepcopy
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
 import time
-from motionbricks.helper.mujoco_helper import mujoco_qpos_converter
-from typing import Union
+from typing import Any, Literal, Protocol, TypedDict, cast
+
+import numpy as np
+import torch as t
+from motionbricks.helper.mujoco_helper import (
+    mujoco_qpos_converter,
+)
+from motionbricks.motionlib.core.motion_reps.motion_reps_base.seperate_root_local_body import SeparatedRootLocalBody
+from torch.utils.data import DataLoader
+from typing_extensions import NotRequired
 
 NUM_FRAMES_PER_TOKEN = 4
 time_stamp = time.strftime("%Y%m%d_%H%M%S")
 
-def get_clip_data(clip_id: Union[str, int], train_dataloader: DataLoader):
+class ClipSampler(Protocol):
+    max_seconds: float
+
+
+class ClipLoader(Protocol):
+    motion_sampler: ClipSampler | None
+
+
+class ClipDataset(Protocol):
+    """Dataset interface required by the legacy clip preprocessing path."""
+
+    meta: Any  # The original dataset exposes a pandas-like metadata table.
+    motion_sampler: ClipSampler | None
+    motion_loader: ClipLoader
+    motion_rep: SeparatedRootLocalBody
+
+    def __getitem__(self, keyid: int) -> dict[str, t.Tensor]: ...
+
+
+def get_clip_data(clip_id: str | int, train_dataloader: DataLoader):
     """ @brief: get the clip data from the dataloader """
-    if type(clip_id) == int:
-        clip_data = train_dataloader.dataset[clip_id]['motion']
+    dataset = cast(ClipDataset, train_dataloader.dataset)
+    if isinstance(clip_id, int):
+        clip_data = dataset[clip_id]['motion']
     else:
         # get the actual data index from the clip_id
-        meta_original_path = train_dataloader.dataset.meta['original_path']
+        meta_original_path = dataset.meta['original_path']
         clip_key_id = np.where(meta_original_path.str.endswith("/" + clip_id))[0].item()
-        clip_data = train_dataloader.dataset.__getitem__(keyid=clip_key_id)['motion']
+        clip_data = dataset.__getitem__(keyid=clip_key_id)['motion']
 
     return clip_data
+
+class ClipInfo(TypedDict):
+    clip_id: str | int
+    start_frame: int
+    end_frame: int
+    avg_root_vel: float
+    allowed_pred_num_tokens: list[int]
+    motion_feature: NotRequired[t.Tensor]
+    mujoco_qpos: NotRequired[t.Tensor]
+    global_root_positions: NotRequired[t.Tensor]
+    global_joint_positions: NotRequired[t.Tensor]
+    global_joint_rotations: NotRequired[t.Tensor]
+    global_headings: NotRequired[t.Tensor]
+
 
 class clip_holder(t.nn.Module):
     """ @brief: hold the clips to use for interactive demo, such as walking clip, running clip, etc.
     """
 
-    def __init__(self, train_dataloader: DataLoader = None, visualize_clips: bool = False, ckpt_path: str = None,
-                 converter: mujoco_qpos_converter = None, reprocess_clips: bool = False,
-                 val_dataloader: DataLoader = None):
-        super(clip_holder, self).__init__()
+    CLIPS: dict[str, ClipInfo]
+    global_root_positions: t.Tensor
+    global_joint_positions: t.Tensor
+    global_joint_rotations: t.Tensor
+    global_headings: t.Tensor
+    motion_feature: t.Tensor
+    mujoco_qpos: t.Tensor
+    num_frames_per_clip: t.Tensor
+
+    def __init__(self, train_dataloader: DataLoader | None = None, visualize_clips: bool = False, ckpt_path: str | None = None,
+                 converter: mujoco_qpos_converter | None = None, reprocess_clips: bool = False,
+                 val_dataloader: DataLoader | None = None):
+        super().__init__()
         self._converter = converter
         if ckpt_path is not None and os.path.exists(ckpt_path) and not reprocess_clips:
             self._preprocess_clips_from_ckpt(ckpt_path)
@@ -53,80 +94,91 @@ class clip_holder(t.nn.Module):
         # Remap legacy key names
         key_remap = {'mfm_feature': 'motion_feature'}
         for key, value in state_dict.items():
-            key = key_remap.get(key, key)
+            key = key_remap[key] if key in key_remap else key
             self.register_buffer(key, value)
 
-    def _preprocess_clips_from_dataloader(self, train_dataloader: DataLoader, val_dataloader: DataLoader,
-                                          visualize_clips: bool = False, ckpt_path: str = None):
+    def _preprocess_clips_from_dataloader(self, train_dataloader: DataLoader, val_dataloader: DataLoader | None,
+                                          visualize_clips: bool = False, ckpt_path: str | None = None):
         """ @brief: preprocess the clips from the dataloader:
 
             1. figure out which clips are for walking, running, idle
             2. Process them into global motion representation
             3. store into np files and avoid loading them again
         """
-        train_dataloader.dataset.motion_sampler.max_seconds = 50.0    # no limit for samples
-        train_dataloader.dataset.motion_sampler = None                # disable the sampler now
-        train_dataloader.dataset.motion_loader.motion_sampler = None  # disable the sampler here too
-        motion_rep = train_dataloader.dataset.motion_rep
+        if self._converter is None:
+            raise ValueError("A converter is required to preprocess clips")
+        dataset = cast(ClipDataset, train_dataloader.dataset)
+        if dataset.motion_sampler is not None:
+            dataset.motion_sampler.max_seconds = 50.0    # no limit for samples
+        dataset.motion_sampler = None                # disable the sampler now
+        dataset.motion_loader.motion_sampler = None  # disable the sampler here too
+        motion_rep = dataset.motion_rep
         num_joints = motion_rep.skeleton.nbjoints
 
-        max_num_frames, DEFAULT_MAX_NUM_FRAMES = 20, 20
+        max_num_frames, _DEFAULT_MAX_NUM_FRAMES = 20, 20
         for clip_name, clip_info in self.CLIPS.items():
             clip_id, start_frame, end_frame = clip_info['clip_id'], clip_info['start_frame'], clip_info['end_frame']
             # clip_data = train_dataloader.dataset[clip_id]['motion'][None, start_frame: end_frame]
             clip_data = get_clip_data(clip_id, train_dataloader)[None, start_frame: end_frame]
             clip_data = motion_rep.change_first_heading(clip_data, 0.0, is_normalized=True, to_normalize=False)
-            self.CLIPS[clip_name]['motion_feature'] = clip_data.clone()[0]  # remove batch dim
+            assert isinstance(clip_data, t.Tensor)
+            clip_info['motion_feature'] = clip_data.clone()[0]  # remove batch dim
 
             # get the mujoco qpos
-            device = self.CLIPS[clip_name]['motion_feature'].device
-            self.CLIPS[clip_name]['mujoco_qpos'] = \
-                self._converter.convert_motion_features_to_mujoco_qpos(self.CLIPS[clip_name]['motion_feature'][None],
+            device = clip_info['motion_feature'].device
+            clip_info['mujoco_qpos'] = \
+                self._converter.convert_motion_features_to_mujoco_qpos(clip_info['motion_feature'][None],
                                                                     motion_rep.to(device), False)[0]
-            root_rot = self.CLIPS[clip_name]['mujoco_qpos'][:, 3: 7].clone()
-            self.CLIPS[clip_name]['mujoco_qpos'][:, 3: 7] = root_rot[:, [3, 0, 1, 2]]
-            max_num_frames = max(max_num_frames, self.CLIPS[clip_name]['mujoco_qpos'].shape[0])
+            root_rot = clip_info['mujoco_qpos'][:, 3: 7].clone()
+            clip_info['mujoco_qpos'][:, 3: 7] = root_rot[:, [3, 0, 1, 2]]
+            max_num_frames = max(max_num_frames, clip_info['mujoco_qpos'].shape[0])
 
             # for it to be used, only 1) global root information (num_frames, 3),
             # 2) global joint positions wrt to root translation (num_frames, num_joints, 3),
             # 3) global joint orientation (num_frames, num_joints, 3, 3)
             global_joint_positions, global_joint_rotations = \
-                self._converter.convert_mujoco_qpos_to_motion_transforms(self.CLIPS[clip_name]['mujoco_qpos'][None])
-            self.CLIPS[clip_name]['global_root_positions'] = \
+                self._converter.convert_mujoco_qpos_to_motion_transforms(clip_info['mujoco_qpos'][None])
+            clip_info['global_root_positions'] = \
                 global_joint_positions[0, :, 0] * t.tensor([[1.0, 0.0, 1.0]])
-            self.CLIPS[clip_name]['global_joint_positions'] = \
-                global_joint_positions[0] - self.CLIPS[clip_name]['global_root_positions'][:, None, :]
-            self.CLIPS[clip_name]['global_joint_rotations'] = global_joint_rotations[0]
+            clip_info['global_joint_positions'] = \
+                global_joint_positions[0] - clip_info['global_root_positions'][:, None, :]
+            clip_info['global_joint_rotations'] = global_joint_rotations[0]
 
             # also cache the heading direction
-            root_direction = t.matmul(self.CLIPS[clip_name]['global_joint_rotations'][:, 0, :, :],
+            root_direction = t.matmul(clip_info['global_joint_rotations'][:, 0, :, :],
                                       t.tensor([0.0, 0.0, 1.0]).view([1, -1, 1]))  # y up and z forward
             root_direction = root_direction.view([-1, 3]) * t.tensor([1.0, 0.0, 1.0]).view([1, -1])
             assert (root_direction.norm(dim=1, keepdim=True) > 1e-5).all().item(), \
                 f"Clip with ill defined heading found at clip_id {clip_id}"
             root_direction = root_direction / t.norm(root_direction, dim=1, keepdim=True)
-            self.CLIPS[clip_name]['global_headings'] = t.atan2(root_direction[:, 0], root_direction[:, 2])
+            clip_info['global_headings'] = t.atan2(root_direction[:, 0], root_direction[:, 2])
 
         # register the clips as parameters so that it will be later used in onnx / trt model
-        motion_feature_shape = self.CLIPS[list(self.CLIPS.keys())[0]]['motion_feature'].shape[-1]
-        for data_buffer_name, feat_shape in zip(['global_root_positions', 'global_joint_positions',
-                                                 'global_joint_rotations', 'global_headings',
-                                                 'motion_feature', 'mujoco_qpos'],
+        first_motion = next(iter(self.CLIPS.values())).get('motion_feature')
+        assert first_motion is not None
+        motion_feature_shape = first_motion.shape[-1]
+        buffer_names: tuple[Literal["global_root_positions", "global_joint_positions", "global_joint_rotations", "global_headings", "motion_feature", "mujoco_qpos"], ...] = (
+            "global_root_positions", "global_joint_positions", "global_joint_rotations",
+            "global_headings", "motion_feature", "mujoco_qpos",
+        )
+        for data_buffer_name, feat_shape in zip(buffer_names,
                                                 [[3], [num_joints, 3], [num_joints, 3, 3], [],
                                                  [motion_feature_shape], [36]]):
             data_buffer = t.zeros([len(self.CLIPS), max_num_frames, *feat_shape])
             num_frames_per_clip = t.zeros([len(self.CLIPS)], dtype=t.int32)
             for clip_idx, clip_name in enumerate(self.CLIPS):
-                clip_length = self.CLIPS[clip_name][data_buffer_name].shape[0]
+                clip_tensor = self.CLIPS[clip_name].get(data_buffer_name)
+                assert isinstance(clip_tensor, t.Tensor)
+                clip_length = clip_tensor.shape[0]
                 num_frames_per_clip[clip_idx] = clip_length
-                data_buffer[clip_idx, :clip_length] = self.CLIPS[clip_name][data_buffer_name]
+                data_buffer[clip_idx, :clip_length] = clip_tensor
             self.register_buffer(data_buffer_name, data_buffer)
         self.register_buffer('num_frames_per_clip', num_frames_per_clip)
-        t.save(self.state_dict(), ckpt_path)
+        if ckpt_path is not None:
+            t.save(self.state_dict(), ckpt_path)
 
     def _apply_root_headings_correction(self):
         """ @brief: apply the root headings correction to the clips; since cetain root project is ill defined."""
-        pass
 
 class clip_holder_G1(clip_holder):
     LOAD_FROM_CLIP_NAME = True

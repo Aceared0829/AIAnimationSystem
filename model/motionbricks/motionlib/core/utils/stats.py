@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import Optional
 
 import numpy as np
 import torch
@@ -18,9 +17,12 @@ class Stats(torch.nn.Module):
     (data - mean) / np.sqrt(var + eps)
     """
 
+    mean: torch.Tensor
+    std: torch.Tensor
+
     def __init__(
         self,
-        folder: Optional[str] = None,
+        folder: str | os.PathLike[str] | None = None,
         load: bool = True,
         eps=1e-05,
         legacy=False,
@@ -35,6 +37,8 @@ class Stats(torch.nn.Module):
             self.load()
 
     def load(self):
+        if self.folder is None:
+            raise ValueError("No folder to load stats")
         mean = torch.from_numpy(np.load(os.path.join(self.folder, "mean.npy")))
         std = torch.from_numpy(np.load(os.path.join(self.folder, "std.npy")))
         self.register_from_tensors(mean, std)
@@ -79,9 +83,9 @@ class Stats(torch.nn.Module):
 
     def save(
         self,
-        folder: Optional[str] = None,
-        mean: Optional[torch.Tensor] = None,
-        std: Optional[torch.Tensor] = None,
+        folder: str | os.PathLike[str] | None = None,
+        mean: torch.Tensor | None = None,
+        std: torch.Tensor | None = None,
     ):
         if folder is None:
             folder = self.folder
@@ -90,16 +94,19 @@ class Stats(torch.nn.Module):
 
         if mean is None and std is None:
             try:
-                mean = self.mean.cpu().numpy()
-                std = self.std.cpu().numpy()
+                mean = self.mean.cpu()
+                std = self.std.cpu()
             except AttributeError:
                 raise ValueError("Stats were not loaded")
+
+        if mean is None or std is None:
+            raise ValueError("Both mean and std are required")
 
         # don't override stats folder
         os.makedirs(folder, exist_ok=False)
 
-        np.save(os.path.join(folder, "mean.npy"), mean)
-        np.save(os.path.join(folder, "std.npy"), std)
+        np.save(os.path.join(folder, "mean.npy"), mean.detach().cpu().numpy())
+        np.save(os.path.join(folder, "std.npy"), std.detach().cpu().numpy())
 
     def __eq__(self, other):
         return (self.mean.cpu() == other.mean.cpu()).all() and (

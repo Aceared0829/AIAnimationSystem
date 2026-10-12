@@ -1,40 +1,55 @@
 # Modified by the AIAnimationSystem maintainers: localized initialization messages.
 
-import torch as t
-import torch
-from torch import nn
-from typing import Dict, Optional
-import numpy as np
-from motionbricks.motion_backbone.neural_modules.position_embedding import PositionEmbedding
-from motionbricks.motionlib.core.motion_reps import MotionRepBase
-from motionbricks.motion_backbone.neural_modules.mlp import FCBlock as mlp
-from motionbricks.helper.data_training_util import convert_sparse_cond_to_dense_cond_if_needed
 from functools import cached_property
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+
+import numpy as np
+import torch
+import torch as t
+from torch import nn
+
+from motionbricks.helper.data_training_util import (
+    convert_sparse_cond_to_dense_cond_if_needed,
+    extract_feature_from_motion_rep,
+)
+from motionbricks.motion_backbone.neural_modules.mlp import FCBlock as mlp
+from motionbricks.motion_backbone.neural_modules.position_embedding import (
+    PositionEmbedding,
+)
+from motionbricks.motionlib.core.motion_reps import MotionRepBase
+from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import (
+    GlobalRootGlobalJoints,
+)
+
 
 class pose_backbone_network(nn.Module):
-    def __init__(self, motion_rep: MotionRepBase, args: Dict = None):
+    initted: t.Tensor
+
+    def __init__(self, motion_rep: MotionRepBase, args: dict | None = None):
         """ @brief: pose backbone network for motion generation.
         """
         super().__init__()
+        assert isinstance(motion_rep, GlobalRootGlobalJoints)
+        assert motion_rep.dual_rep is not None
         self.motion_rep = motion_rep
         self.global_motion_rep = motion_rep.dual_rep.global_motion_rep
         self.local_motion_rep = motion_rep.dual_rep.local_motion_rep
 
+        if args is None:
+            raise ValueError("Pose backbone configuration is required")
         self._args = args
         self._build_transformer_backbone()
         self._build_input_embeddings_projections()
         self.register_buffer('initted', torch.Tensor([False]).to(dtype=t.bool))  # if need to initialize the codebooks
 
-    def init_embedding_from_codebooks(self, pose_codebook: t.Tensor, root_codebook: t.Tensor):
+    def init_embedding_from_codebooks(self, pose_codebook: t.Tensor, root_codebook: t.Tensor | None):
         # make sure the codebook has the expected shapes
         if not self._args['pose_vqvae'].get('has_codebook', True):
             self.initted[:] = True
             print("姿态 VQ-VAE 没有码本，跳过初始化。")
         else:
-            assert self._args.pose_vqvae.num_heads == pose_codebook.shape[0] and \
+            assert self._args['pose_vqvae']['num_heads'] == pose_codebook.shape[0] and \
                 self.get_num_codes(include_aug_tokens=False)[0] == pose_codebook.shape[1] and \
-                self._args.pose_vqvae.code_dim == pose_codebook.shape[0] * pose_codebook.shape[2], \
+                self._args['pose_vqvae']['code_dim'] == pose_codebook.shape[0] * pose_codebook.shape[2], \
                 'Pose codebook shape mismatch.'
             pose_token_dim = pose_codebook.shape[2]
 
@@ -111,7 +126,7 @@ class pose_backbone_network(nn.Module):
 
     def forward(self, pose_tokens: t.Tensor, local_root_values: t.Tensor,
                 pose_cond: t.Tensor, has_pose_cond: t.Tensor, num_tokens: t.Tensor,
-                text_embeddings: t.Tensor = None, has_text_embeddings: t.Tensor = None):
+                text_embeddings: t.Tensor | None = None, has_text_embeddings: t.Tensor | None = None):
         """
         @input pose_tokens: [batch, numTokens, num_pose_heads]             # required; could be all masked
         @input local_root_values: [batch, numFrames, 4]                    # required
@@ -162,7 +177,9 @@ class pose_backbone_network(nn.Module):
         # step 5: the text input
         token_mask = t.arange(num_positions).to(device) < num_tokens.view([batch_size, -1])
         if self.ACCEPT_TEXT_EMB_INPUT and text_embeddings is not None:
+            assert has_text_embeddings is not None
             text_embeddings = self._proj_text_embeddings(text_embeddings)[:, None, :]
+            assert text_embeddings is not None
             input_embeddings = t.concat([text_embeddings, input_embeddings], dim=1)  # [batch, 1+num_positions, n_embd]
             mask = t.zeros([batch_size, 1 + num_positions], device=device).bool()  # zeros mean allowing
             mask[:, :1] = ~has_text_embeddings.bool()
@@ -191,7 +208,7 @@ class pose_backbone_network(nn.Module):
                 code_dim = self._args[vqvae]['code_dim']
                 if self._args[vqvae].get('has_codebook', True):
                     assert code_dim % num_heads == 0, "code dim cannot be divided by the number of heads."
-                    num_codes_per_head[vqvae] = int(round(2 ** (np.log2(nb_code) / num_heads)))
+                    num_codes_per_head[vqvae] = round(2 ** (np.log2(nb_code) / num_heads))
                     assert num_codes_per_head[vqvae] ** num_heads == nb_code, \
                         "the specified number of code is not compatible with the number of heads."
                 else:
@@ -228,4 +245,4 @@ class pose_backbone_network(nn.Module):
 
     @cached_property
     def ACCEPT_TEXT_EMB_INPUT(self):
-        return True if self._args.get('text_embeddings', None) is not None else False
+        return self._args.get('text_embeddings', None) is not None

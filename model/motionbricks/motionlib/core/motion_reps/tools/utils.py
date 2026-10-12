@@ -1,11 +1,10 @@
-from typing import List, Optional, Union
 
 import torch
 
 
 def length_to_mask(
-    length: Union[torch.Tensor, List],
-    max_len: Optional[int] = None,
+    length: torch.Tensor | list,
+    max_len: int | None = None,
     device=None,
 ) -> torch.Tensor:
     if isinstance(length, list):
@@ -18,7 +17,7 @@ def length_to_mask(
     device = length.device
 
     if max_len is None:
-        max_len = max(length)
+        max_len = int(length.max().item())
 
     mask = torch.arange(max_len, device=device).expand(
         len(length), max_len
