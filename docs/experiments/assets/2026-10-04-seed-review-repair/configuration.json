@@ -1,0 +1,34 @@
+{
+  "status": "completed_pending_secondary_review",
+  "micro_batches": [
+    4,
+    6
+  ],
+  "segmented": false,
+  "max_frames_per_clip": 6000,
+  "max_bone_samples": 1000000,
+  "default_exporter_budget": 250000,
+  "hard_max_bone_samples": 4000000,
+  "body_offset_normalization_cap_cm": 0.25,
+  "observed_max_body_offset_difference_cm": 0.15019328933515505,
+  "source_deleted": false,
+  "old_rejections_preserved": true,
+  "build": "GameAnimationSampleEditor Win64 Development -Module=AILocomotionDatasetEditor: Succeeded (42.32s)",
+  "source_hashes": {
+    "data/tools/retry_seed_review_batch.py": "200782655376878fa76c1a596899fe5b15039c5c583c1325d9fe1c944e02a4f3",
+    "data/tools/prepare_soma_ue_batch.py": "b54876f645ab15e89c7cee347cd30de246f82bdd6ec93db471d2b65e80f96874",
+    "data/tools/run_seed_queue.py": "37d74f2d6b8b2a63a514f92c1e4325731728f2d9f40695c9442da4b447e00c0c",
+    "data/tools/screen_pending_quality.py": "b65bd0778dd0b5a5e2c008b87168751f3803dc9e559481637dd96dba485b0776",
+    "unreal-script/AILocomotionSystem/AILocomotionDataset/Source/AILocomotionDatasetEditor/Private/AILocomotionDatasetEditorModule.cpp": "f610f10938eb36bb172f229da1c7e20b9995ee51bf616d58ceefdbf0e6189d54"
+  },
+  "binary_sha256": "b74066f3d8208d452bc089afe84fc53b41ff4fa64bfba84738cb03db7023254f",
+  "python_tests_passed": 25,
+  "ui_regression_test": "passed",
+  "review_pid": 76576,
+  "old_rejected_count": 10,
+  "new_reviewed_count": 0,
+  "integrity_errors": 0,
+  "possible_ground_penetration": 2,
+  "total_frames": 21727,
+  "review_cohort": "exception_triage_4e28704d9e810896_p01.json"
+}

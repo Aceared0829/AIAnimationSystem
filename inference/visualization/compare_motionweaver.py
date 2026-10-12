@@ -15,7 +15,6 @@ import numpy as np
 
 from inference.visualization.motionweaver_preview import sha256
 
-
 METRICS = (
     "joint_rmse_cm",
     "joint_mean_error_cm",

@@ -7,10 +7,14 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from test_conditioned_motion_contract import prepared_fixture
 
 from data.runtime.conditioned_motion import build_index, sha256
-from data.runtime.stance_motion import build_stance_index, early_window_starts, load_stance_window
-from test_conditioned_motion_contract import prepared_fixture
+from data.runtime.stance_motion import (
+    build_stance_index,
+    early_window_starts,
+    load_stance_window,
+)
 from training.pretrain.train_conditioned_pose import ReferenceGuidedPose
 from training.pretrain.train_stance_pilot import StanceGuidedPose
 

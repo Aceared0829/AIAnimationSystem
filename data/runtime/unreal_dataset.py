@@ -7,12 +7,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from motionbricks.motionlib.core.motion_reps.tools.feet import (
+    foot_detect_from_pos_and_vel,
+)
+from motionbricks.motionlib.core.skeletons.base import SkeletonBase
 from scipy.spatial.transform import Rotation
 from torch.utils.data import Dataset
-
-from motionbricks.motionlib.core.skeletons.base import SkeletonBase
-from motionbricks.motionlib.core.motion_reps.tools.feet import foot_detect_from_pos_and_vel
-
 
 # UE X 前、Y 右、Z 上 → 动作空间 Z 前、X 左、Y 上；同时改变手性。
 UE_TO_MOTION = np.array([[0, -1, 0], [0, 0, 1], [1, 0, 0]], dtype=np.float64)

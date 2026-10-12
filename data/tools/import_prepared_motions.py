@@ -8,7 +8,12 @@ from pathlib import Path
 
 import numpy as np
 from motionbricks.data.motion_catalog import MotionCatalog
-from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256, read_json, skeleton_signature
+from motionbricks.data.unreal_dataset import (
+    UnrealMotionDataset,
+    file_sha256,
+    read_json,
+    skeleton_signature,
+)
 
 
 def import_dataset(source, library):
@@ -65,10 +70,10 @@ def import_dataset(source, library):
                 catalog.db.execute('INSERT OR IGNORE INTO motions(id,dataset,name,metadata_json,state,output_path,output_sha256) VALUES(?,?,?,?,?,?,?)',
                                    (motion_id, 'uefn-prepared-' + identity, item['asset'], json.dumps(metadata, ensure_ascii=False), 'prepared_imported', str(target / item['file']), hashes[item['file']]))
                 catalog.db.execute('INSERT OR IGNORE INTO sources VALUES(?,?,?)', (motion_id, 'prepared', str(source / item['file'])))
-        report = dict(imported=len(checked), snapshot=str(target), manifest_sha256=identity, file_hashes=hashes, source_deleted=False)
+        report = {'imported': len(checked), 'snapshot': str(target), 'manifest_sha256': identity, 'file_hashes': hashes, 'source_deleted': False}
         report_path = catalog.folder / 'reports' / ('import_' + identity[:16] + '.json')
         report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
-        return dict(imported=len(checked), snapshot=str(target), report=str(report_path), states=catalog.status())
+        return {'imported': len(checked), 'snapshot': str(target), 'report': str(report_path), 'states': catalog.status()}
     finally:
         catalog.close()
 

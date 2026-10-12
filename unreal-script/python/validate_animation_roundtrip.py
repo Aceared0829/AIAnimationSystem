@@ -3,6 +3,7 @@ import json
 import math
 import os
 from pathlib import Path
+
 import unreal
 
 ROOT=Path(os.environ['MOTION_PIPELINE_WORK_ROOT']).resolve()
@@ -50,10 +51,10 @@ for clip in request['clips']:
                 max_pos=max(max_pos,math.sqrt(sum((a-b)**2 for a,b in zip([p.x,p.y,p.z],ref[:3]))))
                 dot=abs(sum(a*b for a,b in zip([q.x,q.y,q.z,q.w],ref[3:])))
                 max_angle=max(max_angle,math.degrees(2*math.acos(min(1.,dot))))
-        reports.append(dict(name=clip['name'],max_position_cm=max_pos,max_rotation_deg=max_angle,engine_roundtrip_pass=max_pos<0.05 and max_angle<0.1))
+        reports.append({'name': clip['name'],'max_position_cm': max_pos,'max_rotation_deg': max_angle,'engine_roundtrip_pass': max_pos<0.05 and max_angle<0.1})
         # 未保存的试验资产由短生命周期命令进程释放；不强制卸载仍被 Python 引用的包。
     except Exception as exc:
-        reports.append(dict(name=clip['name'],error=str(exc),engine_roundtrip_pass=False))
+        reports.append({'name': clip['name'],'error': str(exc),'engine_roundtrip_pass': False})
     (ROOT/'ue_roundtrip_report.json').write_text(json.dumps(reports,indent=2),encoding='utf-8')
 
 if not reports or not all(r.get('engine_roundtrip_pass') for r in reports):

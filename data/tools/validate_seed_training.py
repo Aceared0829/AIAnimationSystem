@@ -2,19 +2,25 @@
 import argparse
 import json
 import os
-import sqlite3
 import shutil
+import sqlite3
 import uuid
 from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import file_sha256, UnrealMotionDataset, convert_clip, convert_root_track
+from motionbricks.data.unreal_dataset import (
+    UnrealMotionDataset,
+    convert_clip,
+    convert_root_track,
+    file_sha256,
+)
+
 from data.tools.prepare_unreal_dataset import prepare
 
 
 def load_audited_clip(library, row):
-    mid,name,filename,digest=row
+    mid,_name,filename,digest=row
     library=Path(library).resolve()
     path=Path(filename).resolve()
     if not path.is_relative_to(library) or file_sha256(path)!=digest:
@@ -47,7 +53,7 @@ def validate(library,limit=None):
         raise ValueError('没有待验证动作')
     mapping={row[0]:row for row in rows}
     output=library/'work'/('training_check_'+uuid.uuid4().hex)
-    manifest=dict(schema_version=2,training_contract='pose_only_root_authoritative',clips=list(mapping))
+    manifest={'schema_version': 2,'training_contract': 'pose_only_root_authoritative','clips': list(mapping)}
     def loader(mid):
         if shutil.disk_usage(library).free < 44*1024**3:
             raise RuntimeError('D 盘低于 44 GiB，停止训练格式验证；保留未完成快照供检查')
@@ -68,19 +74,19 @@ def validate(library,limit=None):
         with np.load(output/item['raw_file'],allow_pickle=False) as raw:
             if not all(np.array_equal(raw[key],value) for key,value in [('positions',positions),('rotations',rotations),('root_track',roots)]):
                 raise ValueError('原始轨道转换回读不一致')
-        bindings.append(dict(id=item['source_file'],source_output_sha256=mapping[item['source_file']][3],
-                             file=item['file'],sha256=file_sha256(output/item['file']),
-                             raw_file=item['raw_file'],raw_sha256=file_sha256(output/item['raw_file'])))
-    report=dict(count=len(dataset),snapshot=str(output),feature_dim=prepared['feature_dim'],fps=prepared['fps'],
-                manifest_sha256=file_sha256(output/'dataset.json'),training_signature=prepared['training_signature'],
-                validation='existing_preprocessor_dataset_getitem_and_exact_raw_roundtrip',bindings=bindings,
-                training_ready=False,source_deleted=False,remaining_gates=['semantic_quality','production_split_and_statistics','durable_publication','recoverable_cleanup'])
+        bindings.append({'id': item['source_file'],'source_output_sha256': mapping[item['source_file']][3],
+                             'file': item['file'],'sha256': file_sha256(output/item['file']),
+                             'raw_file': item['raw_file'],'raw_sha256': file_sha256(output/item['raw_file'])})
+    report={'count': len(dataset),'snapshot': str(output),'feature_dim': prepared['feature_dim'],'fps': prepared['fps'],
+                'manifest_sha256': file_sha256(output/'dataset.json'),'training_signature': prepared['training_signature'],
+                'validation': 'existing_preprocessor_dataset_getitem_and_exact_raw_roundtrip','bindings': bindings,
+                'training_ready': False,'source_deleted': False,'remaining_gates': ['semantic_quality','production_split_and_statistics','durable_publication','recoverable_cleanup']}
     dest=output/'training_validation.json'
     with dest.open('x',encoding='utf-8') as stream:
         json.dump(report,stream,ensure_ascii=False,indent=2)
         stream.flush()
         os.fsync(stream.fileno())
-    print(json.dumps(dict(count=len(dataset),report=str(dest),feature_dim=prepared['feature_dim'],training_ready=False)),flush=True)
+    print(json.dumps({'count': len(dataset),'report': str(dest),'feature_dim': prepared['feature_dim'],'training_ready': False}),flush=True)
     return report
 
 

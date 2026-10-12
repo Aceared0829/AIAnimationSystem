@@ -10,16 +10,19 @@ from pathlib import Path
 
 import imageio.v3 as iio
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from hydra.utils import instantiate
-from omegaconf import OmegaConf
-
-from motionbricks.data.unreal_dataset import UnrealMotionDataset, derive_motion_labels, read_json, training_signature
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from motionbricks.data.unreal_dataset import (
+    UnrealMotionDataset,
+    derive_motion_labels,
+    read_json,
+)
 from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
-from motionbricks.helper.pl_util import load_motion_rep
+
 from inference.runtime.checkpoint import load_vqvae
 
 plt.rcParams["font.family"] = "Microsoft YaHei"
@@ -89,6 +92,7 @@ def render_gif(reference, predicted, parents, title, output, fps, max_frames=45)
         draw_skeleton(reference_axis, reference[frame], parents, "参考姿态（根对齐）", "#2D74DA", bounds)
         draw_skeleton(predicted_axis, predicted[frame], parents, "VQ 重建（根对齐、无姿态关键帧）", "#E87B22", bounds)
         figure.suptitle(f"{title}  |  姿态视图  frame {frame + 1}/{len(reference)}", fontsize=10)
+        assert isinstance(figure.canvas, FigureCanvasAgg)
         figure.canvas.draw()
         frames.append(np.asarray(figure.canvas.buffer_rgba())[:, :, :3].copy())
     plt.close(figure)

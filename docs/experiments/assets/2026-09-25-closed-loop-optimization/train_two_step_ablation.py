@@ -12,8 +12,11 @@ import torch
 from torch.utils.data import DataLoader
 
 from data.runtime.conditioned_motion import root_local
-from training.pretrain.train_conditioned_pose import ReferenceGuidedPose, losses, verify_release
-
+from training.pretrain.train_conditioned_pose import (
+    ReferenceGuidedPose,
+    losses,
+    verify_release,
+)
 
 ROOT = Path(__file__).resolve().parents[4]
 PARENT_SCRIPT = Path(__file__).with_name("train_rollout_ablation.py")

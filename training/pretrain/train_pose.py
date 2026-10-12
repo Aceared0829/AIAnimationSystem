@@ -15,17 +15,15 @@
 import argparse
 import copy
 import os
-from motionbricks.repository import base_weights
 
 import pytorch_lightning as pl
-import torch
 from hydra.utils import instantiate
-from omegaconf import DictConfig, OmegaConf, open_dict
-from torch.utils.data import DataLoader
-
 from motionbricks.data.synthetic_dataset import SyntheticMotionDataset, collate_batch
-from motionbricks.helper.pl_util import load_motion_rep
 from motionbricks.helper.argparse_zh import enable_chinese_argparse
+from motionbricks.helper.pl_util import load_motion_rep
+from motionbricks.repository import base_weights
+from omegaconf import OmegaConf, open_dict
+from torch.utils.data import DataLoader
 
 
 def load_config(result_dir: str, max_steps: int):
@@ -81,7 +79,7 @@ def main():
     args = parser.parse_args()
 
     pl.seed_everything(args.seed)
-    conf, version_dir = load_config(args.result_dir, args.max_steps)
+    conf, _version_dir = load_config(args.result_dir, args.max_steps)
 
     # 实例化骨架和动作表示
     motion_rep = load_motion_rep(conf)

@@ -1,14 +1,16 @@
 """按真实时间对照原始 UE 采样、FK 表示、旧模型和新模型；输出可离线播放的 HTML。"""
 import argparse
-import json
 import hashlib
-from pathlib import Path
+import json
 from collections import defaultdict
+from pathlib import Path
+
 import numpy as np
 import torch
-from training.evaluation.evaluate_unreal_vqvae import load_vqvae, rotation_error_degrees
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
 from motionbricks.data.unreal_dataset import apply_authoritative_root
+from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+
+from training.evaluation.evaluate_unreal_vqvae import load_vqvae, rotation_error_degrees
 
 
 @torch.no_grad()

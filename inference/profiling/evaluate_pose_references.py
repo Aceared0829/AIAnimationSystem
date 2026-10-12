@@ -2,11 +2,22 @@
 import argparse
 import json
 from pathlib import Path
+
 import numpy as np
 import torch
+
+from inference.export.export_unreal_animgraph import (
+    UnrealPoseReconstruction,
+    pack_raw_pose,
+)
+from inference.profiling.evaluate_unreal_streaming import (
+    localize,
+    metric,
+    positions,
+    rms,
+    simulate,
+)
 from inference.runtime.checkpoint import load_vqvae
-from inference.export.export_unreal_animgraph import UnrealPoseReconstruction, pack_raw_pose
-from inference.profiling.evaluate_unreal_streaming import localize, positions, simulate, metric, rms
 
 
 def select_references(packed, count, strategy, weights):

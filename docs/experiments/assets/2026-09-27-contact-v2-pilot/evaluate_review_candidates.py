@@ -8,13 +8,12 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
-
 from contact_v2_audit import ROLES, contact_candidates, unpack
+from motionbricks.data.unreal_dataset import apply_authoritative_root, contained_file
+
 from data.runtime.conditioned_motion import load_raw, load_window
 from inference.runtime.conditioned_pose import ConditionedPosePredictor
-from motionbricks.data.unreal_dataset import apply_authoritative_root, contained_file
 from training.pretrain.train_conditioned_pose import verify_release
-
 
 ROOT = Path(__file__).resolve().parents[4]
 RELEASE = Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924")

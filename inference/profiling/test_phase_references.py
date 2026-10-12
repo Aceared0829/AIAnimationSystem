@@ -1,5 +1,7 @@
 import unittest
+
 import numpy as np
+
 from inference.profiling.evaluate_phase_references import phase_candidates
 
 
@@ -27,7 +29,7 @@ class PhaseTests(unittest.TestCase):
         translated = pose.copy()
         translated[:,:,:3] += np.arange(80)[:,None,None]*3
         self.assertEqual(phases,phase_candidates(translated,self.names))
-        self.assertEqual([p['frame'] for p in phases],sorted(set(p['frame'] for p in phases)))
+        self.assertEqual([p['frame'] for p in phases],sorted({p['frame'] for p in phases}))
 
 
 if __name__=='__main__':unittest.main()

@@ -1,15 +1,19 @@
 """UE 原生时间训练：补齐帧仅作网络上下文，不参与重建及运动监督。"""
 
+import math
+from collections import Counter
+
 import numpy as np
 import torch
-from torch.nn import functional as F
-
 from motionbricks.data.synthetic_dataset import collate_batch
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep, sample_keyframes
+from motionbricks.data.unreal_dataset import UnrealSkeleton
+from motionbricks.helper.data_training_util import (
+    extract_feature_from_motion_rep,
+    sample_keyframes,
+)
 from motionbricks.vqvae.models.motion_vqvae import MotionVQVAEModel
+from torch.nn import functional as F
 from torch.utils.data import Sampler
-from collections import Counter
-import math
 
 
 class PoseAwareBatchSampler(Sampler):
@@ -81,7 +85,7 @@ class UnrealQualityVQVAE(MotionVQVAEModel):
         # 旋转增强保留真实采样间隔和动作时长。
         global_motion = self.global_motion_rep.change_first_heading(global_motion, torch.rand(len(segments), device=source.device) * 2 * np.pi,
                                                                    is_normalized=True, to_normalize=True)
-        local = self.motion_rep.dual_rep.global_to_local(global_motion, is_normalized=True, to_normalize=True,
+        local = self.dual_rep.global_to_local(global_motion, is_normalized=True, to_normalize=True,
                                                        lengths=torch.full((len(segments),), frames + 1, device=source.device))[:, :frames]
         probabilities, _ = self._construct_keyframe_prob()
         max_keyframes = min(frames, self.args["pose_vqvae_max_num_keyframes"])
@@ -96,11 +100,14 @@ class UnrealQualityVQVAE(MotionVQVAEModel):
         recon_loss = masked_mean(F.smooth_l1_loss(predicted, local, reduction="none"), mask)
         reference = self.local_motion_rep.inverse(local, is_normalized=True, joint_positions_from="ric_data", return_all=False)
         decoded = self.local_motion_rep.inverse(predicted, is_normalized=True, return_all=False)
+        assert "posed_joints" in reference and "posed_joints" in decoded
+        assert "foot_contacts" in reference
         gt, pred = reference["posed_joints"], decoded["posed_joints"]
         relative_gt, relative_pred = gt - gt[:, :, :1], pred - pred[:, :, :1]
         pose_loss = masked_mean(F.smooth_l1_loss(relative_pred, relative_gt, reduction="none", beta=0.05), mask)
         root_loss = masked_mean(F.smooth_l1_loss(pred[:, :, 0], gt[:, :, 0], reduction="none", beta=0.05), mask)
         fidx = self.motion_rep.skeleton.foot_joint_idx
+        assert isinstance(self.motion_rep.skeleton, UnrealSkeleton)
         hidx = self.motion_rep.skeleton.hand_joint_idx
         endpoint_loss = masked_mean(F.smooth_l1_loss(relative_pred[:, :, fidx], relative_gt[:, :, fidx], reduction="none", beta=0.05), mask)
         hand_loss = masked_mean(F.smooth_l1_loss(relative_pred[:, :, hidx], relative_gt[:, :, hidx], reduction="none", beta=0.05), mask)

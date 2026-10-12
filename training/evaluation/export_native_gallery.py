@@ -1,12 +1,11 @@
 """合并原生帧率评估结果为单文件 HTML，播放严格使用源时间戳。"""
 import argparse
-import json
-import gzip
 import base64
+import gzip
 import html as html_module
+import json
 from collections import defaultdict
 from pathlib import Path
-
 
 TEMPLATE = r'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AIAnimationSystem · 原生时间训练验收</title><style>

@@ -7,19 +7,17 @@ import json
 import math
 import platform
 import subprocess
-from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 import scipy
 import torch
+from motionbricks.data.unreal_dataset import apply_authoritative_root
 from scipy.spatial.transform import Rotation
 
 from data.runtime.conditioned_motion import load_raw, load_window, root_local
 from inference.runtime.conditioned_pose import ConditionedPosePredictor
-from motionbricks.data.unreal_dataset import apply_authoritative_root
 from training.evaluation.evaluate_conditioned_baselines import score, select_windows
-
 
 ROOT = Path(__file__).resolve().parents[4]
 RELEASE = Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924")

@@ -1,11 +1,22 @@
 """针对用户圈出的36/52/54帧，强制给予参考并审计解码前后误差。"""
 import json
 from pathlib import Path
+
 import numpy as np
 import torch
+
+from inference.export.export_unreal_animgraph import (
+    UnrealPoseReconstruction,
+    pack_raw_pose,
+)
+from inference.profiling.evaluate_unreal_streaming import (
+    localize,
+    metric,
+    positions,
+    rms,
+    simulate,
+)
 from inference.runtime.checkpoint import load_vqvae
-from inference.export.export_unreal_animgraph import UnrealPoseReconstruction, pack_raw_pose
-from inference.profiling.evaluate_unreal_streaming import localize, positions, simulate, metric, rms
 
 
 def audit():
@@ -38,7 +49,7 @@ def audit():
                 windows[name][end] = localize(predicted, parents)
                 # 给出尚能影响播放的窗口，便于区分解码偏差与融合问题。
                 for frame in (36,52,54):
-                    if start<=frame<=end and end<frame+8:
+                    if start<=frame<=end<frame+8:
                         offset = frame-start
                         error = predicted[offset,:,:3]-packed[frame,:,:3]
                         report['windows'].append({'variant': name,'window_end': end,'frame': frame,

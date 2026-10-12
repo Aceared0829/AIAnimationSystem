@@ -1,16 +1,22 @@
 """条件生成器的硬参考约束和分区评估选择。"""
 
-import unittest
 import random
+import unittest
 
 import numpy as np
 import torch
 
 from inference.runtime.conditioned_pose import rotation_6d_to_matrix
 from training.evaluation.evaluate_conditioned_pose import center_indices
-from training.pretrain.train_conditioned_pose import (MotionWindows, ReferenceGuidedPose, balanced_window_weights,
-                                                    capture_random_state, losses, restore_random_state,
-                                                    root_world_positions)
+from training.pretrain.train_conditioned_pose import (
+    MotionWindows,
+    ReferenceGuidedPose,
+    balanced_window_weights,
+    capture_random_state,
+    losses,
+    restore_random_state,
+    root_world_positions,
+)
 
 
 class ConditionedPoseTrainingTests(unittest.TestCase):
@@ -79,6 +85,7 @@ class ConditionedPoseTrainingTests(unittest.TestCase):
                       contacts=torch.ones(1, 2, 1),
                       foot_indices=[0], contact_weight=0.01)[0]
         loss.backward()
+        assert pose.grad is not None
         self.assertGreater(float(pose.grad.abs().sum()), 0)
 
     def test_hybrid_references_cover_fixed_and_off_grid_times(self):

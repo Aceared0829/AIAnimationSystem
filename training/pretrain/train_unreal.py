@@ -2,23 +2,26 @@
 
 import argparse
 import hashlib
+from collections import Counter
 from pathlib import Path
 
 import pytorch_lightning as pl
 import torch
 from hydra.utils import instantiate
-from omegaconf import OmegaConf, open_dict
+from motionbricks.data.motionweaver_dataset import (
+    MotionWeaverUnrealDataset,
+    collate_motionweaver,
+)
+from motionbricks.data.synthetic_dataset import collate_batch
+from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
+from motionbricks.helper.pl_util import load_motion_rep
+from motionbricks.motionlib.train.scheduler import WarmupCosineScheduler
+from motionbricks.repository import base_weights
+from motionbricks.training.unreal_quality import PoseAwareBatchSampler, collate_native
+from omegaconf import DictConfig, OmegaConf, open_dict
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import CSVLogger
 from torch.utils.data import DataLoader, Subset, WeightedRandomSampler
-from collections import Counter
-from motionbricks.training.unreal_quality import collate_native, PoseAwareBatchSampler
-
-from motionbricks.data.synthetic_dataset import collate_batch
-from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
-from motionbricks.data.motionweaver_dataset import MotionWeaverUnrealDataset, collate_motionweaver
-from motionbricks.helper.pl_util import load_motion_rep
-from motionbricks.repository import base_weights
 
 
 class DatasetContract(pl.Callback):
@@ -36,6 +39,8 @@ class DatasetContract(pl.Callback):
         schedule = self.config["model"]["scheduler"]
         for entry in trainer.lr_scheduler_configs:
             scheduler = entry.scheduler
+            if not isinstance(scheduler, WarmupCosineScheduler):
+                raise TypeError("Unreal training requires WarmupCosineScheduler")
             scheduler.num_training_steps = schedule["num_training_steps"]
             scheduler.num_warmup_steps = schedule["num_warmup_steps"]
             rates = scheduler.get_lr()
@@ -72,10 +77,12 @@ def training_indices(manifest):
 def build_config(args, dataset):
     base = base_weights() / f"motionbricks_{args.model}" / "version_1" / "hparams.yaml"
     conf = OmegaConf.load(base)
+    if not isinstance(conf, DictConfig):
+        raise ValueError("Configuration must be a mapping")
     with open_dict(conf):
         conf.data = {"folder": str(Path(args.dataset).resolve()), "text_embeddings": None}
-        conf.data.manifest_sha256 = hashlib.sha256((Path(args.dataset) / "dataset.json").read_bytes()).hexdigest()
-        conf.skeleton = {"_target_": "motionbricks.data.unreal_dataset.UnrealSkeleton", "folder": conf.data.folder}
+        conf.data["manifest_sha256"] = hashlib.sha256((Path(args.dataset) / "dataset.json").read_bytes()).hexdigest()
+        conf.skeleton = {"_target_": "motionbricks.data.unreal_dataset.UnrealSkeleton", "folder": conf.data["folder"]}
         conf.motion_rep.name = "unreal_dual_root_global_joints"
         conf.motion_rep.stats.folder = str(Path(args.dataset).resolve() / "stats")
         conf.fps = dataset.manifest["fps"]
@@ -176,6 +183,7 @@ def train(args):
         injections["backbone_network"] = instantiate(model_conf.backbone_network, motion_rep=motion_rep, _recursive_=False)
     model = instantiate(model_conf, **injections, optimizer=instantiate(model_conf.optimizer), scheduler=instantiate(model_conf.scheduler), _recursive_=False)
     if args.model == "pose":
+        assert pose_net is not None
         for parameter in pose_net.parameters():
             parameter.requires_grad_(False)
     output.mkdir(parents=True, exist_ok=True)

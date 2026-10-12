@@ -5,12 +5,23 @@ import secrets
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
 import numpy as np
 import torch
-from inference.runtime.checkpoint import load_vqvae
-from inference.export.export_unreal_animgraph import UnrealPoseReconstruction, pack_raw_pose
-from inference.profiling.evaluate_unreal_streaming import localize, positions, simulate, metric, rms
+
+from inference.export.export_unreal_animgraph import (
+    UnrealPoseReconstruction,
+    pack_raw_pose,
+)
+from inference.profiling.evaluate_unreal_streaming import (
+    localize,
+    metric,
+    positions,
+    rms,
+    simulate,
+)
 from inference.profiling.hard_pose_constraints import constrain_poses, rotation_errors
+from inference.runtime.checkpoint import load_vqvae
 
 
 class Lab:
@@ -60,7 +71,7 @@ class Lab:
         predicted=positions(soft_local,self.parents)
         reference=positions(self.source[common],self.parents)
         error=predicted-reference;per_frame=rms(error)
-        poses=[None]*len(self.source);errors=[None]*len(self.source)
+        poses: list[list[list[float]] | None] = [None]*len(self.source);errors: list[float | None] = [None]*len(self.source)
         for i,frame in enumerate(common):poses[frame]=predicted[i].round(4).tolist();errors[frame]=float(per_frame[i])
         result={'poses':poses,'errors':errors,'mean':float(per_frame.mean()),'p95':float(np.percentile(per_frame,95)),
             'max':float(per_frame.max()),'acceleration':metric(rms(np.diff(error,n=2,axis=0)))['mean'],
@@ -68,7 +79,7 @@ class Lab:
         hard_local=constrain_poses(soft_local,self.source[common],common,refs)
         hard_positions=positions(hard_local,self.parents)
         hard_error=hard_positions-reference;hard_rmse=rms(hard_error)
-        hard_poses=[None]*len(self.source);hard_errors=[None]*len(self.source)
+        hard_poses: list[list[list[float]] | None] = [None]*len(self.source);hard_errors: list[float | None] = [None]*len(self.source)
         for i,f in enumerate(common):hard_poses[f]=hard_positions[i].round(4).tolist();hard_errors[f]=float(hard_rmse[i])
         hard={'poses':hard_poses,'errors':hard_errors,'mean':float(hard_rmse.mean()),'p95':float(np.percentile(hard_rmse,95)),
             'max':float(hard_rmse.max()),'acceleration':metric(rms(np.diff(hard_error,n=2,axis=0)))['mean'],
@@ -93,6 +104,7 @@ def make_server(lab,port):
     class Handler(BaseHTTPRequestHandler):
         timeout=10
         def local_request(self):
+            assert isinstance(self.server, ThreadingHTTPServer)
             port=self.server.server_port
             allowed={f'127.0.0.1:{port}',f'localhost:{port}'}
             if self.headers.get('Host') not in allowed or self.headers.get('Origin') not in (None,*(f'http://{host}' for host in allowed)):

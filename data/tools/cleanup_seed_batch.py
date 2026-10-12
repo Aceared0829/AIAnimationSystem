@@ -2,8 +2,9 @@
 import argparse
 import json
 from pathlib import Path
+
 from motionbricks.data.motion_catalog import MotionCatalog
-from motionbricks.data.unreal_dataset import file_sha256, UnrealMotionDataset
+from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
 
 
 def cleanup(library,plan_path,execute=False):
@@ -45,7 +46,7 @@ def cleanup(library,plan_path,execute=False):
             kind=entry['kind']
             allowed=False
             if kind.startswith('source_'):
-                roots=[Path('D:/BONES-SEED/soma_uniform'),Path('D:/BONES-SEED/g1'),Path('C:/BONES-SEED/soma_proportional')]
+                roots=[Path('D:/BONES-SEED/soma_uniform'),Path('D:/BONES-SEED/g1'),Path('D:/BONES-SEED/soma_proportional')]
                 allowed=allowed_sources.get(str(path))==entry['sha256'] and any(path.is_relative_to(r.resolve()) and path!=r.resolve() for r in roots)
             elif kind=='ue_work':
                 allowed=any(run.is_relative_to(library/'work') and run.name.startswith('queue_') and path.is_relative_to(run) for run in allowed_runs)
@@ -75,11 +76,11 @@ def cleanup(library,plan_path,execute=False):
                     catalog.db.execute("UPDATE cleanup_journal SET status='deleted' WHERE batch=? AND path=?",(plan['batch'],str(path)))
             with catalog.db:
                 for item in plan['items']:
-                    detail=json.dumps(dict(batch=plan['batch'],plan=str(plan_path)))
+                    detail=json.dumps({'batch': plan['batch'],'plan': str(plan_path)})
                     if not catalog.db.execute("SELECT 1 FROM events WHERE motion_id=? AND state='source_cleanup_complete' AND detail=?",(item['id'],detail)).fetchone():
                         catalog.db.execute('INSERT INTO events(motion_id,state,detail) VALUES(?,?,?)',(item['id'],'source_cleanup_complete',detail))
             catalog.db.execute('PRAGMA wal_checkpoint(FULL)')
-        print(json.dumps(dict(executed=execute,files=len(plan['cleanup']),gib=plan['cleanup_bytes']/1024**3,batch=plan['batch'])),flush=True)
+        print(json.dumps({'executed': execute,'files': len(plan['cleanup']),'gib': plan['cleanup_bytes']/1024**3,'batch': plan['batch']}),flush=True)
     finally:catalog.close()
 
 

@@ -1,20 +1,23 @@
 """条件动作数据契约的真实帧、可见参考与离线基线回归。"""
 
-import hashlib
 import gzip
+import hashlib
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
 import numpy as np
+from test_unreal_dataset import pose_only_fixture
 
 from data.runtime.conditioned_motion import build_index, load_window, with_references
 from data.tools.audit_conditioned_dataset import audit
-from data.tools.conditioned_review_store import ConditionedReviewStore, load_review_inputs
+from data.tools.conditioned_review_store import (
+    ConditionedReviewStore,
+    load_review_inputs,
+)
 from data.tools.freeze_conditioned_dataset import freeze
 from data.tools.prepare_unreal_dataset import asset_family, prepare
-from test_unreal_dataset import pose_only_fixture
 from training.evaluation.evaluate_conditioned_baselines import evaluate, predict
 
 

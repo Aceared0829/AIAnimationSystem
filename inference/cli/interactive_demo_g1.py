@@ -1,11 +1,11 @@
 # Modified by the AIAnimationSystem maintainers: added Chinese demo controls and adapted the interactive interface.
 
 import argparse
-import time
 import platform
+import time
 
 from motionbricks.helper.argparse_zh import enable_chinese_argparse
-from motionbricks.repository import repository_root, base_weights
+from motionbricks.repository import base_weights, repository_root
 
 
 def _disable_mujoco_keyboard_shortcuts(controller_keys='wasdrtfgeqzxcvb'):
@@ -19,7 +19,8 @@ def _disable_mujoco_keyboard_shortcuts(controller_keys='wasdrtfgeqzxcvb'):
     if platform.system() != 'Linux':
         return
     try:
-        from Xlib import display as xdisplay, X
+        from Xlib import X
+        from Xlib import display as xdisplay
         _xdpy = xdisplay.Display()
         _root = _xdpy.screen().root
 
@@ -49,13 +50,15 @@ def _disable_mujoco_keyboard_shortcuts(controller_keys='wasdrtfgeqzxcvb'):
 
 
 def main(args) -> None:
-    import torch as t
     import numpy as np
+    import torch as t
     try:
         import mujoco
         import mujoco.viewer
+        from motionbricks.motion_backbone.demo.chinese_control_panel import (
+            ChineseControlPanel,
+        )
         from motionbricks.motion_backbone.demo.utils import navigation_demo
-        from motionbricks.motion_backbone.demo.chinese_control_panel import ChineseControlPanel
     except ModuleNotFoundError as error:
         raise RuntimeError('G1 演示缺少可选依赖；请从仓库根目录安装 .[demo] 并准备 G1 权重。') from error
     demo_agent = navigation_demo(args)
@@ -87,13 +90,14 @@ def main(args) -> None:
                     control_panel and control_panel.is_closed
                 ):
                     if control_panel:
-                        for command, value in control_panel.poll_commands():
-                            if command == "reset":
+                        for command_data in control_panel.poll_commands():
+                            if command_data[0] == "reset":
                                 demo_agent.full_agent.reset()
                                 steps = 0
-                            elif command == "camera":
-                                viewer.cam.azimuth, viewer.cam.elevation, viewer.cam.distance = value
-                            elif command == "display":
+                            elif command_data[0] == "camera":
+                                viewer.cam.azimuth, viewer.cam.elevation, viewer.cam.distance = command_data[1]
+                            elif command_data[0] == "display":
+                                value = command_data[1]
                                 viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = value["contact"]
                                 viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_JOINT] = value["joint"]
                                 viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_TRANSPARENT] = value["transparent"]
@@ -105,6 +109,7 @@ def main(args) -> None:
 
                     force_idle = steps + 100 > args.max_steps
                     steps += 1
+                    assert viewer.user_scn is not None
                     viewer.user_scn.ngeom = 0
                     step_start = time.time()
                     qpos = demo_agent.full_agent.get_next_frame()

@@ -1,6 +1,7 @@
-import torch.nn as nn
-import torch
+from torch import nn
+
 from motionbricks.vqvae.neural_modules.resnet import Resnet1D
+
 
 class Encoder(nn.Module):
     def __init__(self,

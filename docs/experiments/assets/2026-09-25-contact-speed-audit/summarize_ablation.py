@@ -9,7 +9,6 @@ from pathlib import Path
 
 import numpy as np
 
-
 ARMS = ("initial", "control3", "foot_velocity3")
 
 

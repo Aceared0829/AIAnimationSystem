@@ -1,6 +1,7 @@
 """动作数据库 CLI；当前提供可恢复的清单扫描与状态查询。"""
 import argparse
 import json
+
 from motionbricks.data.motion_catalog import MotionCatalog
 
 

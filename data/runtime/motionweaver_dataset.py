@@ -2,9 +2,13 @@
 
 import numpy as np
 import torch
-
 from motionbricks.data.synthetic_dataset import collate_batch
-from motionbricks.data.unreal_dataset import UnrealMotionDataset, contained_file, file_sha256, read_json
+from motionbricks.data.unreal_dataset import (
+    UnrealMotionDataset,
+    contained_file,
+    file_sha256,
+    read_json,
+)
 
 
 class MotionWeaverUnrealDataset(UnrealMotionDataset):

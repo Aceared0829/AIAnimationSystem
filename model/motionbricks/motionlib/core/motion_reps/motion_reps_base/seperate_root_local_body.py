@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Literal, Protocol, TypedDict, overload
 
 import einops
 import numpy as np
@@ -27,6 +27,27 @@ from motionbricks.motionlib.core.utils.stats import Stats
 
 from .motion_rep_base import MotionRepBase
 
+if TYPE_CHECKING:
+    from .dual_root_local_body import DualRootLocalBody
+
+
+class DualRootFactory(Protocol):
+    @property
+    def _name_(self) -> str: ...
+
+    def __call__(self, fps: float, skeleton: SkeletonBase, name: str, stats: Stats | None = None) -> "DualRootLocalBody": ...
+
+
+class MotionReconstruction(TypedDict, total=False):
+    root_pos: torch.Tensor
+    posed_joints: torch.Tensor
+    local_joint_rots: torch.Tensor
+    global_joint_rots: torch.Tensor
+    foot_contacts: torch.Tensor
+    all_posed_joints: dict[str, torch.Tensor]
+    all_local_rots: dict[str, torch.Tensor]
+    all_global_rots: dict[str, torch.Tensor]
+
 
 class SeparatedRootLocalBody(MotionRepBase):
     """Motion representation that separates root and local body motion.
@@ -50,12 +71,26 @@ class SeparatedRootLocalBody(MotionRepBase):
         change_first_heading(): Rotate the motion rep to the given heading
     """
 
+    body_keys_dim: dict[str, list[int]]
+    root_keys_dim: dict[str, list[int]]
+    compute_kwargs: dict
+    default_joint_positions_from: str
+
+    def get_body_keys_dim(self, nbjoints: int) -> dict[str, list[int]]:
+        raise NotImplementedError
+
+    def change_first_heading(
+        self, motion: torch.Tensor, first_heading_angle: float | torch.Tensor,
+        is_normalized: bool, to_normalize: bool, return_numpy: bool = False,
+    ) -> torch.Tensor | np.ndarray:
+        raise NotImplementedError
+
     def __init__(
         self,
         fps: float,
         skeleton: SkeletonBase,
         name: str,
-        stats: Optional[Stats] = None,
+        stats: Stats | None = None,
     ):
         super().__init__(fps, skeleton, name, stats)
 
@@ -73,9 +108,9 @@ class SeparatedRootLocalBody(MotionRepBase):
         self.ps = self.root_ps + self.body_ps
 
         # compute dim
-        self.motion_rep_dim = sum((sum(x) if x else 1 for x in self.ps))
-        self.motion_root_dim = sum((sum(x) if x else 1 for x in self.root_ps))
-        self.motion_body_dim = sum((sum(x) if x else 1 for x in self.body_ps))
+        self.motion_rep_dim = sum(sum(x) if x else 1 for x in self.ps)
+        self.motion_root_dim = sum(sum(x) if x else 1 for x in self.root_ps)
+        self.motion_body_dim = sum(sum(x) if x else 1 for x in self.body_ps)
 
         if stats is not None and stats.is_loaded():
             assert self.motion_rep_dim == stats.get_dim()
@@ -107,13 +142,40 @@ class SeparatedRootLocalBody(MotionRepBase):
                 repr(self.skeleton.__class__).split("'")[1].endswith("Extra")
             ), "The skeleton should be an extra skeleton"
 
+    @overload
+    def canonicalize_to_first_frame(
+        self,
+        motion: torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: Literal[False] = False,
+    ) -> torch.Tensor: ...
+
+    @overload
+    def canonicalize_to_first_frame(
+        self,
+        motion: torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        *, return_numpy: Literal[True],
+    ) -> np.ndarray: ...
+
+    @overload
     def canonicalize_to_first_frame(
         self,
         motion: torch.Tensor,
         is_normalized: bool,
         to_normalize: bool,
         return_numpy: bool = False,
-    ) -> torch.Tensor:
+    ) -> torch.Tensor | np.ndarray: ...
+
+    def canonicalize_to_first_frame(
+        self,
+        motion: torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: bool = False,
+    ):
         new_motion = self.change_first_heading(
             motion,
             first_heading_angle=0.0,
@@ -123,13 +185,40 @@ class SeparatedRootLocalBody(MotionRepBase):
         )
         return new_motion
 
+    @overload
+    def randomize_first_heading(
+        self,
+        motion: torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: Literal[False] = False,
+    ) -> torch.Tensor: ...
+
+    @overload
+    def randomize_first_heading(
+        self,
+        motion: torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        *, return_numpy: Literal[True],
+    ) -> np.ndarray: ...
+
+    @overload
     def randomize_first_heading(
         self,
         motion: torch.Tensor,
         is_normalized: bool,
         to_normalize: bool,
         return_numpy: bool = False,
-    ) -> torch.Tensor:
+    ) -> torch.Tensor | np.ndarray: ...
+
+    def randomize_first_heading(
+        self,
+        motion: torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: bool = False,
+    ):
         first_heading_angle = np.random.rand() * 2 * np.pi
         new_motion = self.change_first_heading(
             motion,
@@ -190,7 +279,7 @@ class SeparatedRootLocalBody(MotionRepBase):
         """
         if index is None:
             index = self.indices[self.detect_all_body_or_root(motion)]
-        return self.stats.normalize(motion, index=index)
+        return super().normalize(motion, index=index)
 
     def unnormalize(self, motion: torch.Tensor, index=None) -> torch.Tensor:
         """Unnormalizes motion features using stored statistics.
@@ -205,7 +294,7 @@ class SeparatedRootLocalBody(MotionRepBase):
         """
         if index is None:
             index = self.indices[self.detect_all_body_or_root(motion)]
-        return self.stats.unnormalize(motion, index=index)
+        return super().unnormalize(motion, index=index)
 
     def extract_root(self, motion: torch.Tensor) -> torch.Tensor:
         """Extracts root motion features from input.
@@ -252,7 +341,7 @@ class SeparatedRootLocalBody(MotionRepBase):
         self,
         motion: torch.Tensor,
         is_normalized: bool,
-        contact_thresh: Optional[float] = 0.5,
+        contact_thresh: float | None = 0.5,
     ) -> torch.Tensor:
         """Extracts foot contact states from motion features.
 
@@ -283,7 +372,7 @@ class SeparatedRootLocalBody(MotionRepBase):
     def compute_root_pos_and_rot(
         self,
         motion: torch.Tensor,
-        type: Optional[str] = None,
+        type: str | None = None,
     ):
         """Compute root position and rotation from the representation.
 
@@ -297,10 +386,7 @@ class SeparatedRootLocalBody(MotionRepBase):
                 - torch.Tensor: [..., T, 4] global root rotation quaternion (heading only)
         """
 
-        root_motion = self.extract_root(motion)  # noqa
-        ...
         raise NotImplementedError
-        return root_pos, root_rot_quat  # noqa
 
     def compute_root_rep_from_root_pos_and_rot(
         self, root_pos: torch.Tensor, root_rot_quat: torch.Tensor
@@ -315,18 +401,80 @@ class SeparatedRootLocalBody(MotionRepBase):
             torch.Tensor: [..., T, D] Root motion features
         """
         raise NotImplementedError
-        return root_motion  # noqa
+
+    @overload
+    def __call__(
+        self,
+        input_tensor_dict,
+        to_normalize: bool,
+        original_skeleton: SkeletonBase | None = None,
+        lengths: torch.Tensor | None = None,
+        return_numpy: Literal[False] = False,
+        t_pose_from: str | None = None,
+        return_init_heading_info: Literal[False] = False,
+    ) -> torch.Tensor: ...
+
+    @overload
+    def __call__(
+        self,
+        input_tensor_dict,
+        to_normalize: bool,
+        original_skeleton: SkeletonBase | None = None,
+        lengths: torch.Tensor | None = None,
+        *,
+        return_numpy: Literal[False] = False,
+        t_pose_from: str | None = None,
+        return_init_heading_info: Literal[True],
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]: ...
+
+    @overload
+    def __call__(
+        self,
+        input_tensor_dict,
+        to_normalize: bool,
+        original_skeleton: SkeletonBase | None = None,
+        lengths: torch.Tensor | None = None,
+        *,
+        return_numpy: Literal[True],
+        t_pose_from: str | None = None,
+        return_init_heading_info: Literal[False] = False,
+    ) -> np.ndarray: ...
+
+    @overload
+    def __call__(
+        self,
+        input_tensor_dict,
+        to_normalize: bool,
+        original_skeleton: SkeletonBase | None = None,
+        lengths: torch.Tensor | None = None,
+        *,
+        return_numpy: Literal[True],
+        t_pose_from: str | None = None,
+        return_init_heading_info: Literal[True],
+    ) -> tuple[np.ndarray, dict[str, torch.Tensor]]: ...
+
+    @overload
+    def __call__(
+        self,
+        input_tensor_dict,
+        to_normalize: bool,
+        original_skeleton: SkeletonBase | None = None,
+        lengths: torch.Tensor | None = None,
+        return_numpy: bool = False,
+        t_pose_from: str | None = None,
+        return_init_heading_info: bool = False,
+    ) -> torch.Tensor | np.ndarray | tuple[torch.Tensor | np.ndarray, dict[str, torch.Tensor]]: ...
 
     def __call__(
         self,
         input_tensor_dict,
         to_normalize: bool,
-        original_skeleton: Optional[SkeletonBase] = None,
-        lengths: Optional[torch.Tensor] = None,
+        original_skeleton: SkeletonBase | None = None,
+        lengths: torch.Tensor | None = None,
         return_numpy: bool = False,
-        t_pose_from: Optional[str] = None,
+        t_pose_from: str | None = None,
         return_init_heading_info: bool = False,
-    ) -> torch.Tensor:
+    ):
         """Converts input motion data to feature representation.
 
         Args:
@@ -349,7 +497,7 @@ class SeparatedRootLocalBody(MotionRepBase):
 
         skel_slice = self.skeleton.get_skel_slice(original_skeleton)
 
-        new_in_tensor_dict = dict()
+        new_in_tensor_dict = {}
         for key, val in input_tensor_dict.items():
             if isinstance(val, np.ndarray):
                 val = torch.from_numpy(val)
@@ -398,7 +546,8 @@ class SeparatedRootLocalBody(MotionRepBase):
             return_init_heading_info=return_init_heading_info,
             **self.compute_kwargs,
         )
-        if return_init_heading_info:
+        init_heading_info = None
+        if isinstance(features, tuple):
             features, init_heading_info = features
 
         assert features.shape[-1] == self.motion_rep_dim
@@ -410,19 +559,64 @@ class SeparatedRootLocalBody(MotionRepBase):
             features = features.cpu().numpy()
 
         if return_init_heading_info:
+            assert init_heading_info is not None
             return features, init_heading_info
         return features
 
+    @overload
     def inverse(
         self,
         features: torch.Tensor,
         is_normalized: bool,
         # Neutral joints (take the one from the skeleton by default)
-        neutral_joints: Optional[torch.Tensor] = None,
+        neutral_joints: torch.Tensor | None = None,
         # Canonicalization info
-        init_heading_info: Optional[Dict] = None,
+        init_heading_info: dict | None = None,
         # Default options which depends on the motion rep
-        joint_positions_from: Optional[str] = None,
+        joint_positions_from: str | None = None,
+        # Default options
+        return_quat: bool = False,
+        return_all: bool = False,
+        run_fk: bool = True,
+        return_numpy: Literal[False] = False,
+        extra_skel_process: bool = True,
+        # Optional to change t-pose
+        t_pose_to: str | None = None,
+    ) -> MotionReconstruction: ...
+
+    @overload
+    def inverse(
+        self,
+        features: torch.Tensor,
+        is_normalized: bool,
+        *,
+        # Neutral joints (take the one from the skeleton by default)
+        neutral_joints: torch.Tensor | None = None,
+        # Canonicalization info
+        init_heading_info: dict | None = None,
+        # Default options which depends on the motion rep
+        joint_positions_from: str | None = None,
+        # Default options
+        return_quat: bool = False,
+        return_all: bool = False,
+        run_fk: bool = True,
+        return_numpy: Literal[True],
+        extra_skel_process: bool = True,
+        # Optional to change t-pose
+        t_pose_to: str | None = None,
+    ) -> dict: ...
+
+    @overload
+    def inverse(
+        self,
+        features: torch.Tensor,
+        is_normalized: bool,
+        # Neutral joints (take the one from the skeleton by default)
+        neutral_joints: torch.Tensor | None = None,
+        # Canonicalization info
+        init_heading_info: dict | None = None,
+        # Default options which depends on the motion rep
+        joint_positions_from: str | None = None,
         # Default options
         return_quat: bool = False,
         return_all: bool = False,
@@ -430,8 +624,28 @@ class SeparatedRootLocalBody(MotionRepBase):
         return_numpy: bool = False,
         extra_skel_process: bool = True,
         # Optional to change t-pose
-        t_pose_to: str = None,
-    ) -> torch.Tensor:
+        t_pose_to: str | None = None,
+    ) -> MotionReconstruction | dict: ...
+
+    def inverse(
+        self,
+        features: torch.Tensor,
+        is_normalized: bool,
+        # Neutral joints (take the one from the skeleton by default)
+        neutral_joints: torch.Tensor | None = None,
+        # Canonicalization info
+        init_heading_info: dict | None = None,
+        # Default options which depends on the motion rep
+        joint_positions_from: str | None = None,
+        # Default options
+        return_quat: bool = False,
+        return_all: bool = False,
+        run_fk: bool = True,
+        return_numpy: bool = False,
+        extra_skel_process: bool = True,
+        # Optional to change t-pose
+        t_pose_to: str | None = None,
+    ):
         """Converts motion features back to joint rotations and positions.
 
         Args:
@@ -469,7 +683,7 @@ class SeparatedRootLocalBody(MotionRepBase):
             changing_t_pose = self.skeleton.t_pose != t_pose_to
 
         # storage of the outputs
-        output_tensor_dict = {
+        output_tensor_dict: MotionReconstruction = {
             "all_posed_joints": {},
             "all_local_rots": {},
             "all_global_rots": {},
@@ -570,15 +784,7 @@ class SeparatedRootLocalBody(MotionRepBase):
             )
 
             if extra_skel_process and self.extra_skel:
-                # crop the output
-                skel_slice = self.skeleton.base_skel.get_skel_slice(self.skeleton)
-                posed_joints_extra_skel = posed_joints_from_pos
-
-                # compute the global rotations from extrapos
-                global_rot_mats_from_extra_skel = compute_rotations_from_extrapos(
-                    posed_joints_extra_skel, self.skeleton
-                )
-                posed_joints_from_pos = posed_joints_extra_skel[..., skel_slice, :]
+                raise NotImplementedError("Extra-skeleton rotation reconstruction is not included in this distribution")
 
             [posed_joints_from_pos] = einops.unpack(
                 posed_joints_from_pos, ps, "* nbframes nbjoints xyz"
@@ -629,7 +835,7 @@ class SeparatedRootLocalBody(MotionRepBase):
                 if joint_positions_from == "rot_data":
                     output_tensor_dict["posed_joints"] = posed_joints_from_local_rots
 
-            if changing_t_pose:
+            if changing_t_pose and t_pose_to is not None:
                 # do this after FK, so that we can keep the old neutral joints
                 # it will not be compatible with our skeleton anymore
                 global_rot_mats = change_t_pose_global_mats(
@@ -729,7 +935,7 @@ class SeparatedRootLocalBody(MotionRepBase):
                     output_tensor_dict["posed_joints"] = posed_joints_from_global_rots
 
             # fk was not necessary for changing t-pose since we already have the global
-            if changing_t_pose:
+            if changing_t_pose and t_pose_to is not None:
                 # do this after FK, so that we can keep the old neutral joints
                 # it will not be compatible with our skeleton anymore
                 global_rot_mats_from_global = change_t_pose_global_mats(
@@ -787,8 +993,13 @@ class SeparatedRootLocalBody(MotionRepBase):
         )
 
         if return_numpy:
+            numpy_output = {}
             for key, val in output_tensor_dict.items():
-                output_tensor_dict[key] = val.cpu().numpy()
+                if isinstance(val, dict):
+                    numpy_output[key] = {name: tensor.cpu().numpy() for name, tensor in val.items()}
+                elif isinstance(val, torch.Tensor):
+                    numpy_output[key] = val.cpu().numpy()
+            return numpy_output
         return output_tensor_dict
 
     def concat_root_body(self, root_data: torch.Tensor, body_data: torch.Tensor):
@@ -803,7 +1014,7 @@ class SeparatedRootLocalBody(MotionRepBase):
         """
         assert root_data.shape[-1] == self.motion_root_dim
         assert body_data.shape[-1] == self.motion_body_dim
-        motion_data = torch.cat([root_data, body_data], axis=-1)
+        motion_data = torch.cat([root_data, body_data], dim=-1)
         assert motion_data.shape[-1] == self.motion_rep_dim
         return motion_data
 

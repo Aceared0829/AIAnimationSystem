@@ -19,7 +19,7 @@ def main():
                    for p in (ROOT / folder).glob('*.py') if p.name not in {'__init__.py', 'motion_batch_gate.py'}]
         def check(path):
             result = subprocess.run([sys.executable, str(path), '--help'], cwd=cwd, capture_output=True,
-                                    text=True, encoding='utf-8', errors='replace', timeout=90)
+                                    text=True, encoding='utf-8', errors='replace', timeout=90, check=False)
             return {'script': str(path.relative_to(ROOT)), 'exit_code': result.returncode,
                     'help_present': ('usage:' in result.stdout.lower() or '用法' in result.stdout),
                     'error': result.stderr if result.returncode else ''}

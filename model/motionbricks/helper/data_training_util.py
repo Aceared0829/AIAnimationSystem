@@ -1,13 +1,16 @@
+from typing import Literal, overload
+
+import numpy as np
 import torch
 import torch as t
-import numpy as np
+
 from motionbricks.motionlib.core.motion_reps import MotionRepBase
 
 
 def sample_motion_segments_from_motion_clips(motions: t.Tensor, motion_lengths: t.Tensor,
                                              num_desired_frames: int, batchsize_mul_factor_for_segments: int,
-                                             info: dict = {},
-                                             motion_rep: MotionRepBase = None):
+                                             info: dict | None = None,
+                                             motion_rep: MotionRepBase | None = None):
     """ @brief: the dataloader provides motion clips, which are variable length sequences of motion frames.
     In training of vqvae and the backbone model, we require fixed length motion segments.
 
@@ -22,6 +25,8 @@ def sample_motion_segments_from_motion_clips(motions: t.Tensor, motion_lengths: 
     @param batchsize_mul_factor_for_segments:
         the number of output motion segments = batch_size * batchsize_mul_factor_for_segments
     """
+    if info is None:
+        info = {}
     batch_size = motions.shape[0]
     augmented_batch_size = int(batch_size * batchsize_mul_factor_for_segments)
     device = motions.device
@@ -34,7 +39,7 @@ def sample_motion_segments_from_motion_clips(motions: t.Tensor, motion_lengths: 
         (motion_lengths - num_desired_frames).clip(min=.0) * valid_samples_id.float()  # invalid samples has 0.0 prob
     p_sample = p_sample.cpu().numpy().astype("float64")  # this is needed otherwise sum!= 1.0 precision error
     new_motions_ids = np.random.choice(batch_size, replace=True,
-                                       size=num_new_motions.item(), p=(p_sample / p_sample.sum()))
+                                       size=int(num_new_motions.item()), p=(p_sample / p_sample.sum()))
 
     motions = t.concat([motions[valid_samples_id], motions[new_motions_ids]], dim=0)
     info['chosen_ids'] = t.concat([t.where(valid_samples_id)[0], t.from_numpy(new_motions_ids).to(device)], dim=0)
@@ -96,10 +101,21 @@ def convert_sparse_cond_to_dense_cond_if_needed(cond: t.Tensor, has_cond: t.Tens
         dense_cond[dense_has_cond] = cond.view(-1)  # they are all in flatten view
         return dense_cond, dense_has_cond
 
+@overload
+def extract_feature_from_motion_rep(x: t.Tensor | None, motion_rep: MotionRepBase, feature: str, fetch_feat_idx: Literal[True]) -> np.ndarray: ...
+
+
+@overload
+def extract_feature_from_motion_rep(x: t.Tensor, motion_rep: MotionRepBase, feature: str, fetch_feat_idx: Literal[False] = False) -> t.Tensor: ...
+
+
 def extract_feature_from_motion_rep(x: t.Tensor | None,
                                     motion_rep: MotionRepBase, feature: str, fetch_feat_idx: bool = False):
     """ @brief: extract the corresponding features from the original motion representation
     """
+
+    if not fetch_feat_idx and x is None:
+        raise ValueError("Motion data is required when extracting features")
 
     if feature in ['root_with_mask', 'root_without_heading_with_mask',
                    'root_without_hip_height_with_mask', 'root_without_hip_height_without_heading_with_mask']:
@@ -108,6 +124,7 @@ def extract_feature_from_motion_rep(x: t.Tensor | None,
         if fetch_feat_idx:
             raise NotImplementedError("fetch_feat_idx is not supported for with_mask features")
         else:
+            assert x is not None
             raw_feature = extract_feature_from_motion_rep(x, motion_rep, feature.split("_with_mask")[0])
             mask = t.zeros([x.shape[0], x.shape[1], 1]).to(x.device)
             return t.concat([raw_feature, mask], dim=-1)
@@ -116,6 +133,7 @@ def extract_feature_from_motion_rep(x: t.Tensor | None,
         if fetch_feat_idx:
             return motion_rep.indices['root']
         else:
+            assert x is not None
             return x if x.shape[-1] == len(motion_rep.indices['root']) else x[:, :, motion_rep.indices['root']]
 
     elif feature == 'root_without_heading':
@@ -129,6 +147,7 @@ def extract_feature_from_motion_rep(x: t.Tensor | None,
         if fetch_feat_idx:
             return feat_idx
         else:
+            assert x is not None
             return x if x.shape[-1] == len(feat_idx) else x[:, :, feat_idx]
 
     elif feature == 'root_without_hip_height':
@@ -141,6 +160,7 @@ def extract_feature_from_motion_rep(x: t.Tensor | None,
         if fetch_feat_idx:
             return feat_idx
         else:
+            assert x is not None
             return x if x.shape[-1] == len(feat_idx) else x[:, :, feat_idx]
 
     elif feature == 'root_without_hip_height_without_heading':
@@ -151,12 +171,14 @@ def extract_feature_from_motion_rep(x: t.Tensor | None,
         if fetch_feat_idx:
             return feat_idx
         else:
+            assert x is not None
             return x if x.shape[-1] == len(feat_idx) else x[:, :, feat_idx]
 
     elif feature == 'pose':
         if fetch_feat_idx:
             return motion_rep.indices['all']
         else:
+            assert x is not None
             assert x.shape[-1] == len(motion_rep.indices['all'])
             return x
 
@@ -166,6 +188,7 @@ def extract_feature_from_motion_rep(x: t.Tensor | None,
         if fetch_feat_idx:
             return feat_idx
         else:
+            assert x is not None
             return x if x.shape[-1] == len(feat_idx) else x[:, :, feat_idx]
 
     elif feature == 'joint_positions_and_rotations_and_hip_height':
@@ -181,6 +204,7 @@ def extract_feature_from_motion_rep(x: t.Tensor | None,
         if fetch_feat_idx:
             return feat_idx
         else:
+            assert x is not None
             return x if x.shape[-1] == len(feat_idx) else x[:, :, feat_idx]
 
     else:

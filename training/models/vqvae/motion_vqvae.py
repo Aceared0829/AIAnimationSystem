@@ -1,20 +1,21 @@
-import numpy as np
-import torch as t
-import torch
 import logging
-from typing import Callable, Optional, Union, Dict
-from pytorch_lightning import LightningModule
+from collections.abc import Callable, Iterable
+
+import numpy as np
+import torch
+import torch as t
+from motionbricks.helper.data_training_util import (
+    extract_feature_from_motion_rep,
+    sample_keyframes,
+    sample_motion_segments_from_motion_clips,
+)
 from motionbricks.motionlib.core.motion_reps import MotionRepBase
 from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import (
     GlobalRootGlobalJoints,
     LocalRootGlobalJoints,
 )
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
-from motionbricks.helper.data_training_util import (
-    sample_motion_segments_from_motion_clips,
-)
-from motionbricks.helper.data_training_util import sample_keyframes
 from motionbricks.vqvae.neural_modules import vqvae as vqvae_module
+from pytorch_lightning import LightningModule
 
 log = logging.getLogger(__name__)
 
@@ -30,24 +31,27 @@ class MotionVQVAEModel(LightningModule):
     def __init__(
         self,
         pose_vqvae_network: vqvae_module.VQVAE,
-        root_vqvae_network: Optional[vqvae_module.VQVAE],
+        root_vqvae_network: vqvae_module.VQVAE | None,
         motion_rep: MotionRepBase,
-        optimizer: Callable[[list], torch.optim.Optimizer],
-        scheduler: Optional[
-            Callable[[torch.optim.Optimizer], torch.optim.lr_scheduler.LRScheduler]
-        ],
-        device: Optional[Union[str, torch.device]] = None,
-        args: Dict = None,
+        optimizer: Callable[[Iterable[torch.nn.Parameter]], torch.optim.Optimizer],
+        scheduler: Callable[[torch.optim.Optimizer], torch.optim.lr_scheduler.LRScheduler] | None,
+        device: str | torch.device | None = None,
+        args: dict | None = None,
         **kwargs,
     ):
         super().__init__()
+        assert isinstance(motion_rep, GlobalRootGlobalJoints)
+        assert motion_rep.dual_rep is not None
+        dual_rep = motion_rep.dual_rep
+        assert isinstance(dual_rep.global_motion_rep, GlobalRootGlobalJoints)
+        assert isinstance(dual_rep.local_motion_rep, LocalRootGlobalJoints)
 
         self.optimizer = optimizer
         self.scheduler = scheduler
 
         assert (
-            motion_rep.dual_rep.local_motion_rep.num_joints
-            == motion_rep.dual_rep.global_motion_rep.num_joints
+            dual_rep.local_motion_rep.num_joints
+            == dual_rep.global_motion_rep.num_joints
         ), "The number of joints should be the same."
         self.NUM_JOINTS = motion_rep.num_joints
 
@@ -55,11 +59,13 @@ class MotionVQVAEModel(LightningModule):
         self.root_net = root_vqvae_network
         self.motion_rep: GlobalRootGlobalJoints = motion_rep
         self.global_motion_rep: GlobalRootGlobalJoints = (
-            motion_rep.dual_rep.global_motion_rep
+            dual_rep.global_motion_rep
         )
         self.local_motion_rep: LocalRootGlobalJoints = (
-            motion_rep.dual_rep.local_motion_rep
+            dual_rep.local_motion_rep
         )
+        if args is None:
+            raise ValueError("Model configuration is required")
         self._args = args
 
         if device is not None:
@@ -68,7 +74,15 @@ class MotionVQVAEModel(LightningModule):
                 self.root_net.to(device) if self.root_net is not None else None
             )
 
+    @property
+    def dual_rep(self):
+        dual_rep = self.motion_rep.dual_rep
+        assert dual_rep is not None
+        return dual_rep
+
     def configure_optimizers(self):
+        if self.optimizer is None:
+            raise ValueError("An optimizer is required for training")
         optimizer = self.optimizer(self.parameters())
         if not self.scheduler:
             return optimizer
@@ -117,7 +131,7 @@ class MotionVQVAEModel(LightningModule):
             is_normalized=True,
             to_normalize=True,
         )
-        local_motions = self.motion_rep.dual_rep.global_to_local(
+        local_motions = self.dual_rep.global_to_local(
             global_motions,
             is_normalized=True,
             to_normalize=True,
@@ -200,7 +214,7 @@ class MotionVQVAEModel(LightningModule):
             global_pose_recons_loss = t.nn.SmoothL1Loss()(
                 pose_net_output["recon_state"], batch["global_motions"][:, :, :]
             )
-            pred_local_motions = self.motion_rep.dual_rep.global_to_local(
+            pred_local_motions = self.dual_rep.global_to_local(
                 pose_net_output["recon_state"],
                 is_normalized=True,
                 to_normalize=True,
@@ -261,6 +275,7 @@ class MotionVQVAEModel(LightningModule):
                 return_all=True,
             )
 
+        assert "posed_joints" in pred_joints_output
         pred_joints_pos = pred_joints_output["posed_joints"]
         pred_foot_contacts = pred_joints_output.get("foot_contacts")
 
@@ -269,6 +284,7 @@ class MotionVQVAEModel(LightningModule):
         dt = 1.0 / self.motion_rep.fps
         foot_vel = torch.norm(feet_pos[:, 1:] - feet_pos[:, :-1], dim=-1) / dt
 
+        assert pred_foot_contacts is not None
         foot_contacts = pred_foot_contacts[:, :-1]
         vel_err = foot_vel * foot_contacts
         mean_vel = torch.sum(vel_err, (1, 2)) / (
@@ -286,17 +302,20 @@ class MotionVQVAEModel(LightningModule):
             pred_joints_vel = (
                 (pred_joints_pos[:, 1:] - pred_joints_pos[:, :-1]) / dt
             ).view([batch_size, num_frames - 1, -1])
-            gt_joints_pos = self.global_motion_rep.inverse(
+            gt_joints_output = self.global_motion_rep.inverse(
                 batch["global_motions"],
                 is_normalized=True,
                 return_quat=False,
                 return_all=False,
                 joint_positions_from="ric_data",
-            )["posed_joints"]
+            )
+            assert "posed_joints" in gt_joints_output
+            gt_joints_pos = gt_joints_output["posed_joints"]
             gt_joints_vel = (
                 (gt_joints_pos[:, 1:] - gt_joints_pos[:, :-1]) / dt
             ).view([batch_size, num_frames - 1, -1])
             joint_vel_indices = self.global_motion_rep.indices["local_vel"]
+            assert self.global_motion_rep.stats is not None
             vel_mean = self.global_motion_rep.stats.mean[joint_vel_indices]
             vel_std = self.global_motion_rep.stats.std[joint_vel_indices]
 
@@ -340,7 +359,7 @@ class MotionVQVAEModel(LightningModule):
         return 2 ** self._args["down_t"]
 
     def _construct_keyframe_prob(self):
-        probs = dict()
+        probs = {}
         for module in ["pose", "root"]:
             max_num_keyframes = self.args[f"{module}_vqvae_max_num_keyframes"] * (
                 self.trainer.global_step / self.args["keyframe_num_warmup_steps"]
@@ -438,7 +457,7 @@ class MotionVQVAEModel(LightningModule):
         ] = rotated_z
 
         perturbed_pose_external_cond = extract_feature_from_motion_rep(
-            self.motion_rep.dual_rep.local_to_global(
+            self.dual_rep.local_to_global(
                 unnorm_gt_local_motion,
                 is_normalized=False,
                 to_normalize=True,

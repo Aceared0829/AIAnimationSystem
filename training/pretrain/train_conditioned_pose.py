@@ -12,11 +12,11 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from motionbricks.data.unreal_dataset import contained_file
 from torch import nn
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from data.runtime.conditioned_motion import load_raw, root_local
-from motionbricks.data.unreal_dataset import contained_file
 
 
 def digest(path):
@@ -241,7 +241,7 @@ def train(args):
                         ("left_foot", "left_toe", "right_foot", "right_toe")]
     generator = torch.Generator().manual_seed(args.seed)
     sampler = (WeightedRandomSampler(balanced_window_weights(train_data, args.category_power,
-                                                               args.clip_power), len(train_data),
+                                                               args.clip_power).tolist(), len(train_data),
                                      replacement=True, generator=generator)
                if args.sampling == "balanced" else None)
     train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=sampler is None, sampler=sampler,

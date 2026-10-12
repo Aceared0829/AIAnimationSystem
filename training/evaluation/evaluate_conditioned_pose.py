@@ -9,7 +9,11 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Subset
 
-from training.pretrain.train_conditioned_pose import MotionWindows, ReferenceGuidedPose, verify_release
+from training.pretrain.train_conditioned_pose import (
+    MotionWindows,
+    ReferenceGuidedPose,
+    verify_release,
+)
 
 
 def center_indices(rows):

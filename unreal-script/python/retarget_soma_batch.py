@@ -2,12 +2,13 @@
 import json
 import os
 from pathlib import Path
+
 import unreal
 
 work = Path(os.environ['MOTION_PIPELINE_WORK_ROOT']).resolve()
 request = json.loads((work/'soma_batch_request.json').read_text(encoding='utf-8'))
-if not 1 <= len(request['clips']) <= 8:
-    raise ValueError('试验批量必须为 1..8')
+if not 1 <= len(request['clips']) <= 32:
+    raise ValueError('UE 微批必须为 1..32')
 batch_id = request['batch_id']
 if not batch_id.startswith('B_') or not batch_id[2:].isalnum():
     raise ValueError('非法批次标识')
@@ -70,7 +71,7 @@ for data in results:
         raise RuntimeError('目标骨骼绑定错误')
     if not unreal.EditorAssetLibrary.save_loaded_asset(asset):
         raise RuntimeError('目标资产保存失败')
-    report.append(dict(asset=asset.get_path_name(),skeleton=asset.get_skeleton().get_path_name(),training_ready=False))
+    report.append({'asset': asset.get_path_name(),'skeleton': asset.get_skeleton().get_path_name(),'training_ready': False})
 (work/'soma_batch_retarget_report.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
 if len(report) != len(request['clips']):
     raise RuntimeError('UE 重定向输出数量不匹配')

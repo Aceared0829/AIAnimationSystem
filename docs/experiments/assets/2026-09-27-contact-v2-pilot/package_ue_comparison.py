@@ -11,7 +11,6 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-
 SCENARIOS = ("walk", "run", "crouch")
 FEET = ("foot_l", "ball_l", "foot_r", "ball_r")
 

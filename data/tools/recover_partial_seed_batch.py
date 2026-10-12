@@ -3,8 +3,9 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+
 from motionbricks.data.motion_catalog import MotionCatalog
-from motionbricks.data.unreal_dataset import read_json, file_sha256
+from motionbricks.data.unreal_dataset import file_sha256, read_json
 
 
 def main():
@@ -40,7 +41,7 @@ def main():
                 result=catalog.db.execute("UPDATE motions SET state='retargeted_pending_quality',error=NULL,output_path=?,output_sha256=? WHERE id=? AND state='retarget_failed'",(str(output),check['output_sha256'],mid))
                 if result.rowcount!=1:
                     raise ValueError('恢复对象状态变化')
-                catalog.db.execute('INSERT INTO events(motion_id,state,detail) VALUES(?,?,?)',(mid,'retargeted_pending_quality',json.dumps(dict(run=str(run),audit=check,source_sha256=clip['sha256']))))
+                catalog.db.execute('INSERT INTO events(motion_id,state,detail) VALUES(?,?,?)',(mid,'retargeted_pending_quality',json.dumps({'run': str(run),'audit': check,'source_sha256': clip['sha256']})))
             for item in batch['skipped_clips']:
                 if '250000' not in item['error']:
                     raise ValueError('未支持的跳过原因')

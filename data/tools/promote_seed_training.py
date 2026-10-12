@@ -2,8 +2,10 @@
 import argparse
 import json
 from pathlib import Path
+
+from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
+
 from data.tools.close_seed_batch import write_json
-from motionbricks.data.unreal_dataset import UnrealMotionDataset,file_sha256
 
 
 def promote(plan_path):
@@ -38,7 +40,7 @@ def promote(plan_path):
     manifest['training_snapshot']=str(destination)
     manifest['training_statistics_scope']='batch_only; derive global statistics and splits before cross-batch training'
     write_json(manifest_path,manifest)
-    print(json.dumps(dict(count=plan['count'],training=str(destination))),flush=True)
+    print(json.dumps({'count': plan['count'],'training': str(destination)}),flush=True)
 
 
 if __name__=='__main__':

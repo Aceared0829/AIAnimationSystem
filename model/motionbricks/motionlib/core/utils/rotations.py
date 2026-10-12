@@ -1,4 +1,3 @@
-import einops
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -269,8 +268,7 @@ def exp_map_to_quat(exp_map):
     return q
 
 
-def quat_to_angle_axis(q):
-    # type: (Tensor) -> Tuple[Tensor, Tensor]
+def quat_to_angle_axis(q: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     # computes axis-angle representation from quaternion q
     # q must be normalized
     min_theta = 1e-5
@@ -302,16 +300,14 @@ def quat_to_angle_axis(q):
     return angle, axis
 
 
-def angle_axis_to_exp_map(angle, axis):
-    # type: (Tensor, Tensor) -> Tensor
+def angle_axis_to_exp_map(angle: torch.Tensor, axis: torch.Tensor) -> torch.Tensor:
     # compute exponential map from axis-angle
     angle_expand = angle.unsqueeze(-1)
     exp_map = angle_expand * axis
     return exp_map
 
 
-def quat_to_exp_map(q):
-    # type: (Tensor) -> Tensor
+def quat_to_exp_map(q: torch.Tensor) -> torch.Tensor:
     # compute exponential map from quaternion
     # q must be normalized
     angle, axis = quat_to_angle_axis(q)
@@ -366,28 +362,28 @@ def diff_between_two_angles(b, a, fps: float):
 # Numpy-backed utils
 
 
-def diff_angles_np(angles: np.array, fps: float) -> np.array:
-    angles = torch.from_numpy(angles)
-    return diff_angles(angles, fps).numpy()
+def diff_angles_np(angles: np.ndarray, fps: float) -> np.ndarray:
+    angles_tensor = torch.from_numpy(angles)
+    return diff_angles(angles_tensor, fps).numpy()
 
 
-def qmul_np(q: np.array, r: np.array) -> np.array:
-    q = torch.from_numpy(q).contiguous().float()
-    r = torch.from_numpy(r).contiguous().float()
-    return quat_mul(q, r).numpy()
+def qmul_np(q: np.ndarray, r: np.ndarray) -> np.ndarray:
+    q_tensor = torch.from_numpy(q).contiguous().float()
+    r_tensor = torch.from_numpy(r).contiguous().float()
+    return quat_mul(q_tensor, r_tensor).numpy()
 
 
-def qrot_np(q: np.array, v: np.array) -> np.array:
-    q = torch.from_numpy(q).contiguous().float()
-    v = torch.from_numpy(v).contiguous().float()
-    return quat_apply(q, v).numpy()
+def qrot_np(q: np.ndarray, v: np.ndarray) -> np.ndarray:
+    q_tensor = torch.from_numpy(q).contiguous().float()
+    v_tensor = torch.from_numpy(v).contiguous().float()
+    return quat_apply(q_tensor, v_tensor).numpy()
 
 
-def qinv_np(q: np.array) -> np.array:
-    q = torch.from_numpy(q).contiguous().float()
-    return quat_conjugate(q).numpy()
+def qinv_np(q: np.ndarray) -> np.ndarray:
+    q_tensor = torch.from_numpy(q).contiguous().float()
+    return quat_conjugate(q_tensor).numpy()
 
 
-def quaternion_to_cont6d_np(q: np.array) -> np.array:
-    q = torch.from_numpy(q).contiguous().float()
-    return quaternion_to_cont6d(q).numpy()
+def quaternion_to_cont6d_np(q: np.ndarray) -> np.ndarray:
+    q_tensor = torch.from_numpy(q).contiguous().float()
+    return quaternion_to_cont6d(q_tensor).numpy()

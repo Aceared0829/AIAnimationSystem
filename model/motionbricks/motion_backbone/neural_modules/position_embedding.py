@@ -1,6 +1,7 @@
+import math
+
 import torch
 from torch import nn
-import math
 
 
 def PE1d_sincos(seq_length, dim):
@@ -11,11 +12,11 @@ def PE1d_sincos(seq_length, dim):
     """
     if dim % 2 != 0:
         raise ValueError("Cannot use sin/cos positional encoding with "
-                         "odd dim (got dim={:d})".format(dim))
+                         f"odd dim (got dim={dim:d})")
     pe = torch.zeros(seq_length, dim)
     position = torch.arange(0, seq_length).unsqueeze(1)
-    div_term = torch.exp((torch.arange(0, dim, 2, dtype=torch.float) *
-                         -(math.log(10000.0) / dim)))
+    div_term = torch.exp(torch.arange(0, dim, 2, dtype=torch.float) *
+                         -(math.log(10000.0) / dim))
     pe[:, 0::2] = torch.sin(position.float() * div_term)
     pe[:, 1::2] = torch.cos(position.float() * div_term)
 

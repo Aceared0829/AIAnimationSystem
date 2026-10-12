@@ -8,9 +8,11 @@ import subprocess
 import sys
 import uuid
 from pathlib import Path
+
 from motionbricks.data.motion_catalog import MotionCatalog
 from motionbricks.data.unreal_dataset import read_json
 from motionbricks.repository import unreal_scripts
+
 from data.tools.audit_ue_batch import audit
 from data.tools.check_seed_sources import header
 from data.tools.motion_batch_gate import batch_capacity, pending_count
@@ -18,7 +20,7 @@ from data.tools.motion_batch_gate import batch_capacity, pending_count
 
 def execute(command, log, env=None):
     with log.open('w',encoding='utf-8') as stream:
-        result = subprocess.run(command,stdout=stream,stderr=subprocess.STDOUT,env=env,timeout=1800,creationflags=subprocess.CREATE_NO_WINDOW)
+        result = subprocess.run(command,stdout=stream,stderr=subprocess.STDOUT,env=env,timeout=1800,creationflags=subprocess.CREATE_NO_WINDOW, check=False)
     if result.returncode:
         raise RuntimeError(f'进程退出码 {result.returncode}，日志：{log}')
     content = log.read_text(encoding='utf-8',errors='replace')
@@ -33,9 +35,15 @@ def main():
     parser.add_argument('--project',default='D:/GameAnimationSample/GameAnimationSample.uproject')
     parser.add_argument('--engine',default='D:/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe')
     parser.add_argument('--max-batches',type=int,default=1)
+    parser.add_argument('--max-frames-per-clip',type=int,default=6000,help='完整动作帧数预算，默认 6000；配合 1000000 骨骼采样预算，不自动分段')
+    parser.add_argument('--batch-size',type=int,default=32,help='每个 UE 微批处理的动作数，默认 32；受总帧数上限约束')
     args=parser.parse_args()
     if args.max_batches<1:
         parser.error('--max-batches 必须大于 0')
+    if not 2<=args.max_frames_per_clip<=12000:
+        parser.error('--max-frames-per-clip 必须在 2 到 12000 之间')
+    if not 1<=args.batch_size<=32:
+        parser.error('--batch-size 必须在 1 到 32 之间')
     catalog=MotionCatalog(args.library)
     lock=(catalog.folder/'work/queue.lock').open('a+b')
     lock.seek(0)
@@ -51,7 +59,7 @@ def main():
         for _ in range(args.max_batches):
             if (catalog.folder/'work/STOP').exists():
                 break
-            capacity=batch_capacity(pending_count(catalog.db))
+            capacity=min(args.batch_size,max(0,500-pending_count(catalog.db)))
             if not capacity:
                 (catalog.folder/'work/STOP').write_text('review_required: 500 pending motions; review, publish and verify cleanup before resuming',encoding='utf-8')
                 break
@@ -68,8 +76,8 @@ def main():
             for motion_id,metadata in candidates:
                 row=json.loads(metadata)
                 count=int(row['move_duration_frames'])
-                # UE 导出器当前限制 250000 个骨骼帧，81 骨骼时保守限制为 3000 帧。
-                if count>3000:
+                # 显式提高完整动作导出预算；超预算保留原动作，不隐式切片或截断。
+                if count>args.max_frames_per_clip:
                     with catalog.db:
                         catalog.db.execute("UPDATE motions SET state='needs_segmentation' WHERE id=?",(motion_id,))
                     continue
@@ -104,7 +112,9 @@ def main():
                 request=read_json(run/'soma_batch_request.json')
                 env=dict(os.environ,MOTION_PIPELINE_WORK_ROOT=str(run),MOTION_PIPELINE_TARGET_REVISION='TargetQueue')
                 env.pop('MOTION_PIPELINE_REUSE_SOURCE',None)
-                base=[args.engine,args.project,'-EnablePlugins=USDImporter','-unattended','-nop4','-NullRHI','-ZenDataPath='+str(catalog.folder/'work/zen')]
+                base=[args.engine,args.project,'-EnablePlugins=USDImporter','-DisablePlugins=MotionWeaverCMCPreview,AIAnimation','-unattended','-nop4','-NullRHI','-AILocomotionMaxBoneSamples=1000000',
+                      '-ini:Editor:[/Script/AILocomotionDatasetEditor.AILocomotionDatasetSettings]:MaxFramesPerClip='+str(args.max_frames_per_clip),
+                      '-ZenDataPath='+str(catalog.folder/'work/zen')]
                 execute(base+['-run=pythonscript','-script='+str(unreal_scripts()/'retarget_soma_batch.py')],run/'retarget.log',env)
                 report=read_json(run/'soma_batch_retarget_report.json')
                 if len(report)!=len(rows):
@@ -129,9 +139,9 @@ def main():
                         motion_id=next(mid for mid,row in rows if row['filename']==clip['name'])
                         output=run/'export_audit'/f'clip_{index:05d}.npz'
                         catalog.db.execute("UPDATE motions SET state='retargeted_pending_quality',output_path=?,output_sha256=? WHERE id=?",(str(output),item['output_sha256'],motion_id))
-                        catalog.db.execute('INSERT INTO events(motion_id,state,detail) VALUES(?,?,?)',(motion_id,'retargeted_pending_quality',json.dumps(dict(run=str(run),source_sha256=clip['sha256'],audit=item))))
-                (run/'receipt.json').write_text(json.dumps(dict(count=len(rows),stage='retargeted_pending_quality',training_ready=False,source_deleted=False)),encoding='utf-8')
-                print(json.dumps(dict(run=str(run),count=len(rows),states=catalog.status())),flush=True)
+                        catalog.db.execute('INSERT INTO events(motion_id,state,detail) VALUES(?,?,?)',(motion_id,'retargeted_pending_quality',json.dumps({'run': str(run),'source_sha256': clip['sha256'],'audit': item})))
+                (run/'receipt.json').write_text(json.dumps({'count': len(rows),'stage': 'retargeted_pending_quality','training_ready': False,'source_deleted': False}),encoding='utf-8')
+                print(json.dumps({'run': str(run),'count': len(rows),'states': catalog.status()}),flush=True)
                 if not batch_capacity(pending_count(catalog.db)):
                     (catalog.folder/'work/STOP').write_text('review_required: 500 pending motions; review, publish and verify cleanup before resuming',encoding='utf-8')
                     break

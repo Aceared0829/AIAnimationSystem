@@ -9,7 +9,6 @@ from pathlib import Path
 
 import numpy as np
 
-
 ROOT = Path(__file__).resolve().parents[4]
 FREEZE = Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924")
 CONTRACT_PATH = FREEZE / "contract/contract.json"
@@ -145,7 +144,7 @@ def main():
             "split": clip["split"],
             "raw_sha256": clip["raw_sha256"],
             "frames": clip["source_frames"],
-            "root_position_unique_count": int(len(np.unique(raw["root_track"][:, :3], axis=0))),
+            "root_position_unique_count": len(np.unique(raw["root_track"][:, :3], axis=0)),
             "pelvis_height_change_cm": round(change * 100, 6),
             "pelvis_height_phase_10_to_90_frames_inclusive": [phase_10, phase_90],
             "window_count": len(starts),

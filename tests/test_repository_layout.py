@@ -7,7 +7,6 @@ import unittest
 from pathlib import Path
 
 import torch
-
 from test_unreal_dataset import pose_only_fixture, prepare_function
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +30,7 @@ from motionbricks.repository import base_weights
 assert (base_weights() / 'motionbricks_vqvae/version_1/hparams.yaml').is_file()
 '''
         with tempfile.TemporaryDirectory() as cwd:
-            result = subprocess.run([sys.executable, '-c', code], cwd=cwd, capture_output=True, text=True, timeout=90)
+            result = subprocess.run([sys.executable, '-c', code], cwd=cwd, capture_output=True, text=True, timeout=90, check=False)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_legacy_checkpoint_class_alias(self):
@@ -47,10 +46,13 @@ assert (base_weights() / 'motionbricks_vqvae/version_1/hparams.yaml').is_file()
         self._train_export_roundtrip('gpu')
 
     def _train_export_roundtrip(self, accelerator):
-        from inference.runtime.checkpoint import load_vqvae
-        from inference.export.export_unreal_inference import export, load_package
         from motionbricks.data.unreal_dataset import UnrealMotionDataset
-        from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+        from motionbricks.helper.data_training_util import (
+            extract_feature_from_motion_rep,
+        )
+
+        from inference.export.export_unreal_inference import export, load_package
+        from inference.runtime.checkpoint import load_vqvae
 
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
@@ -63,7 +65,7 @@ assert (base_weights() / 'motionbricks_vqvae/version_1/hparams.yaml').is_file()
             result = subprocess.run([sys.executable, str(ROOT / 'training/pretrain/train_unreal.py'),
                                      '--model', 'vqvae', '--dataset', str(dataset_folder), '--output', str(folder / 'run'),
                                      '--max_steps', '1', '--batch_size', '1', '--accelerator', accelerator, '--tiny'],
-                                    cwd=folder, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120)
+                                    cwd=folder, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120, check=False)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             checkpoint = folder / 'run/checkpoints/final.ckpt'
             net, rep, contract = load_vqvae(checkpoint)
@@ -95,7 +97,7 @@ assert (base_weights() / 'motionbricks_vqvae/version_1/hparams.yaml').is_file()
                 result = subprocess.run([sys.executable, str(ROOT / 'inference/profiling/profile_unreal_inference.py'),
                                          '--packages', str(folder / 'package'), str(folder / 'decoder'),
                                          '--motion', str(motion_path), '--output', str(folder / 'profile.json')],
-                                        cwd=folder, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120)
+                                        cwd=folder, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120, check=False)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 profile = json.loads((folder / 'profile.json').read_text(encoding='utf-8'))
                 self.assertEqual(len(profile['results']), 2)

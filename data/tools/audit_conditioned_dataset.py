@@ -9,12 +9,15 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
+from motionbricks.data.unreal_dataset import (
+    UnrealSkeleton,
+    contained_file,
+    read_json,
+    world_foot_contacts,
+)
 from scipy.spatial.transform import Rotation
 
 from data.runtime.conditioned_motion import CONTRACT_ID, load_raw
-from motionbricks.data.unreal_dataset import (UnrealSkeleton, contained_file,
-                                               read_json, world_foot_contacts)
-
 
 FOOT_ROLES = ("left_foot", "left_toe", "right_foot", "right_toe")
 METRIC_FIELDS = ("root_speed_max_mps", "root_horizontal_speed_max_mps",
@@ -87,7 +90,10 @@ def measure_clip(raw, stored_contact_bits, skeleton, parents, foot_indices, fps)
     max_orthogonality_error = float(np.max(np.abs(orthogonality - identity)))
     max_determinant_error = float(np.max(np.abs(np.linalg.det(matrices) - 1)))
 
-    actual_contacts = world_foot_contacts(positions, root, skeleton, fps).numpy() > 0.5
+    contact_tensor = world_foot_contacts(positions, root, skeleton, fps)
+    if contact_tensor is None:
+        raise ValueError("A root track is required to audit contacts")
+    actual_contacts = contact_tensor.numpy() > 0.5
     stored_contacts = _stored_contacts(stored_contact_bits, frames)
     contact_mismatch = int(np.count_nonzero(actual_contacts != stored_contacts))
     contact_pairs = actual_contacts[1:] & actual_contacts[:-1]

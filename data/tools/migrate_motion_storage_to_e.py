@@ -54,11 +54,11 @@ def inventory(root):
                 raise ValueError(f"来源含链接，拒绝遗漏链接内容：{path}")
             stat = path.stat()
             files.append(
-                dict(
-                    relative=str(path.relative_to(root)),
-                    bytes=stat.st_size,
-                    sha256=sha256(path),
-                )
+                {
+                    "relative": str(path.relative_to(root)),
+                    "bytes": stat.st_size,
+                    "sha256": sha256(path),
+                }
             )
     return files
 
@@ -136,7 +136,7 @@ def robocopy(source, destination, log):
         "/NP",
         "/LOG:" + str(log),
     ]
-    result = subprocess.run(command, creationflags=subprocess.CREATE_NO_WINDOW)
+    result = subprocess.run(command, creationflags=subprocess.CREATE_NO_WINDOW, check=False)
     if result.returncode >= 8:
         raise RuntimeError(f"Robocopy 失败({result.returncode})：{log}")
     return result.returncode
@@ -164,7 +164,7 @@ def remove_verified_source(job, files):
         files, key=lambda item: item["relative"]
     ):
         raise RuntimeError(f"来源在复制后发生变化，拒绝删除：{job.source}")
-    validate_plan([job], [dict(files=files)])
+    validate_plan([job], [{"files": files}])
     verify(job.destination, files)
     for item in files:
         (job.source / item["relative"]).unlink()
@@ -176,9 +176,8 @@ def write_report(path, report):
         if (parent.exists() or parent.is_symlink()) and is_reparse(parent):
             raise ValueError(f"报告目录含链接：{parent}")
     temporary = path.with_suffix(".tmp")
-    if temporary.exists() or temporary.is_symlink():
-        if is_reparse(temporary):
-            raise ValueError(f"报告临时文件是链接：{temporary}")
+    if (temporary.exists() or temporary.is_symlink()) and is_reparse(temporary):
+        raise ValueError(f"报告临时文件是链接：{temporary}")
     temporary.write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
     )
@@ -194,7 +193,7 @@ def create_junction(link, target):
         capture_output=True,
         text=True,
         creationflags=subprocess.CREATE_NO_WINDOW,
-    )
+    check=False)
     if result.returncode:
         raise RuntimeError(f"创建兼容 Junction 失败：{result.stdout}{result.stderr}")
     if link.resolve() != target.resolve():
@@ -248,37 +247,37 @@ def main():
     for job in jobs:
         files = inventory(job.source)
         plan.append(
-            dict(
-                name=job.name,
-                source=str(job.source),
-                destination=str(job.destination),
-                files=files,
-                file_count=len(files),
-                bytes=sum(item["bytes"] for item in files),
-                recreate_link=job.recreate_link,
-            )
+            {
+                "name": job.name,
+                "source": str(job.source),
+                "destination": str(job.destination),
+                "files": files,
+                "file_count": len(files),
+                "bytes": sum(item["bytes"] for item in files),
+                "recreate_link": job.recreate_link,
+            }
         )
     validate_plan(jobs, plan)
-    report = dict(
-        schema_version=2,
-        created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        target_root=str(target_root),
-        jobs=plan,
-    )
+    report = {
+        "schema_version": 2,
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "target_root": str(target_root),
+        "jobs": plan,
+    }
     report_path = (
         target_root / "migration" / "ai_animation_system_storage_migration.json"
     )
     report_path.parent.mkdir(parents=True, exist_ok=True)
     write_report(report_path, report)
-    summary = dict(
-        report=str(report_path),
-        files=sum(job["file_count"] for job in plan),
-        bytes=sum(job["bytes"] for job in plan),
-        jobs=[
-            dict(name=job["name"], files=job["file_count"], bytes=job["bytes"])
+    summary = {
+        "report": str(report_path),
+        "files": sum(job["file_count"] for job in plan),
+        "bytes": sum(job["bytes"] for job in plan),
+        "jobs": [
+            {"name": job["name"], "files": job["file_count"], "bytes": job["bytes"]}
             for job in plan
         ],
-    )
+    }
     if not args.execute:
         print(json.dumps(summary, ensure_ascii=False))
         return

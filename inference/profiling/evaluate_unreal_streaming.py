@@ -2,9 +2,11 @@
 import argparse
 import json
 from pathlib import Path
+
 import numpy as np
 import onnxruntime as ort
 from scipy.spatial.transform import Rotation
+
 from inference.export.export_unreal_animgraph import pack_raw_pose
 
 
@@ -122,7 +124,10 @@ def evaluate(bundle, dataset, output):
         windows = {}
         for end in range(width - 1, len(packed)):
             sample = np.concatenate([packed[end - width + 1:end + 1], packed[end:end + 1]])[None]
-            prediction = session.run(None, {'pose_history': sample})[0][0]
+            output_pose = session.run(None, {'pose_history': sample})[0]
+            if not isinstance(output_pose, np.ndarray):
+                raise TypeError('ONNX pose output must be a dense array')
+            prediction = output_pose[0]
             windows[end] = localize(prediction, parents)
         variants = {'last_frame': {end: value[-1] for end, value in windows.items()},
                     'overlap4': simulate(source, windows, 4, width), 'overlap8': simulate(source, windows, 8, width)}

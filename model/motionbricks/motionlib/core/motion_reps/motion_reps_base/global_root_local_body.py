@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Literal, overload
 
 import einops
 import numpy as np
@@ -10,20 +10,20 @@ from motionbricks.motionlib.core.utils.rotations import (
 )
 from motionbricks.motionlib.core.utils.stats import Stats
 
-from .seperate_root_local_body import SeparatedRootLocalBody
+from .seperate_root_local_body import DualRootFactory, SeparatedRootLocalBody
 
 
 class GlobalRootLocalBody(SeparatedRootLocalBody):
     """Representation with global root."""
 
-    dual_class = None
+    dual_class: DualRootFactory | None = None
 
     def __init__(
         self,
         fps: float,
         skeleton: SkeletonBase,
         name: str,
-        stats: Optional[Stats] = None,
+        stats: Stats | None = None,
     ):
         # Subclasses should define
         # get_body_keys_dim
@@ -51,12 +51,27 @@ class GlobalRootLocalBody(SeparatedRootLocalBody):
         self.indices["global_root_pos_2d"] = self.indices["global_root_pos"][[0, 2]]
         self.root_mode = "global"
 
+    @overload
+    def compute_root_pos_and_rot(self, motion: torch.Tensor, return_quat: Literal[True] = True, return_angle: Literal[False] = False) -> tuple[torch.Tensor, torch.Tensor]: ...
+
+    @overload
+    def compute_root_pos_and_rot(self, motion: torch.Tensor, return_quat: Literal[False], return_angle: Literal[True]) -> tuple[torch.Tensor, torch.Tensor]: ...
+
+    @overload
+    def compute_root_pos_and_rot(self, motion: torch.Tensor, return_quat: Literal[True], return_angle: Literal[True]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]: ...
+
+    @overload
+    def compute_root_pos_and_rot(self, motion: torch.Tensor, return_quat: Literal[False], return_angle: Literal[False] = False) -> torch.Tensor: ...
+
+    @overload
+    def compute_root_pos_and_rot(self, motion: torch.Tensor, return_quat: bool = True, return_angle: bool = False) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor] | tuple[torch.Tensor, torch.Tensor, torch.Tensor]: ...
+
     def compute_root_pos_and_rot(
         self,
         motion: torch.Tensor,
         return_quat: bool = True,
         return_angle: bool = False,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ):
         """Compute root position and rotation from the representation.
 
         Args:
@@ -91,20 +106,19 @@ class GlobalRootLocalBody(SeparatedRootLocalBody):
         [r_pos] = einops.unpack(r_pos, ps, "* nbframes xyz")
         [r_rot_quat] = einops.unpack(r_rot_quat, ps, "* nbframes quat")
         [r_rot_ang] = einops.unpack(r_rot_ang, ps, "* nbframes")
-        if return_quat and not return_angle:
+        if return_quat:
+            if return_angle:
+                return r_pos, r_rot_quat, r_rot_ang
             return r_pos, r_rot_quat
-        if not return_quat and return_angle:
+        if return_angle:
             return r_pos, r_rot_ang
-        if return_quat and return_angle:
-            return r_pos, r_rot_quat, r_rot_ang
-        if not return_quat and not return_angle:
-            return r_pos
+        return r_pos
 
     def compute_root_rep_from_root_pos_and_rot(
         self,
         r_pos: torch.Tensor,
         r_rot_quat: torch.Tensor,
-        lengths: Optional[torch.Tensor] = None,
+        lengths: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute root representation from root position and rotation.
 
@@ -124,9 +138,39 @@ class GlobalRootLocalBody(SeparatedRootLocalBody):
                 torch.cos(root_rot_angles)[..., None],
                 torch.sin(root_rot_angles)[..., None],
             ],
-            axis=-1,
+            dim=-1,
         )
         return root_motion
+
+    @overload
+    def change_first_heading(
+        self,
+        motion: torch.Tensor | np.ndarray,
+        first_heading_angle: float | torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: Literal[False] = False,
+    ) -> torch.Tensor: ...
+
+    @overload
+    def change_first_heading(
+        self,
+        motion: torch.Tensor | np.ndarray,
+        first_heading_angle: float | torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        *, return_numpy: Literal[True],
+    ) -> np.ndarray: ...
+
+    @overload
+    def change_first_heading(
+        self,
+        motion: torch.Tensor | np.ndarray,
+        first_heading_angle: float | torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: bool = False,
+    ) -> torch.Tensor | np.ndarray: ...
 
     def change_first_heading(
         self,
@@ -135,7 +179,7 @@ class GlobalRootLocalBody(SeparatedRootLocalBody):
         is_normalized: bool,
         to_normalize: bool,
         return_numpy: bool = False,
-    ) -> torch.Tensor | np.ndarray:
+    ):
         """Canonicalize motion by aligning the first frame to face +Z direction and moving to
         origin.
 

@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Literal, overload
 
 import einops
 import numpy as np
@@ -16,20 +16,20 @@ from motionbricks.motionlib.core.utils.rotations import (
 )
 from motionbricks.motionlib.core.utils.stats import Stats
 
-from .seperate_root_local_body import SeparatedRootLocalBody
+from .seperate_root_local_body import DualRootFactory, SeparatedRootLocalBody
 
 
 class LocalRootLocalBody(SeparatedRootLocalBody):
     """Representation with local root and local body."""
 
-    dual_class = None
+    dual_class: DualRootFactory | None = None
 
     def __init__(
         self,
         fps: float,
         skeleton: SkeletonBase,
         name: str,
-        stats: Optional[Stats] = None,
+        stats: Stats | None = None,
     ):
         # Subclasses should define
         # get_body_keys_dim
@@ -60,7 +60,7 @@ class LocalRootLocalBody(SeparatedRootLocalBody):
 
     def compute_root_pos_and_rot(
         self, motion: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute root position and rotation from a local root representation.
 
         Args:
@@ -120,7 +120,7 @@ class LocalRootLocalBody(SeparatedRootLocalBody):
         self,
         r_pos,
         r_rot_quat,
-        lengths: Optional[torch.Tensor] = None,
+        lengths: torch.Tensor | None = None,
     ):
         """Compute root representation from root position and rotation.
 
@@ -157,18 +157,48 @@ class LocalRootLocalBody(SeparatedRootLocalBody):
                 local_root_vel,
                 global_root_y[..., None],
             ],
-            axis=-1,
+            dim=-1,
         )
         return root_motion
+
+    @overload
+    def change_first_heading(
+        self,
+        motion: torch.Tensor,
+        first_heading_angle: float | torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: Literal[False] = False,
+    ) -> torch.Tensor: ...
+
+    @overload
+    def change_first_heading(
+        self,
+        motion: torch.Tensor,
+        first_heading_angle: float | torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        *, return_numpy: Literal[True],
+    ) -> np.ndarray: ...
+
+    @overload
+    def change_first_heading(
+        self,
+        motion: torch.Tensor,
+        first_heading_angle: float | torch.Tensor,
+        is_normalized: bool,
+        to_normalize: bool,
+        return_numpy: bool = False,
+    ) -> torch.Tensor | np.ndarray: ...
 
     def change_first_heading(
         self,
         motion: torch.Tensor,
-        first_heading_angle: float,
+        first_heading_angle: float | torch.Tensor,
         is_normalized: bool,
         to_normalize: bool,
         return_numpy: bool = False,
-    ) -> torch.Tensor:
+    ):
         if isinstance(motion, np.ndarray):
             motion = torch.from_numpy(motion)
 
@@ -179,8 +209,8 @@ class LocalRootLocalBody(SeparatedRootLocalBody):
         motion, ps = einops.pack([motion], "* nbframes dim")
         root_motion = self.extract_root(motion)
 
-        device = root_motion.device
-        batch, nbframes = root_motion.shape[:2]
+        _device = root_motion.device
+        _batch, _nbframes = root_motion.shape[:2]
 
         root_rot_vel_angles, root_local_vel, root_y_pos = einops.unpack(
             root_motion,
@@ -192,7 +222,9 @@ class LocalRootLocalBody(SeparatedRootLocalBody):
             # need to find the original heading from the body features
             # only done with hips_pos at the moment
             assert self.compute_kwargs["compute_heading_method"] == "hips_pos"
-            from motionbricks.motionlib.core.motion_reps.tools.heading import calc_heading_from_joints_pos
+            from motionbricks.motionlib.core.motion_reps.tools.heading import (
+                calc_heading_from_joints_pos,
+            )
 
             root_idx = self.skeleton.root_idx
 

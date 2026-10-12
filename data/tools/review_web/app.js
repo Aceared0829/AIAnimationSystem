@@ -4,7 +4,10 @@ const camera={yaw:-Math.PI/2,pitch:0.18,distance:340,target:[0,0,95],fov:90,flyS
 let catalog,data,current,filter='all',frame=0,playing=false,loadVersion=0,last=0,hover=null;
 let rmbHeld=false;
 const flyKeys=new Set();
-const translate={possible_ground_penetration:'疑似穿地',bone_length_deviation:'骨长异常',heading_not_validated:'根朝向待人工核对',contacts_not_validated:'脚接触待人工核对',visual_quality_not_validated:'视觉待验收'};
+const clipCache=new Map(),clipRequests=new Map();
+const MAX_PRELOAD_BYTES=512*1024*1024;
+let preloadRunning=false,preloadStop=false,clipCacheBytes=0;
+const translate={needs_segmentation:'片段过长，未执行重定向',needs_skeleton_review:'骨架映射待适配，未执行重定向',needs_secondary_review:'技术检查异常，保留二审',retarget_failed:'重定向失败，保留二审',possible_ground_penetration:'疑似穿地',bone_length_deviation:'骨长异常',heading_not_validated:'根朝向待人工核对',contacts_not_validated:'脚接触待人工核对',visual_quality_not_validated:'视觉待验收'};
 const stateName={approved:'人工通过',rejected:'有问题',unsure:'待定',unreviewed:'未验收'};
 const canvases=[$('source'),$('target')];
 const sub=(a,b)=>a.map((v,i)=>v-b[i]);
@@ -14,9 +17,44 @@ function normal(a){let n=Math.hypot(...a);return a.map(v=>v/n)}
 function reviewPage(){return Number(new URLSearchParams(location.search).get('page')||1)}
 function pageUrl(page){const url=new URL(location.href);url.searchParams.set('page',page);return url}
 async function api(path,options){const url=new URL(path,location.origin);url.searchParams.set('page',reviewPage());const response=await fetch(url,options);const value=await response.json();if(!response.ok)throw Error(value.error||response.status);return value}
+function clipKey(entry){return `${entry.id}|${entry.source_sha256||''}|${entry.output_sha256||''}`}
+async function loadClip(entry,preloading=false){
+ const key=clipKey(entry);
+ if(clipCache.has(key))return clipCache.get(key);
+ if(clipRequests.has(key))return clipRequests.get(key);
+ const request=(async()=>{
+  const clip=await api('/api/clip/'+entry.id);
+  if(entry.source_sha256&&clip.source_sha256!==entry.source_sha256||clip.target&&entry.output_sha256&&clip.output_sha256!==entry.output_sha256)throw Error('动作版本已变化，请刷新名单');
+  let bytes=0;
+  for(const rig of [clip.source,clip.target])if(rig){rig.positions=Float32Array.from(rig.positions);bytes+=rig.positions.byteLength;if(rig.root_positions){rig.root_positions=Float32Array.from(rig.root_positions);bytes+=rig.root_positions.byteLength}}
+  if(clipCacheBytes+bytes<=MAX_PRELOAD_BYTES){clipCache.set(key,clip);clipCacheBytes+=bytes}
+  else if(preloading)throw Error('本页缓存已满，此动作仍可单独加载');
+  return clip;
+ })();
+ clipRequests.set(key,request);
+ try{return await request}finally{clipRequests.delete(key)}
+}
+async function preloadPage(){
+ if(!catalog)return;
+ if(preloadRunning){preloadStop=true;$('preloadClips').textContent='正在停止…';return}
+ const entries=[...catalog.entries];
+ if(entries.length>50){$('preloadStatus').textContent='当前名单超过 50 条，请先分页';return}
+ preloadRunning=true;preloadStop=false;
+ let cursor=0,completed=0,failed=0;
+ const report=()=>{$('preloadStatus').textContent=`已加载 ${completed} / ${entries.length}${failed?` · 失败 ${failed} 条，可重试`:''}`};
+ $('preloadClips').textContent='停止加载';report();
+ async function worker(){
+  while(!preloadStop&&cursor<entries.length){const entry=entries[cursor++];try{await loadClip(entry,true);completed++}catch(error){failed++;$('preloadStatus').title=error.message}report()}
+ }
+ try{await Promise.all([worker(),worker()])}finally{
+  preloadRunning=false;$('preloadClips').textContent=failed||preloadStop?'继续加载本页':'一键加载本页';
+  $('preloadStatus').textContent+=preloadStop?' · 已停止':!failed?' · 切换时直接使用缓存':'';
+ }
+}
+$('preloadClips').onclick=preloadPage;
 function visible(){return catalog.entries.filter(e=>(filter==='all'||e.group===filter)&&e.name.toLowerCase().includes($('search').value.toLowerCase()))}
 function list(){const holder=$('list');holder.replaceChildren();for(const entry of visible()){const button=document.createElement('button');button.className='item'+(entry.id===current?.id?' active':'');const title=document.createElement('strong');title.textContent=entry.name;const meta=document.createElement('small');meta.className=entry.group==='issue'?'issue':'';meta.textContent=(entry.group==='issue'?'● 疑似问题':catalog.prepared_mode?'◇ 分类抽样':'◇ 固定 5% 抽样')+' · '+(stateName[catalog.decisions[entry.id]?.status]||'未验收');button.append(title,meta);button.onclick=()=>select(entry);holder.append(button)}$('progress').textContent=`已标记 ${Object.values(catalog.decisions).filter(d=>d.status!=='unreviewed').length} / ${catalog.entries.length} · 记录保存在本机`}
-async function select(entry){if(current&&$('note').value!==(catalog.decisions[current.id]?.note||'')&&!confirm('当前备注尚未保存，仍要切换吗？'))return;const version=++loadVersion;current=entry;data=null;playing=false;frame=0;hover=null;$('play').textContent='▶ 播放';$('loading').classList.remove('error');$('loading').style.display='grid';$('loading').textContent='校验来源哈希并加载真实动作…';$('name').textContent=entry.name;$('description').textContent=entry.reason||'';$('group').textContent=catalog.prepared_mode?'prepared 数据 · 人工复核':catalog.exception_mode?'异常分流 · 人工筛选':'疑似问题 · 全部人工复核';$('note').value=catalog.decisions[entry.id]?.note||'';$('saved').textContent=stateName[catalog.decisions[entry.id]?.status]||'未验收';$('flags').replaceChildren();for(const flag of [...entry.flags,...entry.integrity_errors]){const tag=document.createElement('span');tag.className='tag warn';tag.textContent=translate[flag]||flag;$('flags').append(tag)}if(!entry.flags.length&&!entry.integrity_errors.length){const tag=document.createElement('span');tag.className='tag';tag.textContent='基础完整性 / 几何初筛未发现问题';$('flags').append(tag)}list();try{const loaded=await api('/api/clip/'+entry.id);if(version!==loadVersion)return;data=loaded;for(const rig of [data.source,data.target])if(rig){rig.positions=Float32Array.from(rig.positions);if(rig.root_positions)rig.root_positions=Float32Array.from(rig.root_positions)}$('timeline').max=data.frames-1;$('timeline').value=0;$('sourceCount').textContent=data.source.names.length+' 骨骼';$('targetCount').textContent=data.target?data.target.names.length+' 骨骼':'未生成';$('description').textContent=`${data.package} / ${data.description}${data.review_note?' · '+data.review_note:''}`;$('loading').style.display='none';fitView();updateTime()}catch(error){if(version===loadVersion){$('loading').textContent='无法加载：'+error.message;$('loading').classList.add('error')}}}
+async function select(entry){if(current&&$('note').value!==(catalog.decisions[current.id]?.note||'')&&!confirm('当前备注尚未保存，仍要切换吗？'))return;const version=++loadVersion;current=entry;data=null;playing=false;frame=0;hover=null;$('play').textContent='▶ 播放';$('loading').classList.remove('error');$('loading').style.display='grid';$('loading').textContent='校验来源哈希并加载真实动作…';$('name').textContent=entry.name;$('description').textContent=entry.reason||'';$('group').textContent=catalog.prepared_mode?'prepared 数据 · 人工复核':catalog.exception_mode?'异常分流 · 人工筛选':'疑似问题 · 全部人工复核';$('note').value=catalog.decisions[entry.id]?.note||'';$('saved').textContent=stateName[catalog.decisions[entry.id]?.status]||'未验收';$('flags').replaceChildren();for(const flag of [...entry.flags,...entry.integrity_errors]){const tag=document.createElement('span');tag.className='tag warn';tag.textContent=translate[flag]||flag;$('flags').append(tag)}if(!entry.flags.length&&!entry.integrity_errors.length){const tag=document.createElement('span');tag.className='tag';tag.textContent='基础完整性 / 几何初筛未发现问题';$('flags').append(tag)}list();try{const loaded=await loadClip(entry);if(version!==loadVersion)return;data=loaded;$('timeline').max=data.frames-1;$('timeline').value=0;$('sourceCount').textContent=data.source.names.length+' 骨骼';$('targetCount').textContent=data.target?data.target.names.length+' 骨骼':'未生成';document.querySelector('.view-mode-label').textContent=data.target?'导出 Root 坐标 · 查看位移':'源动作 Root 坐标 · 查看位移';$('description').textContent=`${data.package} / ${data.description}${data.review_note?' · '+data.review_note:''}`;$('loading').style.display='none';fitView();updateTime()}catch(error){if(version===loadVersion){$('loading').textContent='无法加载：'+error.message;$('loading').classList.add('error')}}}
 function position(rig,f,i){let o=(f*rig.names.length+i)*3;return [rig.positions[o],rig.positions[o+1],rig.positions[o+2]]}
 function rootPosition(rig,f){if(rig.root_positions){const o=f*3;return [rig.root_positions[o],rig.root_positions[o+1],rig.root_positions[o+2]]}return position(rig,f,rig.pelvis)}
 // 始终使用动画导出坐标，保留 Root 的 XYZ 位移与高度。
@@ -86,12 +124,12 @@ for(let n=-half;n<=half;n+=step){
  line(planePoint(center[0]-half,center[1]+n),planePoint(center[0]+half,center[1]+n),'#223142');
 }
 line([0,0,0],[50,0,0],'#e98987',2);line([0,0,0],[0,50,0],'#85c292',2);line([0,0,0],[0,0,50],'#86aaf3',2);
-ctx.font='10px Segoe UI';ctx.fillStyle='#697e98';ctx.fillText(`网格 ${step} cm · ${gridAxes.map(i=>'XYZ'[i]).join('')} 平面 · Z ↑`,15,h-15);if(!rig)return;
+ctx.font='10px Segoe UI';ctx.fillStyle='#697e98';ctx.fillText(`网格 ${step} cm · ${gridAxes.map(i=>'XYZ'[i]).join('')} 平面 · Z ↑`,15,h-15);if(!rig){if(canvas===canvases[1]&&current){ctx.textAlign='center';ctx.font='18px Segoe UI';ctx.fillStyle='#f1b865';ctx.fillText('尚未生成 UE 重定向输出',w/2,h/2);ctx.font='13px Segoe UI';ctx.fillStyle='#9babc0';ctx.fillText(current.state==='needs_segmentation'?'片段超过当前帧数上限，需先分段':current.state==='needs_skeleton_review'?'源骨架尚未适配已验证映射':'没有可验证的输出；源数据保留',w/2,h/2+28);ctx.textAlign='start'}return;}
 const f=Math.max(0,Math.min(data.frames-1,Math.floor(frame))),offset=origin(rig,f),points=rig.names.map((_,i)=>sub(position(rig,f,i),offset));
 if($('trail').checked){let previous;for(let k=0;k<data.frames;k+=Math.max(1,Math.floor(data.frames/300))){const p=sub(rootPosition(rig,k),offset);if(previous)line(previous,p,color+'99',1.5);previous=p}line(previous,sub(rootPosition(rig,data.frames-1),offset),color+'99',1.5);for(const [sample,shade,label] of [[0,'#6dafff','起点'],[data.frames-1,'#f7b267','终点']]){const p=project(sub(rootPosition(rig,sample),offset));if(p){ctx.beginPath();ctx.arc(p[0],p[1],4,0,2*Math.PI);ctx.fillStyle=shade;ctx.fill();ctx.font='10px Segoe UI';ctx.fillText(label,p[0]+6,p[1]-6)}}}
 const edges=[];for(let i=0;i<points.length;i++){let parent=rig.parents[i];if(parent<0)continue;const a=project(points[parent]),b=project(points[i]);if(a&&b)edges.push({i,a,b,z:(a[2]+b[2])/2})}edges.sort((a,b)=>b.z-a.z);for(const e of edges){ctx.beginPath();ctx.moveTo(e.a[0],e.a[1]);ctx.lineTo(e.b[0],e.b[1]);ctx.strokeStyle=color;ctx.lineWidth=/Hand|index|middle|ring|pinky|thumb|twist/i.test(rig.names[e.i])?1.2:2.5;ctx.stroke()}
 let nearest=null;for(let i=0;i<points.length;i++){const p=project(points[i]);if(!p)continue;ctx.beginPath();ctx.arc(p[0],p[1],i===rig.pelvis?4:2,0,2*Math.PI);ctx.fillStyle=i===rig.pelvis?'#ffffff':color;ctx.fill();if($('names').checked){ctx.fillStyle='#b1c3d7';ctx.font='8px Segoe UI';ctx.fillText(rig.names[i],p[0]+4,p[1]-3)}if(hover?.canvas===canvas){const dist=Math.hypot(p[0]-hover.x,p[1]-hover.y);if(dist<15&&(!nearest||dist<nearest.dist))nearest={p,dist,i}}}const root=project(sub(rootPosition(rig,f),offset));if(root){ctx.beginPath();ctx.arc(root[0],root[1],5,0,2*Math.PI);ctx.fillStyle='#ff8b69';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke()}if(nearest){ctx.font='12px Segoe UI';const text=rig.names[nearest.i];ctx.fillStyle='#070c12e8';ctx.fillRect(nearest.p[0]+8,nearest.p[1]-24,ctx.measureText(text).width+16,24);ctx.fillStyle='#fff';ctx.fillText(text,nearest.p[0]+16,nearest.p[1]-8)}}
-function updateTime(){if(!data)return;const f=Math.floor(frame);$('timeline').value=f;$('time').textContent=`${f+1} / ${data.frames} · ${(f/data.fps).toFixed(2)}s`;const rig=data.target||data.source,root=rootPosition(rig,f),first=rootPosition(rig,0),delta=sub(root,first),kind=!rig.root_positions?'骨盆参考':catalog?.exception_mode?'源动作 Root（UE 轴）':'导出 Root';$('rootLocation').textContent=`${kind} (cm) X ${root[0].toFixed(1)} · Y ${root[1].toFixed(1)} · Z ${root[2].toFixed(1)} | ΔX ${delta[0].toFixed(1)} · ΔY ${delta[1].toFixed(1)} · ΔZ ${delta[2].toFixed(1)}`}
+function updateTime(){if(!data)return;const f=Math.floor(frame);$('timeline').value=f;$('time').textContent=`${f+1} / ${data.frames} · ${(f/data.fps).toFixed(2)}s`;const rig=data.target||data.source,root=rootPosition(rig,f),first=rootPosition(rig,0),delta=sub(root,first),kind=!rig.root_positions?'骨盆参考':catalog?.exception_mode&&!data.target?'源动作 Root（UE 轴）':'导出 Root';$('rootLocation').textContent=`${kind} (cm) X ${root[0].toFixed(1)} · Y ${root[1].toFixed(1)} · Z ${root[2].toFixed(1)} | ΔX ${delta[0].toFixed(1)} · ΔY ${delta[1].toFixed(1)} · ΔZ ${delta[2].toFixed(1)}`}
 function tick(now){
  const dt=Math.min(.05,Math.max(0,(now-last)/1000));
  if(rmbHeld&&$('view').value==='perspective'&&flyKeys.size){

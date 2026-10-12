@@ -2,8 +2,10 @@
 import argparse
 import json
 from pathlib import Path
-from data.tools.close_seed_batch import write_json
+
 from motionbricks.data.unreal_dataset import file_sha256
+
+from data.tools.close_seed_batch import write_json
 
 
 def extend(plan_path):
@@ -29,12 +31,12 @@ def extend(plan_path):
             if asset not in expected:continue
             digest=file_sha256(path)
             if digest!=expected[asset]:continue
-            matched.append(dict(path=str(path),sha256=digest,bytes=path.stat().st_size,kind='ue_export',asset=asset))
+            matched.append({'path': str(path),'sha256': digest,'bytes': path.stat().st_size,'kind': 'ue_export','asset': asset})
         for entry in matched:existing[entry['path']]=entry
     plan['cleanup']=list(existing.values())
     plan['cleanup_bytes']=sum(e['bytes'] for e in existing.values())
     write_json(plan_path,plan)
-    print(json.dumps(dict(files=len(existing),gib=plan['cleanup_bytes']/1024**3)))
+    print(json.dumps({'files': len(existing),'gib': plan['cleanup_bytes']/1024**3}))
 
 
 if __name__=='__main__':

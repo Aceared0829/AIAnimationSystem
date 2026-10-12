@@ -5,12 +5,13 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-import numpy as np
-
 from data.runtime.conditioned_motion import load_window, with_references
 from inference.runtime.conditioned_pose import ConditionedPosePredictor
-from training.evaluation.evaluate_conditioned_baselines import aggregate, score, select_windows
-
+from training.evaluation.evaluate_conditioned_baselines import (
+    aggregate,
+    score,
+    select_windows,
+)
 
 SCENARIOS = {"no_refs": (), "one_middle": (12,), "one_end": (23,),
              "two_refs": (12, 23), "off_grid": (5, 18)}

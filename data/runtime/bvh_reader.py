@@ -1,7 +1,8 @@
 """逐片段读取 BVH，严格检查通道和帧数，并计算组件空间 FK。"""
+import re
 from dataclasses import dataclass
 from pathlib import Path
-import re
+
 import numpy as np
 from scipy.spatial.transform import Rotation
 
@@ -93,7 +94,7 @@ def read_bvh(path):
     joint(next(tokens), -1)
     if list(tokens):
         raise ValueError('骨架存在未解析内容')
-    match = re.fullmatch(r'\s*Frames:\s*(\d+)\s*Frame Time:\s*([\d.eE+-]+)\s*(.*)', motion, re.S)
+    match = re.fullmatch(r'\s*Frames:\s*(\d+)\s*Frame Time:\s*([\d.eE+-]+)\s*(.*)', motion, re.DOTALL)
     if not match:
         raise ValueError('无效 MOTION 头')
     count, frame_time = int(match[1]), float(match[2])

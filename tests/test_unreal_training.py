@@ -3,17 +3,16 @@
 import csv
 import importlib.util
 import json
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import create_autospec, patch
 
 import numpy as np
 import torch
-
 from test_unreal_dataset import fixture, pose_only_fixture, prepare_function
 
 
@@ -21,7 +20,7 @@ class UnrealTrainingTests(unittest.TestCase):
     def test_negative_endpoint_weight_is_rejected(self):
         script = Path(__file__).resolve().parents[1] / "training/pretrain/train_unreal.py"
         result = subprocess.run([sys.executable, str(script), "--model", "vqvae", "--dataset", "unused", "--output", "unused",
-                                 "--hand_endpoint_coeff", "-0.1"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+                                 "--hand_endpoint_coeff", "-0.1"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, check=False)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("ValueError", result.stderr)
 
@@ -35,15 +34,19 @@ class UnrealTrainingTests(unittest.TestCase):
             (source / "clip.json").write_text(json.dumps(pose_only_fixture()), encoding="utf-8")
             dataset = folder / "data"
             prepare_function()(source, dataset)
-            result = subprocess.run([sys.executable, str(script), "--model", "root", "--dataset", str(dataset), "--output", str(folder / "root"), "--max_steps", "1", "--tiny"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+            result = subprocess.run([sys.executable, str(script), "--model", "root", "--dataset", str(dataset), "--output", str(folder / "root"), "--max_steps", "1", "--tiny"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Root", result.stderr)
 
     def test_pose_low_focus_probability_has_finite_loss(self):
         from motionbricks.motion_backbone.models.pose_model import MotionModel
+        from motionbricks.motion_backbone.neural_modules.pose_backbone import pose_backbone_network
 
-        model = SimpleNamespace(backbone_net=SimpleNamespace(get_num_heads=lambda: (2, 0)),
-                                _args={"incorrect_token_ratio_min": 0.0, "incorrect_token_ratio_max": 1.0, "masked_token_ratio": 0.8})
+        model = MotionModel.__new__(MotionModel)
+        torch.nn.Module.__init__(model)
+        model.backbone_net = create_autospec(pose_backbone_network, instance=True)
+        model.backbone_net.get_num_heads.return_value = (2, 0)
+        model._args = {"incorrect_token_ratio_min": 0.0, "incorrect_token_ratio_max": 1.0, "masked_token_ratio": 0.8}
         tokens = torch.zeros(1, 6, 2, dtype=torch.long)
         # 合法的极低采样概率原先会使所有监督目标都被忽略。
         with patch("torch.cos", return_value=torch.full((1, 1), 0.001)):
@@ -54,6 +57,7 @@ class UnrealTrainingTests(unittest.TestCase):
         loss = MotionModel.loss(model, {"groundtruth_pose_tokens": tokens, "focused_token_mask": focused}, {"pose_logits": logits})["loss"]
         self.assertTrue(torch.isfinite(loss))
         loss.backward()
+        assert logits.grad is not None
         self.assertTrue(torch.isfinite(logits.grad).all())
         self.assertGreater(logits.grad.abs().sum().item(), 0)
 
@@ -62,6 +66,7 @@ class UnrealTrainingTests(unittest.TestCase):
 
         script = Path(__file__).resolve().parents[1] / "training/pretrain/train_unreal.py"
         spec = importlib.util.spec_from_file_location("train_unreal", script)
+        assert spec is not None and spec.loader is not None
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         parameter = torch.nn.Parameter(torch.tensor(1.0))
@@ -96,7 +101,7 @@ class UnrealTrainingTests(unittest.TestCase):
                            "--max_steps", "1", "--batch_size", "1", "--accelerator", "cpu", "--tiny"]
                 if kind == "pose":
                     command += ["--vqvae", str(checkpoints["vqvae"])]
-                result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+                result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, check=False)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 path = output / "checkpoints" / "final.ckpt"
                 checkpoint = torch.load(path, weights_only=False, map_location="cpu")
@@ -113,21 +118,21 @@ class UnrealTrainingTests(unittest.TestCase):
                            "--resume", str(checkpoints[kind]), "--max_steps", "2", "--batch_size", "1", "--accelerator", "cpu"]
                 if kind == "pose":
                     command += ["--vqvae", str(checkpoints["vqvae"])]
-                result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+                result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, check=False)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 checkpoint = torch.load(checkpoints[kind], weights_only=False, map_location="cpu")
                 self.assertEqual(checkpoint["global_step"], 2)
                 self.assertEqual(checkpoint["lr_schedulers"][0]["num_training_steps"], 2)
             resumed = subprocess.run([sys.executable, str(script), "--model", "vqvae", "--dataset", str(dataset), "--output", str(folder / "vqvae"),
                                       "--resume", str(checkpoints["vqvae"]), "--max_steps", "2", "--batch_size", "1", "--accelerator", "cpu"],
-                                     capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+                                     capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, check=False)
             self.assertEqual(resumed.returncode, 0, resumed.stdout + resumed.stderr)
             checkpoint = torch.load(checkpoints["vqvae"], weights_only=False, map_location="cpu")
             self.assertEqual(checkpoint["global_step"], 2)
             self.assertEqual(checkpoint["lr_schedulers"][0]["num_training_steps"], 2)
             changed_codebook = subprocess.run([sys.executable, str(script), "--model", "pose", "--dataset", str(dataset), "--output", str(folder / "pose"),
                                               "--resume", str(checkpoints["pose"]), "--vqvae", str(checkpoints["vqvae"]), "--max_steps", "2", "--accelerator", "cpu"],
-                                             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+                                             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, check=False)
             self.assertNotEqual(changed_codebook.returncode, 0)
             self.assertIn("VQ-VAE", changed_codebook.stderr)
 

@@ -3,10 +3,12 @@ import argparse
 import gc
 import json
 from pathlib import Path
+
 import numpy as np
 import torch
-from inference.export.export_unreal_inference import load_package
 from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+
+from inference.export.export_unreal_inference import load_package
 
 
 def main(args):
@@ -25,9 +27,9 @@ def main(args):
         if metadata["inference_mode"] == "decoder_only":
             # 有效的零号码，用于测资源；质量等价另用真实 token 验证。
             codes = torch.zeros((1, local.shape[1] // 4), dtype=torch.long, device="cuda")
-            forward = lambda: net.forward_decoder(codes, target_cond=None, external_cond=external)
+            forward = lambda net=net, codes=codes, external=external: net.forward_decoder(codes, target_cond=None, external_cond=external)
         else:
-            forward = lambda: net(local, target_cond=None, external_cond=external)
+            forward = lambda net=net, local=local, external=external: net(local, target_cond=None, external_cond=external)
         with torch.no_grad():
             for _ in range(5):
                 forward()

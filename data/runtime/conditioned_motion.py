@@ -8,12 +8,14 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
+from motionbricks.data.unreal_dataset import (
+    UnrealSkeleton,
+    contained_file,
+    read_json,
+    training_signature,
+    world_foot_contacts,
+)
 from scipy.spatial.transform import Rotation
-
-from motionbricks.data.unreal_dataset import (UnrealSkeleton, contained_file,
-                                               read_json, training_signature,
-                                               world_foot_contacts)
-
 
 CONTRACT_ID = "reference_guided_root_pose_v1"
 SPLITS = ("train", "validation", "test")

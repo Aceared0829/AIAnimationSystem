@@ -1,9 +1,11 @@
 import importlib.util
-from pathlib import Path
 import unittest
+from pathlib import Path
 
 spec=importlib.util.spec_from_file_location('gate',Path(__file__).resolve().parents[1] / "data/tools/motion_batch_gate.py")
-gate=importlib.util.module_from_spec(spec)
+assert spec is not None and spec.loader is not None
+gate = importlib.util.module_from_spec(spec)
+assert spec is not None
 spec.loader.exec_module(gate)
 
 

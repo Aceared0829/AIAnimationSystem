@@ -1,14 +1,13 @@
 import logging
 import os
-from typing import Optional
 
 import colorlog
 
 
 def setup_logging(
-    name: Optional[str] = None,
-    run_dir: Optional[str] = None,
-    rank: Optional[int] = 0,
+    name: str | None = None,
+    run_dir: str | None = None,
+    rank: int | None = 0,
     level=logging.INFO,
 ):
     # Get the root logger

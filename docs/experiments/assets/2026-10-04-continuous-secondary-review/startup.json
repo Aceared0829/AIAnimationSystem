@@ -1,0 +1,22 @@
+{
+  "run_id": "20261004-continuous-secondary-review",
+  "baseline": {
+    "accepted_imported": 8082,
+    "needs_segmentation": 4,
+    "needs_skeleton_review": 6,
+    "prepared_imported": 1722,
+    "rejected_quarantined": 347,
+    "source_header_checked": 133781
+  },
+  "tests_passed": 19,
+  "review_port": 8766,
+  "pipeline_started": false,
+  "launch_failure": "automatic approval: blocked by policy",
+  "policy": {
+    "technical_pass": "publish_then_hash_bound_cleanup",
+    "issues": "needs_secondary_review_keep_sources_outputs_and_mixed_batch_assets",
+    "micro_batch_max": 8,
+    "pending_limit": 500
+  },
+  "command": ".venv/Scripts/python.exe -u data/tools/run_overnight_seed_pipeline.py --library E:/AIAnimationSystemData/MotionDataLibrary --source E:/AIAnimationSystemData/BONES-SEED"
+}

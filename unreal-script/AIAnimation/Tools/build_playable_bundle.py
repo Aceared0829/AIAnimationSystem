@@ -11,7 +11,6 @@ import numpy as np
 from data.runtime.conditioned_motion import load_raw
 from training.pretrain.train_conditioned_pose import verify_release
 
-
 ROOT = Path(__file__).resolve().parents[3]
 RELEASE = Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924")
 LOCK = ROOT / "data/freezes/reference_guided_root_pose_v1_20260924.json"

@@ -1,10 +1,9 @@
-from typing import Dict, List, Optional
+from typing import Literal, overload
 
 import einops
 import torch
 
 from motionbricks.motionlib.core.motion_reps.tools.changing_t_pose import (
-    change_t_pose_global_mats,
     change_t_pose_local_mats,
     global_mats_to_local_mats,
 )
@@ -30,7 +29,7 @@ from .heading import calc_heading
 def compute_vel_angle(
     root_rot_angles: torch.Tensor,
     fps: float,
-    lengths: Optional[torch.Tensor] = None,
+    lengths: torch.Tensor | None = None,
 ):
     """Compute the local root rotation velocity: dtheta/dt.
 
@@ -75,7 +74,7 @@ def compute_vel_angle(
 def compute_vel_xyz(
     positions: torch.Tensor,
     fps: float,
-    lengths: Optional[torch.Tensor] = None,
+    lengths: torch.Tensor | None = None,
 ):
     """Compute the velocities from positions: dx/dt. Works with batches. The last velocity is duplicated to keep the same size.
 
@@ -118,8 +117,8 @@ def compute_vel_xyz(
 def compute_heading_info(
     heading_quat_raw: torch.Tensor,
     nbjoints: int,
-    root_quat: Optional[torch.Tensor],
-    global_joint_quat: Optional[torch.Tensor],
+    root_quat: torch.Tensor | None,
+    global_joint_quat: torch.Tensor | None,
     **kwargs,  # throw away unecessary args
 ):
     """Compute heading info. From the raw output of calc_heading, compute a canonicalized heading
@@ -210,7 +209,7 @@ def compute_position_features(
     skeleton: SkeletonBase,
     heading_quat_inv: torch.Tensor,
     init_heading_quat_inv: torch.Tensor,
-    foot_contacts: Optional[torch.Tensor],
+    foot_contacts: torch.Tensor | None,
     lengths: torch.Tensor,
     fps: float,
     local_root_vel_with_y: bool,
@@ -279,7 +278,7 @@ def compute_position_features(
 
     # root height (T, 1)
     global_root_y = global_positions[:, :, root_idx, 1]
-    global_root_pos = global_positions[:, :, root_idx]  # noqa
+    global_root_pos = global_positions[:, :, root_idx]
 
     # global_positions
     # get joint position represention (T, (J-1)x3)
@@ -313,7 +312,7 @@ def compute_position_features(
         feet_l, feet_r = foot_detect_from_pos_and_vel(
             global_positions, velocity, skeleton, 0.15, 0.10
         )
-        foot_contacts = torch.cat((feet_l, feet_r), axis=-1)
+        foot_contacts = torch.cat((feet_l, feet_r), dim=-1)
 
     info = {
         "ric_data": ric_data,
@@ -333,7 +332,7 @@ def compute_position_features_with_smooth_root(
     skeleton: SkeletonBase,
     heading_quat_inv: torch.Tensor,
     init_heading_quat_inv: torch.Tensor,
-    foot_contacts: Optional[torch.Tensor],
+    foot_contacts: torch.Tensor | None,
     lengths: torch.Tensor,
     fps: float,
     local_root_vel_with_y: bool,
@@ -451,7 +450,7 @@ def compute_position_features_with_smooth_root(
         feet_l, feet_r = foot_detect_from_pos_and_vel(
             global_positions, velocity, skeleton, 0.15, 0.10
         )
-        foot_contacts = torch.cat((feet_l, feet_r), axis=-1)
+        foot_contacts = torch.cat((feet_l, feet_r), dim=-1)
 
     info = {
         "ric_data": ric_data,
@@ -469,7 +468,7 @@ def compute_heading_features(
     heading_quat: torch.Tensor,
     root_idx: int,
     fps: float,
-    lengths: Optional[torch.Tensor] = None,
+    lengths: torch.Tensor | None = None,
     **kwargs,  # throw away unecessary args
 ):
     """Compute heading features, local and global.
@@ -644,8 +643,9 @@ def compute_global_rotation_features(
     return info
 
 
+@overload
 def compute_motion_features(
-    input_tensor_dict: Dict[str, torch.Tensor],
+    input_tensor_dict: dict[str, torch.Tensor],
     motion_rep,
     *,
     # keywords mandatory arguments
@@ -653,15 +653,74 @@ def compute_motion_features(
     local_root_vel_with_y: bool,
     compute_heading_method: str,
     # keywords optional arguments
-    lengths: Optional[torch.Tensor] = None,
-    input_quat: Optional[bool] = False,
-    only_pos: Optional[bool] = False,
-    t_pose_from: Optional[str] = None,
+    lengths: torch.Tensor | None = None,
+    input_quat: bool | None = False,
+    only_pos: bool | None = False,
+    t_pose_from: str | None = None,
+    return_init_heading_info: Literal[False] = False,
+    removing_heading: bool = True,
+    using_smooth_root: bool = False,
+    extra_skel: bool = False,
+) -> torch.Tensor: ...
+
+@overload
+def compute_motion_features(
+    input_tensor_dict: dict[str, torch.Tensor],
+    motion_rep,
+    *,
+    # keywords mandatory arguments
+    local_vel_without_root: bool,
+    local_root_vel_with_y: bool,
+    compute_heading_method: str,
+    # keywords optional arguments
+    lengths: torch.Tensor | None = None,
+    input_quat: bool | None = False,
+    only_pos: bool | None = False,
+    t_pose_from: str | None = None,
+    return_init_heading_info: Literal[True],
+    removing_heading: bool = True,
+    using_smooth_root: bool = False,
+    extra_skel: bool = False,
+) -> tuple[torch.Tensor, dict[str, torch.Tensor]]: ...
+
+@overload
+def compute_motion_features(
+    input_tensor_dict: dict[str, torch.Tensor],
+    motion_rep,
+    *,
+    # keywords mandatory arguments
+    local_vel_without_root: bool,
+    local_root_vel_with_y: bool,
+    compute_heading_method: str,
+    # keywords optional arguments
+    lengths: torch.Tensor | None = None,
+    input_quat: bool | None = False,
+    only_pos: bool | None = False,
+    t_pose_from: str | None = None,
     return_init_heading_info: bool = False,
     removing_heading: bool = True,
     using_smooth_root: bool = False,
     extra_skel: bool = False,
-) -> torch.Tensor:
+) -> torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]: ...
+
+def compute_motion_features(
+    input_tensor_dict: dict[str, torch.Tensor],
+    motion_rep,
+    *,
+    # keywords mandatory arguments
+    local_vel_without_root: bool,
+    local_root_vel_with_y: bool,
+    compute_heading_method: str,
+    # keywords optional arguments
+    lengths: torch.Tensor | None = None,
+    input_quat: bool | None = False,
+    only_pos: bool | None = False,
+    t_pose_from: str | None = None,
+    return_init_heading_info: bool = False,
+    removing_heading: bool = True,
+    using_smooth_root: bool = False,
+    extra_skel: bool = False,
+):
     """Generate feature vector for one motion given joint rotation matrices and positions.
 
     Args:
@@ -866,14 +925,7 @@ def compute_motion_features(
         # compute local positions features based on the heading
 
         if using_smooth_root:
-            from .smooth_root import get_smooth_root_pos
-
-            # using the smooth root
-            # and store the hips pos in ric_data
-            hip_translations = posed_joints[:, :, skeleton.root_idx]
-            smooth_translations = get_smooth_root_pos(hip_translations)
-            info["smooth_translations"] = smooth_translations
-            info.update(compute_position_features_with_smooth_root(**info))
+            raise NotImplementedError("Smooth-root feature extraction is not included in this distribution")
         else:
             # using the hips pos as root, removing the hip from ric_data
             info.update(compute_position_features(**info))
@@ -914,7 +966,7 @@ def compute_motion_features(
             f"For the key {key}, the shape of the sub feature is {feat.shape[-1]} where it should be {dim_lst[0]}."
         )
 
-    features, feats_ps = einops.pack(
+    features, _feats_ps = einops.pack(
         [info[key] for key in motion_rep.keys],
         "batch time *",
     )
@@ -940,8 +992,8 @@ def compute_motion_features(
 
 
 def make_universal_input(
-    input_tensor_dict: Dict[str, torch.Tensor],
-    lengths: Optional[torch.Tensor] = None,
+    input_tensor_dict: dict[str, torch.Tensor],
+    lengths: torch.Tensor | None = None,
 ):
     """Make the input universal [B, T, J, X] from tensors of shape [..., T, J, X]
 
@@ -1006,7 +1058,7 @@ def reconstruct_joint_rot_mats_from_ric_rots(
     root_rot_quat: torch.Tensor,
     skeleton: SkeletonBase,
     removed_heading: bool,
-    init_heading_quat: Optional[torch.Tensor] = None,
+    init_heading_quat: torch.Tensor | None = None,
 ):
     """Recovers the local rotation matrices from the separated root heading quat and the other
     rotations.
@@ -1086,7 +1138,7 @@ def reconstruct_joint_rot_mats_from_ric_global_rots(
     root_rot_quat: torch.Tensor,
     skeleton: SkeletonBase,
     removed_heading: bool,
-    init_heading_quat: Optional[torch.Tensor] = None,
+    init_heading_quat: torch.Tensor | None = None,
 ):
     """Recovers the local rotation matrices from the separated root heading quat and the other
     global rotations without heading.
@@ -1184,8 +1236,8 @@ def recover_joints_with_FK(
     joint_rot_mats: torch.Tensor,
     root_pos: torch.Tensor,
     skeleton: SkeletonBase,
-    neutral_joints: Optional[torch.Tensor] = None,
-    return_global_rots: Optional[bool] = False,
+    neutral_joints: torch.Tensor | None = None,
+    return_global_rots: bool | None = False,
 ):
     """Recovers global joint positions given the global root motion and local joint rotations.
 
@@ -1233,7 +1285,7 @@ def recover_joints_with_FK(
     root_idx = skeleton.root_idx
     joint_rot_mats, ps = einops.pack([joint_rot_mats], "* nbjoints dim1 dim2")
 
-    batch_size, nbframes = joint_rot_mats.shape[:2]
+    _batch_size, _nbframes = joint_rot_mats.shape[:2]
 
     # perform FK
     positions, global_rots = batch_rigid_transform(
@@ -1256,7 +1308,7 @@ def recover_joints_from_ric_pos(
     root_quat: torch.Tensor,
     skeleton,
     removed_heading: bool,
-    init_heading_quat: Optional[torch.Tensor],
+    init_heading_quat: torch.Tensor | None,
     using_smooth_root: bool,
 ):
     """Recovers global joint positions from global root motion and heading-invariant joint

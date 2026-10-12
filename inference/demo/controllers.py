@@ -1,20 +1,19 @@
 # Modified by the AIAnimationSystem maintainers: localized controls and messages.
 
-import torch as t
-from motionbricks.motion_backbone.demo.clips import clip_holder_G1
-import mujoco
-import numpy as np
-from scipy.spatial.transform import Rotation as R
 import copy
 import platform
-if platform.system() == 'Linux' or platform.system() == 'Darwin':
-    from pynput import keyboard
-else:
-    import keyboard
+
+import mujoco
+import numpy as np
+import torch as t
+from motionbricks.motion_backbone.demo.clips import clip_holder_G1
+from scipy.spatial.transform import Rotation as R
+
 
 class KeyboardHandler:
     def __init__(self):
-        self.listener = keyboard.Listener(
+        from pynput import keyboard as pynput_keyboard
+        self.listener = pynput_keyboard.Listener(
             on_press=self.on_press,
             on_release=self.on_release)
         self.listener.start()
@@ -43,10 +42,10 @@ class KeyboardHandler:
     def get_pressed_keys(self):
         return self._pressed_keys.copy()
 
-class base_controller(object):
+class base_controller:
     """处理控制信号的基础控制器类。"""
     def __init__(self, clips: str = "G1", min_token: int = 6, max_token: int = 16):
-        self._prev_qpos: np.ndarray = None
+        self._prev_qpos: np.ndarray | None = None
         self._FPS = 30
         self._CONTROLLER_DT = 8 / self._FPS  # 每 8 帧重新生成一次结果
         self._clip_holder_class = clip_holder_G1
@@ -57,6 +56,8 @@ class base_controller(object):
         raise NotImplementedError("子类必须实现此方法")
 
     def get_prev_qpos(self):
+        if self._prev_qpos is None:
+            raise RuntimeError("No previous control state is available")
         return self._prev_qpos.copy()
 
     def get_controller_dt(self):
@@ -77,9 +78,11 @@ class base_controller(object):
             key_pressed = self.keyboard_handler.get_pressed_keys()
             candidates = ['w', 'a', 's', 'd', 'left', 'right', 'up', 'down', 'shift', 'ctrl', 'enter',
                           'x', 'z', 'c', 'v', 'b', 'r', 't', 'f', 'g', 'q', 'e']
-            key_pressed = {key: True if key in key_pressed else False for key in candidates}
+            key_pressed = {key: key in key_pressed for key in candidates}
         else:
-            # Windows / macOS
+            import keyboard
+
+            # Windows
             key_pressed = {
                 # 移动方向
                 "w": keyboard.is_pressed('w'), "a": keyboard.is_pressed('a'),
@@ -110,7 +113,7 @@ class base_controller(object):
         return key_pressed
 
     def get_default_allowed_pred_num_tokens(self, mode: str | int):
-        if type(mode) == int:
+        if isinstance(mode, int):
             assert mode >= 0 and mode < len(list(self._clip_holder_class.CLIPS.keys())), "无效的模式编号"
             mode = list(self._clip_holder_class.CLIPS.keys())[mode]
         assert mode in list(self._clip_holder_class.CLIPS.keys()), "无效的模式"
@@ -127,15 +130,17 @@ class WASD_controller(base_controller):
     输出：目标位置、目标朝向和角色当前模式。
     """
     def __init__(self, lookat_movement_direction: bool = False, clips: str = "G1", **kwargs):
-        super(WASD_controller, self).__init__(clips, **kwargs)
+        super().__init__(clips, **kwargs)
         # 为真时角色朝向键盘输入方向，否则朝向相机方向
         self._LOOKAT_MOVEMENT_DIRECTION = lookat_movement_direction
         self._NUM_HISTORY_STEPS = 5  # 用于计算平均速度
         self._prev_qpos = None
 
     def generate_control_signals(self, viewer, mj_model: mujoco.MjModel, mj_data: mujoco.MjData,
-                                 visualize: bool = True, control_info: dict = {}):
+                                 visualize: bool = True, control_info: dict | None = None):
 
+        if control_info is None:
+            control_info = {}
         if self._prev_qpos is None:
             self._prev_qpos = np.zeros((self._NUM_HISTORY_STEPS, mj_model.nq))
             self._prev_qpos[:] = mj_data.qpos.copy().reshape(1, -1)
@@ -162,7 +167,7 @@ class WASD_controller(base_controller):
             "facing_direction": t.from_numpy(facing_direction).view([1, -1]),
             "mode": mode.view([1, -1])
         }
-        control_signals['allowed_pred_num_tokens'] = self.get_default_allowed_pred_num_tokens(mode.item())
+        control_signals['allowed_pred_num_tokens'] = self.get_default_allowed_pred_num_tokens(int(mode.item()))
         return control_signals
 
     def _generate_target_position_and_heading(self, viewer, mj_model: mujoco.MjModel,
@@ -206,6 +211,7 @@ class WASD_controller(base_controller):
                 facing_direction = camera_direction
 
         else:  # 待机状态
+            assert self._prev_qpos is not None
             # 待机时延续当前速度与朝向
             qvel = (self._prev_qpos[1:, :3] - self._prev_qpos[:-1, :3]).mean(axis=0) * \
                 np.array([1.0, 1.0, 0.0]) / mj_model.opt.timestep
@@ -223,7 +229,7 @@ class random_controller(base_controller):
                  new_control_dt: float = 2.0,
                  max_angle_change_between_controls: float = 0.5 * np.pi,
                  clips: str = "G1", **kwargs):
-        super(random_controller, self).__init__(clips, **kwargs)
+        super().__init__(clips, **kwargs)
         self._prev_qpos = None
         self._NUM_HISTORY_STEPS = 5             # 用于计算平均速度
         self._NEW_CONTROL_DT = new_control_dt   # 每隔 new_control_dt 秒切换控制（默认 2.0 秒）
@@ -234,7 +240,7 @@ class random_controller(base_controller):
         self._LOOKAT_MOVEMENT_DIRECTION = lookat_movement_direction
 
     def generate_control_signals(self, viewer, mj_model: mujoco.MjModel, mj_data: mujoco.MjData,
-                                 visualize: bool = True, control_info: dict = None):
+                                 visualize: bool = True, control_info: dict | None = None):
 
         if self._prev_qpos is None:
             self._prev_qpos = np.zeros((self._NUM_HISTORY_STEPS, mj_model.nq))
@@ -283,6 +289,6 @@ class random_controller(base_controller):
         self._control = {"movement_direction": movement_direction.view([1, -1]),
                          "facing_direction": facing_direction.view([1, -1]), "mode": mode.view([1, -1]),
                          "movement_angle": movement_angle, "facing_angle": facing_angle}
-        self._control['allowed_pred_num_tokens'] = self.get_default_allowed_pred_num_tokens(mode.item())
+        self._control['allowed_pred_num_tokens'] = self.get_default_allowed_pred_num_tokens(int(mode.item()))
         return copy.deepcopy(self._control)
 

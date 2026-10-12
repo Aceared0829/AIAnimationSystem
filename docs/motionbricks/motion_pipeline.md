@@ -48,7 +48,11 @@
 
 ## 数据库批次工作进程
 
-`data/tools/run_seed_queue.py --max-batches <数量>` 从数据库选择待处理动作，每批最多8条、累计约20000源帧。UE 导出器另有250000骨骼帧上限，故单动作超过3000帧先进入 `needs_segmentation`，不会截断；非已验证骨架头进入 `needs_skeleton_review`，不会丢弃。存在未收尾的 `retarget_running` 时拒绝重复处理，异常记录为 `retarget_failed` 后停止，需检查运行目录再恢复。
+2026-10-04 完整长片段支持：`run_seed_queue.py --max-frames-per-clip N` 默认 6000，接受 2..12000。队列显式设置 `AILocomotionMaxBoneSamples=1000000` 与对应的 `MaxFramesPerClip`；原生导出器保留默认 250000，并允许命令行调整至最多 4000000 个骨骼采样。容量取决于实际骨骼数量、JSON 内存及磁盘门禁，不自动分段、截断或重采样。历史记录中的 3000 帧隔离原因属于旧预算。
+
+`retry_seed_review_batch.py --cohort <固定拒绝名单>` 只重跑本次授权的 10 条、保留源哈希与旧二审结论，新输出存为 `needs_secondary_review`。结构一致且身体参考偏移差不超过 0.25 cm 的源可显式使用 `prepare_soma_ue_batch.py --normalize-reference-offsets`；绝对 Hips/Root 运动和旋转保留。归一化不会把源 FK 转换冒充为目标重定向；目标输出仍须真实 UE IK、导出审计和新二审。
+
+`data/tools/run_seed_queue.py --max-batches <数量>` 从数据库选择待处理动作，每批最多32条、累计约20000源帧。UE 导出器按配置处理完整长动作，不自动切片或截断；超过单条帧数预算的动作进入 `needs_segmentation`，非已验证骨架头进入 `needs_skeleton_review`，不会丢弃。存在未收尾的 `retarget_running` 时拒绝重复处理，异常记录为 `retarget_failed` 后停止，需检查运行目录再恢复。
 
 工作进程有单实例文件锁、单阶段30分钟超时、D盘40GiB和系统盘10GiB可用空间下限。建立 `D:/MotionDataLibrary/work/STOP` 可在当前批次结束后停止。当前仅推进到 `retargeted_pending_quality`；输出、源哈希、UE资产身份及完整审计回执进入数据库，原始动作和临时资产仍保留。没有质量发布或删除功能，不能把这些状态计为全量完成。
 
@@ -72,7 +76,7 @@
 
 `validate_seed_training.py [--limit N]` 直接读取隔离输出的共享骨架 + NPZ，经现有 `prepare_unreal_dataset.prepare` 转换，再用 `UnrealMotionDataset` 逐条取训练张量，并逐数组比较转换后姿态、旋转和 Root 轨道。生成 `work/training_check_*/training_validation.json`，不改变生产状态。失败时保留不完整快照供检查，不能算通过；运行过程 D 盘低于 44 GiB 停止。此验证快照使用本批统计量且未划分留出集，不能直接替代最终生产训练集或删除许可。
 
-每轮最多累计 500 条 `retargeted_pending_quality` 动作，UE 微批仍最多 8 条；接近 500 时缩小微批，达到上限写入 STOP 并初筛。磁盘提前停止也执行初筛。既有 582 条积压属于旧批次，不重新切分已标注的固定名单；未结案前不能追加新动作。人工通过本身不会减少待发布计数。
+每轮最多累计 500 条 `retargeted_pending_quality` 动作，UE 微批最多 32 条且受 20000 源帧上限约束；接近 500 时缩小微批，达到上限写入 STOP 并初筛。磁盘提前停止也执行初筛。既有 582 条积压属于旧批次，不重新切分已标注的固定名单；未结案前不能追加新动作。人工通过本身不会减少待发布计数。
 
 项目级规则位于 `.agents/skills/process-motion-batches/SKILL.md`。`record_motion_review.py --cohort <完整名单路径>` 验证名单绑定的初筛报告、输出哈希和唯一审计记录，保存独立、内容寻址的人工回执；不会修改生产状态。最终训练回读、发布和可恢复删除仍须实现并验证，不能仅凭回执清理。
 

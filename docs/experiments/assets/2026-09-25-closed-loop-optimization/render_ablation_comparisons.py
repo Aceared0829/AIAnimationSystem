@@ -8,11 +8,10 @@ import subprocess
 from pathlib import Path
 
 import numpy as np
+from motionbricks.data.unreal_dataset import apply_authoritative_root
 from PIL import Image, ImageDraw
 
 from inference.runtime.conditioned_pose import ConditionedPosePredictor
-from motionbricks.data.unreal_dataset import apply_authoritative_root
-
 
 ROOT = Path(__file__).resolve().parents[4]
 OLD_SCRIPT = ROOT / "docs/experiments/assets/2026-09-25-existing-motion-diagnostics/render_model_comparisons.py"
