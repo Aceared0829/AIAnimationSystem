@@ -16,6 +16,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from motionbricks.data.unreal_dataset import apply_authoritative_root
 from scipy.spatial.transform import Rotation
 
 from inference.visualization.motionweaver_preview import (
@@ -27,8 +28,6 @@ from inference.visualization.motionweaver_preview import (
     timing_summary,
     world_pose_metrics,
 )
-from motionbricks.data.unreal_dataset import apply_authoritative_root
-
 
 UE_TO_MOTION = np.array(((0, -1, 0), (0, 0, 1), (1, 0, 0)), dtype=np.float64)
 DEFAULT_CASES = ("Walk:1403:center", "Run:820:center", "Crouch:430:0")

@@ -7,9 +7,9 @@ import json
 import tarfile
 from pathlib import Path
 
-from data.runtime.conditioned_motion import sha256
 from motionbricks.data.unreal_dataset import contained_file, read_json
 
+from data.runtime.conditioned_motion import sha256
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -77,8 +77,15 @@ def package(stance_folder, base_folder, source_folder, checkpoint, output):
         member.mode = 0o644
         archive.addfile(member, io.BytesIO(info))
     with tarfile.open(output, "r:gz") as archive:
-        actual = {member.name: hashlib.sha256(archive.extractfile(member).read()).hexdigest()
-                  for member in archive.getmembers() if member.isfile() and member.name != "bundle/manifest.json"}
+        actual = {}
+        for member in archive.getmembers():
+            if not member.isfile() or member.name == "bundle/manifest.json":
+                continue
+            content = archive.extractfile(member)
+            if content is None:
+                raise ValueError(f"Cannot read archive member: {member.name}")
+            with content:
+                actual[member.name] = hashlib.sha256(content.read()).hexdigest()
     if actual != hashes:
         raise ValueError("训练包回读哈希与输入不一致")
     return {"archive": str(output), "archive_sha256": sha256(output), "files": len(hashes),

@@ -1,12 +1,22 @@
 """手选资产参考；比较历史24与已知代理动画前瞻24，不声称未知未来预测。"""
 import json
 from pathlib import Path
+
 import numpy as np
 import torch
-from inference.runtime.checkpoint import load_vqvae
-from inference.export.export_unreal_animgraph import UnrealPoseReconstruction, pack_raw_pose
-from inference.profiling.evaluate_unreal_streaming import localize, positions, simulate, metric, rms
 
+from inference.export.export_unreal_animgraph import (
+    UnrealPoseReconstruction,
+    pack_raw_pose,
+)
+from inference.profiling.evaluate_unreal_streaming import (
+    localize,
+    metric,
+    positions,
+    rms,
+    simulate,
+)
+from inference.runtime.checkpoint import load_vqvae
 
 CURATED = {
     'M_Neutral_Traversal_Catch_Hurdle_low_run': [(32,'屈身抬腿'),(52,'高抬腿越障'),(64,'躯干展开')],

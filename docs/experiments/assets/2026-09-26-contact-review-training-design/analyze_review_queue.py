@@ -9,15 +9,14 @@ import argparse
 import csv
 import hashlib
 import json
-from collections import Counter, defaultdict
+from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+from motionbricks.data.unreal_dataset import contained_file
 from scipy.spatial.transform import Rotation
 
 from data.runtime.conditioned_motion import load_raw
-from motionbricks.data.unreal_dataset import contained_file
-
 
 FOOT_ROLES = ("left_foot", "left_toe", "right_foot", "right_toe")
 

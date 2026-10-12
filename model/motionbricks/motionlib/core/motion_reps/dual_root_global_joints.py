@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from .motion_reps_base.dual_root_local_body import DualRootLocalBody
 from .motion_reps_base.global_root_local_body import GlobalRootLocalBody
 from .motion_reps_base.local_root_local_body import LocalRootLocalBody
@@ -15,7 +17,7 @@ DEFAULT_JOINT_POSITIONS_FROM = "global_rot_data"
 class DualRootGlobalJoints(DualRootLocalBody):
     """Motion representation with global rotation but without removing the heading."""
 
-    _name_ = "dual_root_global_joints"
+    _name_: ClassVar[str] = "dual_root_global_joints"
     compute_kwargs = COMPUTE_KWARGS
     default_joint_positions_from = DEFAULT_JOINT_POSITIONS_FROM
 

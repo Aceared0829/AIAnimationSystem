@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+
 import unreal
 
 folder = '/Game/MotionPipeline/Retarget'
@@ -58,5 +59,5 @@ ref = []
 for name in unreal.AnimPoseExtensions.get_bone_names(pose):
     transform = pose.get_bone_pose(name, unreal.AnimPoseSpaces.WORLD)
     p, q = transform.translation, transform.rotation
-    ref.append(dict(name=str(name), position=[p.x,p.y,p.z], rotation=[q.x,q.y,q.z,q.w]))
-(work/'retarget_setup_report.json').write_text(json.dumps(dict(source=source.get_path_name(),target=target.get_path_name(),retargeter=retargeter.get_path_name(),chains=chains,source_reference=ref,training_ready=False), indent=2), encoding='utf-8')
+    ref.append({'name': str(name), 'position': [p.x,p.y,p.z], 'rotation': [q.x,q.y,q.z,q.w]})
+(work/'retarget_setup_report.json').write_text(json.dumps({'source': source.get_path_name(),'target': target.get_path_name(),'retargeter': retargeter.get_path_name(),'chains': chains,'source_reference': ref,'training_ready': False}, indent=2), encoding='utf-8')

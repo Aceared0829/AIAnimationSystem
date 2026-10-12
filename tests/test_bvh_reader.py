@@ -2,8 +2,10 @@
 import tempfile
 import unittest
 from pathlib import Path
+
 import numpy as np
 from motionbricks.data.bvh_reader import read_bvh
+
 
 class BvhReaderTests(unittest.TestCase):
     def parse(self, values):

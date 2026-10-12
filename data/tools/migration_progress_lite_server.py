@@ -11,7 +11,6 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-
 GIB = 1024**3
 EXPECTED = {
     "BONES-SEED": 564.39 * GIB,
@@ -140,7 +139,7 @@ def main() -> None:
     threading.Thread(target=progress.run, daemon=True).start()
 
     class Handler(BaseHTTPRequestHandler):
-        def do_GET(self) -> None:  # noqa: N802
+        def do_GET(self) -> None:
             if self.path == "/api":
                 body = json.dumps(progress.snapshot()).encode()
                 self.send_response(200)

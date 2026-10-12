@@ -1,8 +1,8 @@
 """Check copy verification and deletion boundaries using isolated storage fixtures."""
 
 import importlib.util
-import shutil
 import json
+import shutil
 import socket
 import subprocess
 import sys
@@ -12,7 +12,6 @@ import unittest
 from pathlib import Path
 from urllib.request import urlopen
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -20,6 +19,7 @@ def load_tool(name):
     spec = importlib.util.spec_from_file_location(
         name, ROOT / "data/tools" / f"{name}.py"
     )
+    assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
     spec.loader.exec_module(module)
@@ -117,7 +117,7 @@ class StorageMigrationTests(unittest.TestCase):
         result = subprocess.run(
             ["cmd", "/c", "mklink", "/J", str(junction), str(outside)],
             capture_output=True,
-        )
+        check=False)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.addCleanup(junction.rmdir)
         with self.assertRaises(ValueError):
@@ -140,7 +140,7 @@ class StorageMigrationTests(unittest.TestCase):
         link = self.root / "migration"
         result = subprocess.run(
             ["cmd", "/c", "mklink", "/J", str(link), str(outside)], capture_output=True
-        )
+        , check=False)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.addCleanup(link.rmdir)
         with self.assertRaises(ValueError):

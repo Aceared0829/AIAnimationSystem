@@ -1,7 +1,6 @@
 # Modified by the AIAnimationSystem maintainers: localized documentation and messages.
 
 import random
-from typing import List, Dict, Optional, Tuple
 
 import torch
 from torch import Tensor
@@ -39,9 +38,9 @@ class SyntheticMotionDataset(Dataset):
 
 
 def collate_tensors(
-    tensor_batch: List[Tensor],
-    size: Optional[int] = None,
-) -> Tuple[Tensor, Tensor, Tensor]:
+    tensor_batch: list[Tensor],
+    size: int | None = None,
+) -> tuple[Tensor, Tensor, Tensor]:
     """将长度不同的张量填充到统一长度。
 
     返回：
@@ -68,7 +67,7 @@ def collate_tensors(
     return motion_batch, len_batch, pad_mask
 
 
-def collate_batch(batch: List[Dict]) -> Dict:
+def collate_batch(batch: list[dict]) -> dict:
     """将一批动作字典整理为填充后的张量。"""
     motion = [bdict["motion"] for bdict in batch]
     motion, motion_len, motion_pad_mask = collate_tensors(motion)

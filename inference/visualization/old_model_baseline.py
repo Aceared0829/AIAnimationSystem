@@ -11,17 +11,17 @@ import json
 from pathlib import Path
 
 import numpy as np
+from motionbricks.data.unreal_dataset import apply_authoritative_root
 
 from data.runtime.conditioned_motion import root_local
 from inference.runtime.conditioned_pose import ConditionedPosePredictor
 from inference.visualization.motionweaver_preview import (
-    render_video,
     parse_clip_indices,
+    render_video,
     select_clips,
     sha256,
     world_pose_metrics,
 )
-from motionbricks.data.unreal_dataset import apply_authoritative_root
 
 
 def run(args):

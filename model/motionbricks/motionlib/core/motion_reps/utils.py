@@ -1,4 +1,3 @@
-from typing import Optional
 
 import torch
 
@@ -6,7 +5,7 @@ from motionbricks.motionlib.core.utils.rotations import quat_apply, quat_mul
 
 
 def apply_base_rot(
-    joints_pos: Optional[torch.Tensor] = None, joints_rot: Optional[torch.Tensor] = None
+    joints_pos: torch.Tensor | None = None, joints_rot: torch.Tensor | None = None
 ):
     """Flips output joint positions and/or rotations that is y-up to be z-up.
 

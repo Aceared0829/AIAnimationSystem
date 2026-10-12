@@ -5,9 +5,12 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from inference.runtime.checkpoint import load_vqvae
-from inference.export.export_unreal_animgraph import UnrealPoseReconstruction, pack_raw_pose
+from inference.export.export_unreal_animgraph import (
+    UnrealPoseReconstruction,
+    pack_raw_pose,
+)
 from inference.profiling.evaluate_unreal_streaming import metric, rms
+from inference.runtime.checkpoint import load_vqvae
 
 
 def evaluate():

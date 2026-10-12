@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+
 import unreal
 
 work = Path(os.environ['MOTION_PIPELINE_WORK_ROOT']).resolve()
@@ -21,7 +22,7 @@ options.import_materials = False
 options.import_level_sequences = False
 task.options = options
 unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
-assets = [dict(path=obj.get_path_name(), type=obj.get_class().get_name()) for obj in task.get_objects()]
+assets = [{'path': obj.get_path_name(), 'type': obj.get_class().get_name()} for obj in task.get_objects()]
 (work / 'source_reference_report.json').write_text(json.dumps(assets, indent=2), encoding='utf-8')
 if not any(obj['type'] == 'SkeletalMesh' for obj in assets):
     raise RuntimeError('USD 导入没有生成源骨骼网格，禁止继续重定向')

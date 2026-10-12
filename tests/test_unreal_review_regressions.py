@@ -1,23 +1,25 @@
 """评估、推理和训练边界的 PR 回归。"""
+import hashlib
 import json
-from pathlib import Path
-import sys
 import tempfile
 import unittest
-import hashlib
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
 import torch
-
-from training.evaluation.evaluate_unreal_vqvae import load_vqvae, preview_timing
-from training.evaluation.evaluate_native_quality import select_evaluation_indices, verify_same_partition
-from inference.export.export_unreal_inference import load_package
-from training.evaluation.export_native_gallery import export
-from training.pretrain.train_unreal import training_indices
-from motionbricks.data.unreal_dataset import training_signature, file_sha256
+from motionbricks.data.unreal_dataset import file_sha256, training_signature
 from motionbricks.training.unreal_quality import sample_native_segment
 from test_unreal_dataset import fixture, prepare_function
+
+from inference.export.export_unreal_inference import load_package
+from training.evaluation.evaluate_native_quality import (
+    select_evaluation_indices,
+    verify_same_partition,
+)
+from training.evaluation.evaluate_unreal_vqvae import load_vqvae, preview_timing
+from training.evaluation.export_native_gallery import export
+from training.pretrain.train_unreal import training_indices
 
 
 class ReviewRegressions(unittest.TestCase):

@@ -8,12 +8,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from motionbricks.data.unreal_dataset import apply_authoritative_root
 
 from data.runtime.conditioned_motion import load_window
 from inference.runtime.conditioned_pose import ConditionedPosePredictor
-from motionbricks.data.unreal_dataset import apply_authoritative_root
 from training.evaluation.evaluate_conditioned_baselines import select_windows
-
 
 ROOT = Path(__file__).resolve().parents[4]
 RELEASE = Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924")

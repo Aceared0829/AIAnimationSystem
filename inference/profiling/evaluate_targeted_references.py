@@ -6,10 +6,19 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from inference.runtime.checkpoint import load_vqvae
-from inference.export.export_unreal_animgraph import UnrealPoseReconstruction, pack_raw_pose
+from inference.export.export_unreal_animgraph import (
+    UnrealPoseReconstruction,
+    pack_raw_pose,
+)
 from inference.profiling.evaluate_pose_references import select_references
-from inference.profiling.evaluate_unreal_streaming import localize, positions, simulate, metric, rms
+from inference.profiling.evaluate_unreal_streaming import (
+    localize,
+    metric,
+    positions,
+    rms,
+    simulate,
+)
+from inference.runtime.checkpoint import load_vqvae
 
 
 def problem_frame(source, prediction, selected, groups):

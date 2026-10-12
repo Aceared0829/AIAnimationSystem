@@ -5,10 +5,10 @@ import csv
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-
 
 FEET = ("foot_l", "ball_l", "foot_r", "ball_r")
 

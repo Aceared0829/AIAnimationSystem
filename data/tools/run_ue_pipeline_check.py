@@ -4,8 +4,9 @@ import json
 import os
 import subprocess
 import uuid
-from motionbricks.repository import unreal_scripts
 from pathlib import Path
+
+from motionbricks.repository import unreal_scripts
 
 
 def main():
@@ -30,13 +31,13 @@ def main():
     command = [str(Path(args.engine).resolve()), str(Path(args.project).resolve()), '-run=pythonscript', '-script=' + str(script.resolve()), '-unattended', '-nop4', '-NullRHI']
     log = run / 'engine.log'
     with log.open('w', encoding='utf-8') as stream:
-        result = subprocess.run(command, env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=args.timeout, creationflags=subprocess.CREATE_NO_WINDOW)
+        result = subprocess.run(command, env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=args.timeout, creationflags=subprocess.CREATE_NO_WINDOW, check=False)
     messages = log.read_text(encoding='utf-8', errors='replace')
     reports = json.loads((run / 'ue_roundtrip_report.json').read_text()) if (run / 'ue_roundtrip_report.json').exists() else []
     passed = (result.returncode == 0 and 'Success - 0 error(s), 0 warning(s)' in messages
               and not any(marker in messages for marker in ('Assertion failed:', 'Ensure condition failed:', 'LogPython: Error:'))
               and [item.get('name') for item in reports] == names and all(item.get('engine_roundtrip_pass') is True for item in reports))
-    receipt = dict(passed=passed, engine_exit_code=result.returncode, clips=len(reports), log=str(log), training_ready=False, source_deleted=False)
+    receipt = {'passed': passed, 'engine_exit_code': result.returncode, 'clips': len(reports), 'log': str(log), 'training_ready': False, 'source_deleted': False}
     (run / 'receipt.json').write_text(json.dumps(receipt, indent=2), encoding='utf-8')
     print(json.dumps(receipt))
     if not passed:

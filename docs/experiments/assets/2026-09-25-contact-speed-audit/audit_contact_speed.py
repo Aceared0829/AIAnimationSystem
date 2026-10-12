@@ -13,11 +13,14 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
+from motionbricks.data.unreal_dataset import (
+    UnrealSkeleton,
+    contained_file,
+    world_foot_contacts,
+)
 from scipy.spatial.transform import Rotation
 
 from data.runtime.conditioned_motion import load_raw
-from motionbricks.data.unreal_dataset import UnrealSkeleton, contained_file, world_foot_contacts
-
 
 CATEGORIES = ("Walk", "Run", "Crouch")
 FOOT_ROLES = ("left_foot", "left_toe", "right_foot", "right_toe")

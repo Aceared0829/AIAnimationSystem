@@ -7,7 +7,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 PROJECT = Path(__file__).resolve().parents[4]
 DESTINATION = Path(__file__).resolve().parent
 RUNS = {

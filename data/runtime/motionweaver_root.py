@@ -9,7 +9,7 @@ same rotation applied to the body representation by ``change_first_heading``.
 import torch
 
 
-def actor_track_to_condition(actor_root, corrective_yaw=0.0):
+def actor_track_to_condition(actor_root, corrective_yaw: float | torch.Tensor = 0.0):
     """Return [B,T,4] Actor-local XZ metres and heading cos/sin.
 
     The result is invariant to a common world translation and yaw rotation of

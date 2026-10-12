@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+
 from motionbricks.data.motion_catalog import MotionCatalog
 
 
@@ -56,15 +57,15 @@ def main():
                         if frames != int(data['move_duration_frames']):
                             raise ValueError('声明帧数与清单不符')
                         groups[signature] = groups.get(signature,0)+1
-                        detail = json.dumps(dict(header_sha256=signature,frames=frames,body_validated=False))
+                        detail = json.dumps({'header_sha256': signature,'frames': frames,'body_validated': False})
                         catalog.db.execute("UPDATE motions SET state='source_header_checked',error=NULL WHERE id=?",(motion_id,))
                         catalog.db.execute('INSERT INTO events(motion_id,state,detail) VALUES(?,?,?)',(motion_id,'source_header_checked',detail))
                     except (OSError, ValueError, IndexError) as exc:
                         catalog.db.execute("UPDATE motions SET state='source_check_failed',error=? WHERE id=?",(str(exc),motion_id))
                     processed += 1
             if processed % 4096 == 0:
-                print(json.dumps(dict(processed=processed,header_groups=len(groups))),flush=True)
-        report = dict(processed_this_run=processed,header_groups_this_run=groups,states=catalog.status(),body_validated=False,source_deleted=False)
+                print(json.dumps({'processed': processed,'header_groups': len(groups)}),flush=True)
+        report = {'processed_this_run': processed,'header_groups_this_run': groups,'states': catalog.status(),'body_validated': False,'source_deleted': False}
         (catalog.folder/'reports/source_headers.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
         print(json.dumps(report),flush=True)
     finally:

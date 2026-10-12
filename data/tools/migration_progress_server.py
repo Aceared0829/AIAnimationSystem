@@ -37,16 +37,16 @@ class Progress:
             total_bytes += total
             log = self.folder / (job["name"] + ".robocopy.log")
             jobs.append(
-                dict(
-                    name=job["name"],
-                    done_bytes=done,
-                    total_bytes=total,
-                    done_files=done_files,
-                    total_files=job["file_count"],
-                    verified=bool(job.get("verified")),
-                    log_exists=log.exists(),
-                    log_size=log.stat().st_size if log.exists() else 0,
-                )
+                {
+                    "name": job["name"],
+                    "done_bytes": done,
+                    "total_bytes": total,
+                    "done_files": done_files,
+                    "total_files": job["file_count"],
+                    "verified": bool(job.get("verified")),
+                    "log_exists": log.exists(),
+                    "log_size": log.stat().st_size if log.exists() else 0,
+                }
             )
         now = time.time()
         self.history.append((now, complete_bytes))
@@ -55,16 +55,16 @@ class Progress:
         speed = (complete_bytes - old[1]) / (now - old[0]) if now > old[0] else 0
         eta = (total_bytes - complete_bytes) / speed if speed > 0 else None
         with self.lock:
-            self.value = dict(
-                updated_at=datetime.now(timezone.utc).isoformat(),
-                complete_bytes=complete_bytes,
-                total_bytes=total_bytes,
-                speed_bytes_per_sec=speed,
-                eta_seconds=eta,
-                jobs=jobs,
-                runner_active=self.runner_active(),
-                error_log=self.error_log(),
-            )
+            self.value = {
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "complete_bytes": complete_bytes,
+                "total_bytes": total_bytes,
+                "speed_bytes_per_sec": speed,
+                "eta_seconds": eta,
+                "jobs": jobs,
+                "runner_active": self.runner_active(),
+                "error_log": self.error_log(),
+            }
 
     def runner_active(self):
         # 迁移脚本不写心跳；Runner 日志最近修改且未出现错误时视为活动，由页面同时呈现日志。
@@ -85,10 +85,10 @@ class Progress:
                 self.scan()
             except Exception as exc:
                 with self.lock:
-                    self.value = dict(
-                        error=str(exc),
-                        updated_at=datetime.now(timezone.utc).isoformat(),
-                    )
+                    self.value = {
+                        "error": str(exc),
+                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                    }
             for _ in range(10):
                 if self.stop:
                     break
@@ -96,7 +96,7 @@ class Progress:
 
     def snapshot(self):
         with self.lock:
-            return self.value or dict(status="正在读取迁移清单…")
+            return self.value or {"status": "正在读取迁移清单…"}
 
 
 PAGE = """<!doctype html><meta charset="utf-8"><title>AIAnimationSystem · E盘迁移进度</title><style>

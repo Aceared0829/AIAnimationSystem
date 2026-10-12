@@ -2,9 +2,15 @@
 import argparse
 import json
 from pathlib import Path
+
 import numpy as np
+from motionbricks.data.unreal_dataset import (
+    file_sha256,
+    read_json,
+    training_bones,
+    validate_clip,
+)
 from scipy.spatial.transform import Rotation
-from motionbricks.data.unreal_dataset import read_json, validate_clip, training_bones, file_sha256
 
 
 def audit(source, output):
@@ -38,10 +44,10 @@ def audit(source, output):
             if bone['parent'] >= 0:
                 parent = bone['parent']
                 errors.append(np.abs(np.linalg.norm(frames[:,i,:3]-frames[:,parent,:3],axis=-1)-np.linalg.norm(refs[i]-refs[parent])).max())
-        report = dict(asset=clip['asset'],fps=clip['fps'],frames=len(frames),bones=len(bones),max_bone_length_error_cm=float(max(errors)),
-                      root_range_cm=np.ptp(root[:,:3],axis=0).tolist(),pelvis_relative_range_cm=np.ptp(frames[:,names.index('pelvis'),:3],axis=0).tolist(),
-                      foot_min_z_cm={name:float(world[:,names.index(name),2].min()) for name in ['foot_l','foot_r','ball_l','ball_r']},
-                      ue_export_sha256=file_sha256(path),training_ready=False,source_deleted=False)
+        report = {'asset': clip['asset'],'fps': clip['fps'],'frames': len(frames),'bones': len(bones),'max_bone_length_error_cm': float(max(errors)),
+                      'root_range_cm': np.ptp(root[:,:3],axis=0).tolist(),'pelvis_relative_range_cm': np.ptp(frames[:,names.index('pelvis'),:3],axis=0).tolist(),
+                      'foot_min_z_cm': {name:float(world[:,names.index(name),2].min()) for name in ['foot_l','foot_r','ball_l','ball_r']},
+                      'ue_export_sha256': file_sha256(path),'training_ready': False,'source_deleted': False}
         dest = output/(Path(filename).stem+'.npz')
         np.savez_compressed(dest,frames=frames.astype(np.float32),root_frames=root.astype(np.float32),fps=clip['fps'])
         with np.load(dest,allow_pickle=False) as saved:

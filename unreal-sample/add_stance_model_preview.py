@@ -2,7 +2,6 @@
 
 import unreal
 
-
 MAP_PATH = "/MotionWeaverCMCPreview/Maps/L_CMCPreview"
 ACTOR_LABEL = "MotionWeaver_B1_CMC_ModelPose"
 

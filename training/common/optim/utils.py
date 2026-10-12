@@ -3,14 +3,13 @@
 # so that the logging behave properly
 import logging
 import os
-from typing import Optional
 
 from motionbricks.motionlib.core.utils.custom_logging import setup_logging
 
 
 # from lightning_fabric/utilities/rank_zero.py
 # but return 0
-def get_rank() -> Optional[int]:
+def get_rank() -> int | None:
     # SLURM_PROCID can be set even if SLURM is not managing the multiprocessing,
     # therefore LOCAL_RANK needs to be checked first
     rank_keys = ("RANK", "LOCAL_RANK", "SLURM_PROCID", "JSM_NAMESPACE_RANK")

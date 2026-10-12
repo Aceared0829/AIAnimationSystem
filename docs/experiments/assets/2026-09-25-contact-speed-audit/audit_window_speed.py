@@ -7,10 +7,9 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
-
-from data.runtime.conditioned_motion import load_raw
 from motionbricks.data.unreal_dataset import contained_file
 
+from data.runtime.conditioned_motion import load_raw
 
 CATEGORIES = {"Walk", "Run", "Crouch"}
 BINS = (("0-0.2", 0.2), ("0.2-1", 1.0), ("1-2", 2.0), ("2-4", 4.0), ("4+", float("inf")))

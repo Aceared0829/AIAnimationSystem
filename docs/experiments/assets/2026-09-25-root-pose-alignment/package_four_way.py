@@ -11,7 +11,6 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-
 SCENARIOS = ("walk", "run", "crouch")
 LANES = (
     ("source_source", "SOURCE POSE + SOURCE ROOT"),

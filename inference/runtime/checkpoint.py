@@ -1,10 +1,11 @@
 """Load a contract-validated VQ-VAE without the training or plotting entrypoints."""
 from pathlib import Path
+
 import torch
 from hydra.utils import instantiate
-from omegaconf import OmegaConf
 from motionbricks.data.unreal_dataset import training_signature
 from motionbricks.helper.pl_util import load_motion_rep
+from omegaconf import OmegaConf
 
 
 def load_vqvae(checkpoint_path):

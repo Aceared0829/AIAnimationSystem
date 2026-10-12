@@ -11,7 +11,6 @@ import json
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
-
 SOURCE_DIRECTORIES = (
     "model/motionbricks",
     "data/runtime",

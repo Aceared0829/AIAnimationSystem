@@ -14,8 +14,12 @@ URL = 'https://media.githubusercontent.com/media/NVlabs/GR00T-WholeBodyControl/m
 
 def main():
     pointer = subprocess.check_output(['git', 'show', ':' + RELATIVE], cwd=ROOT).decode('ascii')
-    digest = re.search(r'oid sha256:([a-f0-9]{64})', pointer).group(1)
-    size = int(re.search(r'size (\d+)', pointer).group(1))
+    digest_match = re.search(r'oid sha256:([a-f0-9]{64})', pointer)
+    size_match = re.search(r'size (\d+)', pointer)
+    if digest_match is None or size_match is None:
+        raise ValueError('Invalid Git LFS pointer')
+    digest = digest_match.group(1)
+    size = int(size_match.group(1))
     destination = ROOT / RELATIVE
     if destination.stat().st_size > 1024:
         raise RuntimeError('Destination is already materialized; refusing to overwrite it')

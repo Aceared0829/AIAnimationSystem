@@ -7,7 +7,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 POWERSHELL = shutil.which("pwsh") or shutil.which("powershell")
 
@@ -31,6 +30,7 @@ class MotionWeaverSyncTests(unittest.TestCase):
         (self.source / "Source/module.cpp").write_text("source")
 
     def run_sync(self, *arguments):
+        assert POWERSHELL is not None
         return subprocess.run(
             [POWERSHELL, "-NoProfile", "-File", str(self.script), *arguments],
             capture_output=True,
@@ -38,7 +38,7 @@ class MotionWeaverSyncTests(unittest.TestCase):
             encoding="utf-8",
             errors="replace",
             timeout=20,
-        )
+        check=False)
 
     def require_success(self, result):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -73,7 +73,7 @@ class MotionWeaverSyncTests(unittest.TestCase):
     def make_junction(self, link, target):
         result = subprocess.run(
             ["cmd", "/c", "mklink", "/J", str(link), str(target)], capture_output=True
-        )
+        , check=False)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.addCleanup(link.rmdir)
 

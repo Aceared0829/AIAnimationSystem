@@ -1,6 +1,8 @@
 """验证不同窗口下的时间对齐、已播放结果冻结及残差权重边界。"""
 import unittest
+
 import numpy as np
+
 from inference.profiling.evaluate_unreal_streaming import simulate
 
 

@@ -1,5 +1,6 @@
 """Install the responsibility layout while retaining checkpoint import names."""
 from pathlib import Path
+
 from setuptools import find_packages, setup
 
 ROOT = Path(__file__).parent

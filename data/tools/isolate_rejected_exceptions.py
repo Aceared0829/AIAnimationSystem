@@ -62,13 +62,13 @@ def plan(library, source_root, quarantine_root, manifest):
         destination=quarantine_root/raw.relative_to(source_root)
         key=str(raw).lower()
         if key not in seen:
-            files.append(dict(source=str(raw),physical_source=str(physical),destination=str(destination),sha256=sha256(physical),bytes=physical.stat().st_size))
+            files.append({'source': str(raw),'physical_source': str(physical),'destination': str(destination),'sha256': sha256(physical),'bytes': physical.stat().st_size})
             seen.add(key)
     if outputs:
         raise ValueError('被拒绝异常项意外存在 UE 输出；拒绝扩大清理范围，请先人工核对')
-    return dict(version=1,created_at=datetime.now(timezone.utc).isoformat(),kind='rejected_exception_quarantine',manifest_sha256=manifest,
-                motion_ids=sorted(ids),source_root=str(source_root),quarantine_root=str(quarantine_root),files=files,
-                intermediate_cleanup=[],notes='仅移动已人工拒绝的来源文件；不删除隔离副本、不触碰共享骨骼或其他批次。')
+    return {'version': 1,'created_at': datetime.now(timezone.utc).isoformat(),'kind': 'rejected_exception_quarantine','manifest_sha256': manifest,
+                'motion_ids': sorted(ids),'source_root': str(source_root),'quarantine_root': str(quarantine_root),'files': files,
+                'intermediate_cleanup': [],'notes': '仅移动已人工拒绝的来源文件；不删除隔离副本、不触碰共享骨骼或其他批次。'}
 
 
 def execute(library, report):
@@ -94,7 +94,7 @@ def execute(library, report):
             if sha256(destination)!=item['sha256']:
                 raise ValueError(f'隔离后哈希不匹配：{destination}')
         with journal_path.open('a',encoding='utf-8') as journal:
-            journal.write(json.dumps(dict(source=str(source),physical_source=str(physical),destination=str(destination),sha256=item['sha256'],status='moved_or_verified'),ensure_ascii=False)+'\n')
+            journal.write(json.dumps({'source': str(source),'physical_source': str(physical),'destination': str(destination),'sha256': item['sha256'],'status': 'moved_or_verified'},ensure_ascii=False)+'\n')
     with sqlite3.connect(library/'catalog.sqlite3') as db:
         with db:
             for motion_id in report['motion_ids']:
@@ -104,7 +104,7 @@ def execute(library, report):
                 source=Path(item['source'])
                 destination=Path(item['destination'])
                 db.execute('UPDATE sources SET path=? WHERE path=?',(str(destination),str(source)))
-    print(json.dumps(dict(report=str(report_path),journal=str(journal_path),motions=len(report['motion_ids']),files=len(report['files']),bytes=sum(item['bytes'] for item in report['files']),intermediate_cleanup=0),ensure_ascii=False))
+    print(json.dumps({'report': str(report_path),'journal': str(journal_path),'motions': len(report['motion_ids']),'files': len(report['files']),'bytes': sum(item['bytes'] for item in report['files']),'intermediate_cleanup': 0},ensure_ascii=False))
 
 
 def main():
@@ -121,7 +121,7 @@ def main():
     if args.execute:
         execute(library,report)
     else:
-        print(json.dumps(dict(motions=len(report['motion_ids']),files=len(report['files']),bytes=sum(item['bytes'] for item in report['files']),quarantine=str(quarantine),intermediate_cleanup=len(report['intermediate_cleanup'])),ensure_ascii=False))
+        print(json.dumps({'motions': len(report['motion_ids']),'files': len(report['files']),'bytes': sum(item['bytes'] for item in report['files']),'quarantine': str(quarantine),'intermediate_cleanup': len(report['intermediate_cleanup'])},ensure_ascii=False))
 
 
 if __name__=='__main__':

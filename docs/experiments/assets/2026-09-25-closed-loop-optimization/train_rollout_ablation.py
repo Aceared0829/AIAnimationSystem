@@ -18,8 +18,11 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 
 from data.runtime.conditioned_motion import load_raw, root_local
-from training.pretrain.train_conditioned_pose import ReferenceGuidedPose, losses, verify_release
-
+from training.pretrain.train_conditioned_pose import (
+    ReferenceGuidedPose,
+    losses,
+    verify_release,
+)
 
 ROOT = Path(__file__).resolve().parents[4]
 RELEASE = Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924")

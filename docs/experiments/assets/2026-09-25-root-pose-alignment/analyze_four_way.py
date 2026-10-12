@@ -8,7 +8,6 @@ from pathlib import Path
 
 import numpy as np
 
-
 LANES = ("source_source", "source_cmc", "model_plan", "model_cmc")
 FEET = ("foot_l", "ball_l", "foot_r", "ball_r")
 

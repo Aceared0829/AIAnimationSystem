@@ -2,6 +2,7 @@ import csv
 import tempfile
 import unittest
 from pathlib import Path
+
 from motionbricks.data.motion_catalog import MotionCatalog
 
 
@@ -10,8 +11,8 @@ class CatalogTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             (root / 'metadata').mkdir()
-            row = dict(filename='walk', move_soma_uniform_path='soma_uniform/bvh/walk.bvh',
-                       move_soma_proportional_path='soma_proportional/bvh/walk.bvh', move_g1_path='g1/csv/walk.csv')
+            row = {'filename': 'walk', 'move_soma_uniform_path': 'soma_uniform/bvh/walk.bvh',
+                       'move_soma_proportional_path': 'soma_proportional/bvh/walk.bvh', 'move_g1_path': 'g1/csv/walk.csv'}
             with (root / 'metadata/seed_metadata_v004.csv').open('w', newline='') as stream:
                 writer = csv.DictWriter(stream, fieldnames=list(row))
                 writer.writeheader()

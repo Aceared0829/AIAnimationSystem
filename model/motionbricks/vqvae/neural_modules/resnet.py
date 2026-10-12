@@ -1,5 +1,6 @@
-import torch.nn as nn
 import torch
+from torch import nn
+
 
 class nonlinearity(nn.Module):
     def __init__(self):
@@ -42,7 +43,7 @@ class ResConv1DBlock(nn.Module):
         self.conv1 = nn.Conv1d(n_in, n_state, 3, 1, padding, dilation)
         self.conv2 = nn.Conv1d(n_state, n_in, 1, 1, 0,)
 
-    def forward(self, x: torch.Tensor, token_mask: torch.Tensor = None):
+    def forward(self, x: torch.Tensor, token_mask: torch.Tensor | None = None):
         x = x * token_mask[:, None, :] if token_mask is not None else x
         x_orig = x
         if self.norm == "LN":
@@ -84,7 +85,7 @@ class Resnet1D(nn.Module):
 
         self.model = nn.Sequential(*blocks)
 
-    def forward(self, x: torch.Tensor, token_mask: torch.Tensor = None):
+    def forward(self, x: torch.Tensor, token_mask: torch.Tensor | None = None):
         for block in self.model:
             x = block(x, token_mask)
         return x

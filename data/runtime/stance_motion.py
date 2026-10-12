@@ -5,10 +5,9 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
-
-from data.runtime.conditioned_motion import load_raw, root_local, sha256
 from motionbricks.data.unreal_dataset import contained_file, read_json
 
+from data.runtime.conditioned_motion import load_raw, root_local, sha256
 
 CONTRACT_ID = "stance_root_pose_v2"
 STANCES = {"stand": 0, "crouch": 1}

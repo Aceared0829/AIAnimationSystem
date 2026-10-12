@@ -9,7 +9,6 @@ from pathlib import Path
 
 import numpy as np
 
-
 MODELS = ("control", "toe_witness", "speed_phase")
 FIELDS = ("non_anchor_pose_rmse_cm", "contact_foot_speed_mps",
           "predicted_jump_cm", "causal_root_rmse_cm")

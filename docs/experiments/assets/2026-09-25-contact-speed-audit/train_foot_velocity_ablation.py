@@ -16,13 +16,16 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "docs/experiments/assets/2026-09-25-closed-loop-optimization"))
-from train_rollout_ablation import ThreeWindowClips, orthogonal_first_two, sha256  # noqa: E402
-from training.pretrain.train_conditioned_pose import (ReferenceGuidedPose, losses,  # noqa: E402
-                                                     root_world_positions, verify_release)
+from train_rollout_ablation import ThreeWindowClips, orthogonal_first_two, sha256
 
+from training.pretrain.train_conditioned_pose import (
+    ReferenceGuidedPose,
+    losses,
+    root_world_positions,
+    verify_release,
+)
 
 RELEASE = Path(r"E:\AIAnimationSystemData\freezes\reference_guided_root_pose_v1_20260924")
 LOCK = ROOT / "data/freezes/reference_guided_root_pose_v1_20260924.json"

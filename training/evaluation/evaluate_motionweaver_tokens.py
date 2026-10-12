@@ -5,7 +5,6 @@ Root prediction, body reconstruction, foot contact, or UE skinned quality.
 """
 
 import argparse
-import hashlib
 import json
 import random
 from collections import defaultdict
@@ -14,12 +13,13 @@ from pathlib import Path
 import numpy as np
 import torch
 from hydra.utils import instantiate
-from omegaconf import OmegaConf, open_dict
-
-from motionbricks.data.motionweaver_dataset import MotionWeaverUnrealDataset, collate_motionweaver
+from motionbricks.data.motionweaver_dataset import (
+    MotionWeaverUnrealDataset,
+    collate_motionweaver,
+)
 from motionbricks.data.unreal_dataset import file_sha256
 from motionbricks.helper.pl_util import load_motion_rep
-
+from omegaconf import OmegaConf, open_dict
 
 PROFILE = "actor_root_history4_compact_v1"
 ACTIONS = ("walk", "run", "crouch")

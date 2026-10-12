@@ -2,7 +2,6 @@
 
 import unreal
 
-
 SOURCE_MAP = "/Game/Levels/DefaultLevel"
 TARGET_MAP = "/MotionWeaverCMCPreview/Maps/L_CMCPreview"
 SOURCE_MODE = "/Game/Blueprints/GM_Sandbox"

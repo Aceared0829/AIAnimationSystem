@@ -2,10 +2,18 @@
 import argparse
 import json
 from pathlib import Path
+
 import numpy as np
 import onnxruntime as ort
+
 from inference.export.export_unreal_animgraph import pack_raw_pose
-from inference.profiling.evaluate_unreal_streaming import localize, positions, simulate, metric, rms
+from inference.profiling.evaluate_unreal_streaming import (
+    localize,
+    metric,
+    positions,
+    rms,
+    simulate,
+)
 
 
 def compare(baseline, candidate, dataset, output, selection="showcase"):

@@ -1,6 +1,8 @@
 """验证参考帧数量、历史范围及非均匀关键姿态选取。"""
 import unittest
+
 import numpy as np
+
 from inference.profiling.evaluate_pose_references import select_references
 from inference.profiling.evaluate_targeted_references import problem_frame
 

@@ -1,4 +1,3 @@
-from typing import Tuple
 
 import torch
 
@@ -9,7 +8,7 @@ def foot_detect_from_pos_and_vel(
     skeleton,
     vel_thres: float,
     height_thresh: float,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Compute foot contact labels using heuristics combining joint height and velocities.
 
     Args:
