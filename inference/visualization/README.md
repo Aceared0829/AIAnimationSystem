@@ -34,7 +34,7 @@ checks them and checks the exact source joints, Actor Root, and contact mask.
 ```powershell
 $mwPython = '.venv_motionweaver/Scripts/python.exe'
 $mwData = 'E:/AIAnimationSystemData/prepared/native30_relative_v2_worldcontacts'
-$mwVq = 'D:/AILocomotonSystem/GR00T-WholeBodyControl/training/runs/relative_v2_vqvae_contract_20260909/checkpoints/final.ckpt'
+$mwVq = 'D:/AILocomotonSystem/MotionWeaver/training/runs/relative_v2_vqvae_contract_20260909/checkpoints/final.ckpt'
 $mwPose = 'PATH/TO/REVIEWED/final.ckpt'
 
 & $mwPython -m inference.visualization.motionweaver_preview --pose-checkpoint $mwPose --vqvae-checkpoint $mwVq --dataset $mwData --output output/motionweaver_actor_teacher_RUN --run-label 'RUN LABEL' --device cuda

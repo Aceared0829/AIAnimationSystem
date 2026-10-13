@@ -1,8 +1,8 @@
 # Modified by the AIAnimationSystem downstream project on 2026-09-07:
 # distinguish this derivative project from the original MotionBricks research.
 cff-version: 1.2.0
-message: "引用原始 MotionBricks 研究请使用 preferred-citation；提及本派生项目时请同时注明 AIAnimationSystem 仓库和所用提交。"
-title: "AIAnimationSystem"
+message: "引用原始 MotionBricks 研究请使用 preferred-citation；提及本派生项目时请同时注明 MotionWeaver 仓库和所用提交。"
+title: "MotionWeaver"
 authors:
   - name: "Aceared0829"
     website: "https://github.com/Aceared0829"
@@ -12,8 +12,8 @@ abstract: >-
   顶层作者项标识维护本派生版本的 GitHub 账号，不表示其原创 MotionBricks 算法、
   预训练权重或论文；原论文作者与正式题名保留在 preferred-citation。
   本元数据中的 Apache-2.0 仅描述适用源代码，不覆盖 NVIDIA 预训练模型权重及第三方资源。
-url: "https://github.com/Aceared0829/AIAnimationSystem"
-repository-code: "https://github.com/Aceared0829/AIAnimationSystem"
+url: "https://github.com/Aceared0829/MotionWeaver"
+repository-code: "https://github.com/Aceared0829/MotionWeaver"
 type: software
 keywords:
   - character-animation

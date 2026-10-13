@@ -1,6 +1,6 @@
-# AIAnimationSystem
+# MotionWeaver
 
-面向 Unreal Engine 的 AI 角色动画实验项目，探索从动画数据训练到实时姿态生成的完整流程。
+MotionWeaver（原 AIAnimationSystem）是面向 Unreal Engine 的 AI 角色动画实验项目，探索从动画数据训练到实时姿态生成的完整流程。
 
 本项目基于 NVIDIA [GR00T-WholeBodyControl](https://github.com/NVlabs/GR00T-WholeBodyControl) 仓库中的 [MotionBricks](https://nvlabs.github.io/motionbricks/) 开发，由本仓库独立维护。MotionBricks 的模型架构、动作表示、原有训练与推理代码、预训练权重和上游演示属于原项目成果；本项目在其基础上面向游戏动画做裁剪、中文交互界面与 Windows 启动器适配，并添加实验性的 UE 动画导出和自定义骨架训练入口。
 
@@ -33,8 +33,8 @@
 
 ```bash
 git lfs install
-git clone https://github.com/Aceared0829/AIAnimationSystem.git
-cd AIAnimationSystem
+git clone https://github.com/Aceared0829/MotionWeaver.git
+cd MotionWeaver
 ```
 
 当前默认分支为 `main`。预训练检查点默认不自动下载；按下面的使用场景准备环境和模型。
@@ -91,17 +91,19 @@ Windows 下默认打开中文单窗口界面，其他平台在不能嵌入 MuJoC
 
 ## 仓库与文档
 
-已按职责重组。Python 导入名仍为 `motionbricks`，安装入口改为仓库根目录；数据、权重和检查点保留。目录与测试说明见 [仓库结构](docs/repository-layout.md)。
+已按数据、训练、模型、推理职责重组。模型源码位于 `model/MotionWeaver/`，Python 包名为 `motionweaver`；数据、训练和推理分别使用 `data.runtime`、`training`、`inference`。安装入口为仓库根目录，旧检查点导入集中兼容；已有数据和权重保留。目录与测试说明见 [仓库结构](docs/repository-layout.md)。
 
 ```text
 data/               runtime/ · tools/ · prepared/（本地）
 training/           pretrain/ · posttrain/ · common/ · models/ · evaluation/ · configs/ · runs/（本地）
-model/motionbricks/ 网络、几何、动作表示与共享实现
+model/MotionWeaver/ 网络、几何、动作表示与共享实现
 model-weight/       base/motionbricks/ · 自定义发布产物
 inference/          runtime/ · export/ · profiling/ · cli/ · demo/ · assets/
 unreal-script/      AILocomotionSystem/ · python/
 unreal-sample/      UE 推理/动画工具链实验宿主源码与资产交付边界（Content 暂缓）
 tests/              单元、训练、导出与目录回归测试
+tools/compat/       历史命令与检查点导入兼容源码
+.build/             python/ 安装元数据 · experiments/ 本地实验输出
 ```
 
 | 位置 | 用途 |

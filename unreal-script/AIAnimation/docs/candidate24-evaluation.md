@@ -68,7 +68,7 @@ UE 编译成功，实际执行 FixedSampling、PlaybackBuffer、StationaryPlayba
 
 ```powershell
 .venv/Scripts/python.exe -m inference.export.export_unreal_animgraph --checkpoint training/runs/relative_v2_vqvae_contract_20260909/checkpoints/final.ckpt --output output/ue_animgraph_candidate24_new --window_frames 24 --pose-condition endpoints
-& D:/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe D:/GameAnimationSample/GameAnimationSample.uproject -run=AIAnimationPrepare -ModelFolder=D:/AILocomotonSystem/GR00T-WholeBodyControl/output/ue_animgraph_candidate24_new -Variant=Candidate24 -ValidateGPU -unattended -nop4 -AllowCommandletRendering
+& D:/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe D:/GameAnimationSample/GameAnimationSample.uproject -run=AIAnimationPrepare -ModelFolder=D:/AILocomotonSystem/MotionWeaver/output/ue_animgraph_candidate24_new -Variant=Candidate24 -ValidateGPU -unattended -nop4 -AllowCommandletRendering
 ```
 
 导出仍默认 16 帧、无姿态条件；显式选用候选避免静默改变旧实验。Variant 仅允许单个字母、数字、下划线组成的名称，将生成资产隔离在实验目录下。
