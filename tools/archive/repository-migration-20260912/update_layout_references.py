@@ -5,7 +5,7 @@ import re
 import subprocess
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 AUDIT = ROOT / '.build/repository-migration-20260912'
 moves = json.loads((AUDIT / 'moves.json').read_text())
 scripts = json.loads((AUDIT / 'scripts.json').read_text())

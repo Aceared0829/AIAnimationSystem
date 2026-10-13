@@ -1,7 +1,7 @@
 """Mechanical remaining path substitutions in the current usage documentation."""
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 paths = list((ROOT / 'docs/motionbricks').glob('*.md')) + list((ROOT / 'unreal-script').rglob('*.md'))
 paths += [ROOT / 'docs/project-background.md']
 replacements = {
