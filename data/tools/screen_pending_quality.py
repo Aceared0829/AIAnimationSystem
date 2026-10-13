@@ -6,8 +6,8 @@ import time
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.motion_catalog import MotionCatalog
-from motionbricks.data.unreal_dataset import file_sha256
+from data.runtime.motion_catalog import MotionCatalog
+from data.runtime.unreal_dataset import file_sha256
 
 
 def screen(folder, motion_ids=None, state='retargeted_pending_quality', output_name='pending_quality_screen.json'):

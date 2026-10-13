@@ -6,9 +6,9 @@ remain targets and are never copied into the conditioning tensor.
 """
 
 import torch
-from motionbricks.data.motionweaver_root import actor_track_to_condition
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
-from motionbricks.motion_backbone.models.pose_model import MotionModel
+from data.runtime.motionweaver_root import actor_track_to_condition
+from motionweaver.representation.helper.data_training_util import extract_feature_from_motion_rep
+from training.models.backbone.pose_model import MotionModel
 
 
 class MotionWeaverPoseModel(MotionModel):

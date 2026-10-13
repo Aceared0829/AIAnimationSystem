@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import read_json
+from data.runtime.unreal_dataset import read_json
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 

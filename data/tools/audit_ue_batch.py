@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.unreal_dataset import (
+from data.runtime.unreal_dataset import (
     file_sha256,
     read_json,
     training_bones,

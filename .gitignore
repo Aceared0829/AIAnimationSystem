@@ -233,6 +233,12 @@ MotionBricks-launcher.log
 /motionbricks/out/
 /motionbricks/unreal_data/
 /motionbricks/unreal_runs/
+# Legacy root paths are local junctions; maintained compatibility source lives under tools/compat.
+/motionbricks/
+/tools/compat/motionbricks/assets/
+/tools/compat/motionbricks/out/
+/tools/compat/motionbricks/unreal_data/
+/tools/compat/motionbricks/unreal_runs/
 bones_seed_smpl/
 sonic_release/
 # Training output logs

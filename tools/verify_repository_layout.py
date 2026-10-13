@@ -1,5 +1,6 @@
 """Check canonical/legacy CLI entrypoints; optionally audit migration metadata."""
 import argparse
+import ast
 import concurrent.futures
 import json
 import subprocess
@@ -17,8 +18,16 @@ def main():
                         help='Compare artifacts with moves.json and artifact-inventory.json in this historical receipt directory.')
     args = parser.parse_args()
     with tempfile.TemporaryDirectory() as cwd:
-        targets = [p for folder in ('data/tools', 'training/pretrain', 'training/evaluation', 'inference/cli', 'inference/export', 'inference/profiling', 'motionbricks/scripts')
-                   for p in (ROOT / folder).glob('*.py') if p.name not in {'__init__.py', 'motion_batch_gate.py'}]
+        targets = []
+        for folder in ('data/tools', 'training/pretrain', 'training/evaluation', 'inference/cli', 'inference/export', 'inference/profiling', 'tools/compat/motionbricks/scripts'):
+            for path in (ROOT / folder).glob('*.py'):
+                if path.name in {'__init__.py', 'motion_batch_gate.py'}:
+                    continue
+                syntax = ast.parse(path.read_text(encoding='utf-8'))
+                has_parser = any(isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                                 and node.func.attr == 'ArgumentParser' for node in ast.walk(syntax))
+                if has_parser or folder == 'tools/compat/motionbricks/scripts':
+                    targets.append(path)
         def check(path):
             result = subprocess.run([sys.executable, str(path), '--help'], cwd=cwd, capture_output=True,
                                     text=True, encoding='utf-8', errors='replace', timeout=90, check=False)

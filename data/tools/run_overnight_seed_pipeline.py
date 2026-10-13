@@ -34,7 +34,7 @@ def isolate_issues(library):
     report = json.loads(screen.read_text(encoding='utf-8'))
     issues = [item for item in report['reports']
               if item['integrity_errors'] or set(item['review_flags']) - UNVERIFIED]
-    from motionbricks.data.unreal_dataset import file_sha256
+    from data.runtime.unreal_dataset import file_sha256
 
     from data.tools.close_seed_batch import write_json
     digest = file_sha256(screen)

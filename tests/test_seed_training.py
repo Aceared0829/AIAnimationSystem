@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
+from data.runtime.unreal_dataset import UnrealMotionDataset, file_sha256
 from test_unreal_dataset import pose_only_fixture
 
 from data.tools.prepare_unreal_dataset import prepare

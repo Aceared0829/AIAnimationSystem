@@ -8,9 +8,9 @@ import sys
 import uuid
 from pathlib import Path
 
-from motionbricks.data.motion_catalog import MotionCatalog
-from motionbricks.data.unreal_dataset import file_sha256, read_json
-from motionbricks.repository import unreal_scripts
+from data.runtime.motion_catalog import MotionCatalog
+from data.runtime.unreal_dataset import file_sha256, read_json
+from motionweaver.repository import unreal_scripts
 
 from data.tools.audit_ue_batch import audit
 from data.tools.close_seed_batch import write_json

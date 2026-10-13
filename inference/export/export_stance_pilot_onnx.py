@@ -8,7 +8,7 @@ import numpy as np
 import onnx
 import onnxruntime as ort
 import torch
-from motionbricks.data.unreal_dataset import read_json
+from data.runtime.unreal_dataset import read_json
 from torch import nn
 
 from data.runtime.conditioned_motion import sha256

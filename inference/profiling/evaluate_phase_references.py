@@ -138,6 +138,6 @@ def evaluate(output, override=None):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output',default='output/ai_animation_runtime_pose_references/phases.json')
+    parser.add_argument('--output',default='.build/experiments/ai_animation_runtime_pose_references/phases.json')
     parser.add_argument('--manifest')
     args=parser.parse_args();evaluate(args.output,args.manifest)

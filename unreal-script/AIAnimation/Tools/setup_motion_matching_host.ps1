@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $workspace = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..\..')).Path
-$hostRoot = Join-Path $workspace 'output\ue_cmc_host'
+$hostRoot = Join-Path $workspace '.build\experiments\ue_cmc_host'
 $projectPath = Join-Path $hostRoot 'Host.uproject'
 $pluginSource = 'D:\UnrealDataEngine\UrealDataEngine\Plugins\MotionMatchingInCpp'
 $pluginLink = Join-Path $hostRoot 'Plugins\MotionMatchingInCpp'

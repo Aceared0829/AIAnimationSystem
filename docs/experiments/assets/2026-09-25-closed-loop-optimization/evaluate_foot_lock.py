@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.unreal_dataset import apply_authoritative_root
+from data.runtime.unreal_dataset import apply_authoritative_root
 from scipy.spatial.transform import Rotation
 
 from data.runtime.conditioned_motion import load_raw, root_local

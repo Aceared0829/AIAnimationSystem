@@ -2,10 +2,12 @@
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $aliases = @{
-    'motionbricks/unreal_data' = 'data/prepared'
-    'motionbricks/unreal_runs' = 'training/runs'
-    'motionbricks/out' = 'model-weight/base/motionbricks'
-    'motionbricks/assets' = 'inference/assets'
+    'motionbricks' = 'tools/compat/motionbricks'
+    'output' = '.build/experiments'
+    'tools/compat/motionbricks/unreal_data' = 'data/prepared'
+    'tools/compat/motionbricks/unreal_runs' = 'training/runs'
+    'tools/compat/motionbricks/out' = 'model-weight/base/motionbricks'
+    'tools/compat/motionbricks/assets' = 'inference/assets'
 }
 foreach ($entry in $aliases.GetEnumerator()) {
     $aliasPath = [IO.Path]::GetFullPath((Join-Path $repositoryRoot $entry.Key))

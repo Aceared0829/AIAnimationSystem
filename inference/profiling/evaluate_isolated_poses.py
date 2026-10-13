@@ -41,7 +41,7 @@ def evaluate():
             report['clips'].append(item)
             print(json.dumps(item), flush=True)
     report['completed'] = True
-    output = Path('output/ai_animation_runtime_pose_references/isolated_short.json')
+    output = Path('.build/experiments/ai_animation_runtime_pose_references/isolated_short.json')
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text(json.dumps(report, indent=2), encoding='utf8')
 

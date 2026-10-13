@@ -25,7 +25,7 @@ class RepositoryLayoutAuditTests(unittest.TestCase):
                 root = Path(directory)
                 script = root / 'data/tools/sample.py'
                 script.parent.mkdir(parents=True)
-                script.write_text('# CLI fixture', encoding='utf-8')
+                script.write_text('import argparse\nargparse.ArgumentParser().parse_args()', encoding='utf-8')
                 artifact = root / 'training/runs/sample.ckpt'
                 artifact.parent.mkdir(parents=True)
                 artifact.write_bytes(b'fixture')

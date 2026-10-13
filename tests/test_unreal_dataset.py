@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import (
+from data.runtime.unreal_dataset import (
     UE_TO_MOTION,
     UnrealMotionDataset,
     UnrealSkeleton,
@@ -204,7 +204,7 @@ class UnrealDatasetTests(unittest.TestCase):
 
     def test_padding_has_no_loss_gradient(self):
         import torch
-        from motionbricks.training.unreal_quality import masked_mean
+        from training.common.unreal_quality import masked_mean
         values = torch.tensor([[[1.], [2.], [100.]]], requires_grad=True)
         loss = masked_mean(values, torch.tensor([[True, True, False]]))
         loss.backward()
@@ -258,10 +258,10 @@ class UnrealDatasetTests(unittest.TestCase):
             self.assertEqual(dataset[0]["motion"].shape[1], 90)
             self.assertEqual(dataset[0]["labels"]["action"], "walk")
             self.assertTrue(np.isfinite(dataset[0]["motion"].numpy()).all())
-            from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import (
+            from motionweaver.representation.core.motion_reps.dual_root_global_joints import (
                 GlobalRootGlobalJoints,
             )
-            from motionbricks.motionlib.core.utils.stats import Stats
+            from motionweaver.representation.core.utils.stats import Stats
             representation = GlobalRootGlobalJoints(fps=30, skeleton=UnrealSkeleton(output), name="unreal_dual_root_global_joints", stats=Stats(output / "stats"))
             restored = representation.inverse(dataset[0]["motion"], is_normalized=True, return_quat=False)
             positions, rotations, _ = convert_clip(fixture())

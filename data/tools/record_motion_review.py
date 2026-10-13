@@ -5,7 +5,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from motionbricks.data.unreal_dataset import file_sha256
+from data.runtime.unreal_dataset import file_sha256
 
 
 def record(library, cohort_path):

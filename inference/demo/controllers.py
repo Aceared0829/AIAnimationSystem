@@ -6,7 +6,7 @@ import platform
 import mujoco
 import numpy as np
 import torch as t
-from motionbricks.motion_backbone.demo.clips import clip_holder_G1
+from inference.demo.clips import clip_holder_G1
 from scipy.spatial.transform import Rotation as R
 
 

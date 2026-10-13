@@ -7,8 +7,8 @@ import sqlite3
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.motion_catalog import MotionCatalog
-from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
+from data.runtime.motion_catalog import MotionCatalog
+from data.runtime.unreal_dataset import UnrealMotionDataset, file_sha256
 
 
 def write_json(path, value):

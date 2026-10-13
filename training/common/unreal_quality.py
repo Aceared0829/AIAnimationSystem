@@ -5,13 +5,13 @@ from collections import Counter
 
 import numpy as np
 import torch
-from motionbricks.data.synthetic_dataset import collate_batch
-from motionbricks.data.unreal_dataset import UnrealSkeleton
-from motionbricks.helper.data_training_util import (
+from data.runtime.synthetic_dataset import collate_batch
+from data.runtime.unreal_dataset import UnrealSkeleton
+from motionweaver.representation.helper.data_training_util import (
     extract_feature_from_motion_rep,
     sample_keyframes,
 )
-from motionbricks.vqvae.models.motion_vqvae import MotionVQVAEModel
+from training.models.vqvae.motion_vqvae import MotionVQVAEModel
 from torch.nn import functional as F
 from torch.utils.data import Sampler
 

@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from motionbricks.data.unreal_dataset import file_sha256
+from data.runtime.unreal_dataset import file_sha256
 
 from data.tools.close_seed_batch import durable_copy, write_json
 

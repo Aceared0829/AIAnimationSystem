@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import (
+from data.runtime.unreal_dataset import (
     UnrealSkeleton,
     contained_file,
     convert_clip,
@@ -21,7 +21,7 @@ from motionbricks.data.unreal_dataset import (
     training_signature,
     world_foot_contacts,
 )
-from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import (
+from motionweaver.representation.core.motion_reps.dual_root_global_joints import (
     DualRootGlobalJoints,
 )
 

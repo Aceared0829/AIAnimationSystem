@@ -5,9 +5,9 @@
 ## 当前布局
 
 ```text
-AIAnimationSystem/
+MotionWeaver/
 ├── data/
-│   ├── runtime/                  # motionbricks.data：骨架、数据集、格式契约
+│   ├── runtime/                  # data.runtime：骨架、数据集、格式契约
 │   ├── tools/                    # 数据准备、批次处理、审核和入库
 │   │   └── review_web/           # 审核网页资源
 │   └── prepared/                 # 已有本地 UE 数据，不提交
@@ -20,15 +20,16 @@ AIAnimationSystem/
 │   ├── common/                   # 质量训练、有效帧掩码、采样器
 │   │   └── optim/                # 调度器及训练日志工具
 │   ├── evaluation/               # 重建评估、容量诊断、评估画廊
-│   ├── configs/                  # 现有训练配置
+│   ├── configs/pretrain/         # motionweaver_{vqvae,pose,root}.yaml 训练模板
 │   └── runs/                     # 本地训练检查点与实验产物，不提交
 ├── model/
-│   └── motionbricks/
-│       ├── vqvae/neural_modules/ # 编码器、码本、解码器
-│       ├── motion_backbone/      # Pose、Root 网络及共享采样
-│       ├── motionlib/core/       # 动作表示、骨架、变换与数学
+│   └── MotionWeaver/
+│       ├── tokenizer/neural_modules/ # 编码器、码本、解码器
+│       ├── backbone/             # Pose、Root 网络及共享采样
+│       ├── representation/
+│       │   ├── core/            # 动作表示、骨架、变换与数学
+│       │   └── helper/          # 共享表示、特征与命令行工具
 │       ├── geometry/             # 几何计算
-│       ├── helper/               # 兼容名称的共享表示/特征工具
 │       └── repository.py         # 与当前工作目录无关的资源定位
 ├── model-weight/
 │   └── base/motionbricks/        # 原 out：权重及绑定的配置、骨架、统计量
@@ -51,7 +52,10 @@ AIAnimationSystem/
 ├── docs/                        # 架构、迁移与技术说明
 ├── launcher/                    # Windows 启动器源码
 ├── tools/                       # 日常工具；archive/ 保存一次性迁移脚本
-├── motionbricks/                # 旧 CLI 委托与本机路径兼容
+│   └── compat/motionbricks/      # 历史 Python 导入与 CLI 兼容源码
+├── .build/                      # 本地产物默认忽略；原有 4 份验收报告保留追踪
+│   ├── python/                  # 自动生成的安装元数据与旧元数据备份
+│   └── experiments/             # 原 output/：实验报告、导出包与预览
 ├── setup.py                     # 唯一有效安装入口
 └── pyproject.toml
 ```
@@ -74,20 +78,28 @@ uv pip install --python .venv/Scripts/python.exe --no-deps -e .
 
 新环境可在根目录安装 `.[training]` 或 `.[training,demo]`；GPU PyTorch 应使用适合目标硬件的构建。旧 `motionbricks/setup.py` 会明确提示安装根目录，避免误装空包。
 
-根目录 `setup.py` 使用明确的 `package_dir` 映射保留旧 Python 名称。训练损失的新权威模块为 `motionbricks.training.unreal_quality`，旧 `motionbricks.data.unreal_quality` 仍为历史 Hydra 配置提供兼容别名。目录迁移没有改写检查点二进制。
+根目录安装的发行包为 `motionweaver`，`setup.py` 将它映射到唯一的模型源码目录 `model/MotionWeaver/`。模型使用 `motionweaver.tokenizer`、`motionweaver.backbone`、`motionweaver.representation`、`motionweaver.geometry`；数据、训练、推理直接使用 `data.runtime`、`training.*`、`inference.*`。MuJoCo 专用辅助代码位于 `inference/demo/mujoco_helper.py`。
+
+新训练从 `training/configs/pretrain/motionweaver_*.yaml` 读取模板，不再依赖上游权重目录中的 hparams。模板仅保留当前训练实际使用的配置；训练检查点和新导出包使用新的 Hydra 类路径。
+
+`motionweaver.legacy` 集中维护历史名称映射，`tools/compat/motionbricks/__init__.py` 仅为旧检查点/配置注册延迟导入别名，不复制网络、不提前导入训练依赖。读取旧配置时仅转换 Hydra `_target_` 类路径，不改动权重二进制或数据契约。上游 G1 参考资源与历史本机路径仍保留原名。
+
+`setup.py` 将 egg-info 固定生成到 `.build/python/`，首次安装时自动创建该目录。兼容包直接从 `tools/compat/motionbricks/` 安装，不依赖根目录旧入口。
+
+原先已提交的 4 份实验验收报告随目录迁入 `.build/experiments/`，保留 Git 追踪；其余实验产物与安装元数据继续忽略。不得为发布实验报告而提交整个 `.build/`。
 
 新入口支持从任意工作目录执行，前提是已经安装包。wheel 不携带大权重、数据与 UE 工程，使用这些仓库资源时设置 `AIANIMATION_ROOT` 指向完整检出。
 
 UE VQ-VAE 导出与训练评估入口分开；相关依赖隔离由 `tests/test_repository_layout.py` 覆盖。G1 `runtime/experiment/` 仍兼容上游 Lightning 模型封装，尚未重写为独立部署后端。
 
-本机旧 `motionbricks/unreal_data`、`unreal_runs`、`out`、`assets` 为目录连接，指向唯一的新位置。它们保留旧绝对路径读取能力，不复制数据。重建工具为 `tools/install_legacy_paths.ps1`；换机器仍需恢复实际数据，旧机器绝对路径不会自动变成可移植路径。旧 `scripts/*.py` 为委托入口；新代码不依赖旧脚本目录。
+本机根目录的 `motionbricks/`、`output/` 仅为目录连接，分别指向 `tools/compat/motionbricks/`、`.build/experiments/`，不重复保存文件；VS Code 工作区隐藏这两个旧入口。兼容目录内的 `unreal_data`、`unreal_runs`、`out`、`assets` 连接到对应数据、训练、权重与资产目录。它们保留旧绝对路径读取能力。重建工具为 `tools/install_legacy_paths.ps1`；换机器仍需恢复实际数据，旧机器绝对路径不会自动变成可移植路径。旧 `scripts/*.py` 为委托入口；新代码不依赖旧脚本目录。
 
 ## 日常检查与历史审计
 
 从仓库根目录执行 CLI 检查，验证新旧入口能在仓库外工作目录显示帮助：
 
 ```powershell
-.venv/Scripts/python.exe tools/verify_repository_layout.py --output output/repository-layout-cli.json
+.venv/Scripts/python.exe tools/verify_repository_layout.py --output .build/experiments/repository-layout-cli.json
 ```
 
 默认检查不读取迁移当天的本地产物清单，不要求训练数据和权重保持历史大小及修改时间。
@@ -95,7 +107,7 @@ UE VQ-VAE 导出与训练评估入口分开；相关依赖隔离由 `tests/test_
 需要对照迁移快照时，显式指定原回执目录：
 
 ```powershell
-.venv/Scripts/python.exe tools/verify_repository_layout.py --output output/repository-migration-audit.json --migration-audit .build/repository-migration-20260912
+.venv/Scripts/python.exe tools/verify_repository_layout.py --output .build/experiments/repository-migration-audit.json --migration-audit .build/repository-migration-20260912
 ```
 
 显式审计要求回执中的 `moves.json` 和 `artifact-inventory.json` 均存在；检查缺失文件、大小和修改时间差异，并在有差异时返回非零。它只比较历史元数据，不能据此判定内容损坏或替代 SHA-256 校验。外部数据盘离线、正常训练或恢复 LFS 权重都可能产生差异。

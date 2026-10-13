@@ -6,13 +6,13 @@ from types import SimpleNamespace
 import mujoco
 import numpy as np
 import torch as t
-from motionbricks.exp_setup.experiment import test
-from motionbricks.motion_backbone.demo.controllers import (
+from inference.runtime.experiment.experiment import test
+from inference.demo.controllers import (
     WASD_controller,
     random_controller,
 )
-from motionbricks.motion_backbone.inference.motion_inference import motion_inference
-from motionbricks.repository import base_weights, repository_root
+from inference.runtime.backbone.motion_inference import motion_inference
+from motionweaver.repository import base_weights, repository_root
 
 
 class navigation_demo:
@@ -75,7 +75,7 @@ class navigation_demo:
             models[model_name].load_state_dict(state_dict)
         self.inferencer = motion_inference(models, models['pose'].args)
 
-        from motionbricks.motion_backbone.demo.full_agent import full_navigation_agent
+        from inference.demo.full_agent import full_navigation_agent
         target_root_realignment = getattr(self.args, 'target_root_realignment', True)
         source_root_realignment = getattr(self.args, 'source_root_realignment', True)
         force_canonicalization = getattr(self.args, 'force_canonicalization', True)

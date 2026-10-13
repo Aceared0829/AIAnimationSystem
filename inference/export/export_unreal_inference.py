@@ -7,8 +7,9 @@ from pathlib import Path
 
 import torch
 from hydra.utils import instantiate
-from motionbricks.data.unreal_dataset import file_sha256, training_signature
-from motionbricks.helper.pl_util import load_motion_rep
+from motionweaver.legacy import canonical_config
+from data.runtime.unreal_dataset import file_sha256, training_signature
+from motionweaver.representation.helper.pl_util import load_motion_rep
 from omegaconf import DictConfig, OmegaConf, open_dict
 
 from inference.runtime.checkpoint import load_vqvae
@@ -23,7 +24,7 @@ def load_package(folder):
         if manifest.get("weights_sha256"):
             if file_sha256(folder / "weights.pt") != manifest["weights_sha256"]:
                 raise ValueError("推理权重校验失败，文件已改变")
-    conf = OmegaConf.load(folder / "config.yaml")
+    conf = canonical_config(OmegaConf.load(folder / "config.yaml"))
     if not isinstance(conf, DictConfig):
         raise ValueError("Configuration must be a mapping")
     with open_dict(conf):

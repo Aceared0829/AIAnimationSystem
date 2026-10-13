@@ -7,9 +7,9 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import UE_TO_MOTION
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
-from motionbricks.motionlib.core.utils.rotations import cont6d_to_matrix
+from data.runtime.unreal_dataset import UE_TO_MOTION
+from motionweaver.representation.helper.data_training_util import extract_feature_from_motion_rep
+from motionweaver.representation.core.utils.rotations import cont6d_to_matrix
 from scipy.spatial.transform import Rotation
 
 from inference.runtime.checkpoint import load_vqvae

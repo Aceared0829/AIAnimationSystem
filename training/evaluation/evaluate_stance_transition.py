@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import read_json
+from data.runtime.unreal_dataset import read_json
 
 from data.runtime.conditioned_motion import sha256
 from data.runtime.stance_motion import load_stance_window

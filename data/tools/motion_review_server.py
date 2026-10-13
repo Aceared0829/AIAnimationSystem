@@ -16,8 +16,8 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import numpy as np
-from motionbricks.data.bvh_reader import read_bvh
-from motionbricks.data.unreal_dataset import file_sha256
+from data.runtime.bvh_reader import read_bvh
+from data.runtime.unreal_dataset import file_sha256
 from scipy.spatial.transform import Rotation
 
 STATIC = Path(__file__).resolve().parent / "review_web"

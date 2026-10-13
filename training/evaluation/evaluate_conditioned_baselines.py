@@ -7,7 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.unreal_dataset import apply_authoritative_root, read_json
+from data.runtime.unreal_dataset import apply_authoritative_root, read_json
 from scipy.spatial.transform import Rotation
 
 from data.runtime.conditioned_motion import CONTRACT_ID, load_window, with_references

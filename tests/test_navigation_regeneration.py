@@ -3,7 +3,7 @@ import unittest
 
 import torch
 from inference.demo.full_agent import full_navigation_agent
-from motionbricks.motion_backbone.demo.clips import clip_holder_G1
+from inference.demo.clips import clip_holder_G1
 
 
 class NavigationRegenerationTests(unittest.TestCase):

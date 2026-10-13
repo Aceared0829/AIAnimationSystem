@@ -7,10 +7,10 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.motionlib.core.motion_reps.tools.feet import (
+from motionweaver.representation.core.motion_reps.tools.feet import (
     foot_detect_from_pos_and_vel,
 )
-from motionbricks.motionlib.core.skeletons.base import SkeletonBase
+from motionweaver.representation.core.skeletons.base import SkeletonBase
 from scipy.spatial.transform import Rotation
 from torch.utils.data import Dataset
 

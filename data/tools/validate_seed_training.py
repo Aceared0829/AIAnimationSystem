@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import (
+from data.runtime.unreal_dataset import (
     UnrealMotionDataset,
     convert_clip,
     convert_root_track,

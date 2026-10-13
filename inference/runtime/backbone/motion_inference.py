@@ -4,18 +4,18 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import torch as t
-from motionbricks.motion_backbone.sampling import gumbel_sample
+from motionweaver.backbone.sampling import gumbel_sample
 
 if TYPE_CHECKING:
-    from motionbricks.motion_backbone.models.pose_model import (
+    from training.models.backbone.pose_model import (
         MotionModel as pose_model_cls,
     )
-    from motionbricks.motion_backbone.models.root_model import (
+    from training.models.backbone.root_model import (
         MotionModel as root_model_cls,
     )
 
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
-from motionbricks.vqvae.neural_modules.vqvae import VQVAE as vqvae
+from motionweaver.representation.helper.data_training_util import extract_feature_from_motion_rep
+from motionweaver.tokenizer.neural_modules.vqvae import VQVAE as vqvae
 
 
 class motion_inference(t.nn.Module):

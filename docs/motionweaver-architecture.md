@@ -1,12 +1,12 @@
 # MotionWeaver：原版继承与 UE 玩家模型路线
 
-状态：2026-09-28 已实现独立 Actor Root 条件的 Pose Token 训练与本地推理入口；A800 上的 MotionWeaver Pose **从零完成 20000 步**，本地同轨与录制 CMC 评估已完成。固定 validation Token CE 明显改善，但 Run/Crouch 姿态、脚滑和 CMC 站→蹲测试未过质量门槛。E 盘现可读取；79 骨 UE VQ-VAE 检查点已核对。UE NNE/AnimGraph 尚未接入 MotionWeaver。工作树 `D:/AILocomotonSystem/GR00T-WholeBodyControl-p0-review`，代码基点 `e07aad2`，保留前序未提交实验。原版 `model/motionbricks/` 网络与 G1 演示仍保留；本轮未改变现有玩家试玩的 UE 推理行为。训练和验证详情见[已完成的实验记录](experiments/2026-09-28-motionweaver-a800-actor-root.md)。
+状态：2026-09-28 已实现独立 Actor Root 条件的 Pose Token 训练与本地推理入口；A800 上的 MotionWeaver Pose **从零完成 20000 步**，本地同轨与录制 CMC 评估已完成。固定 validation Token CE 明显改善，但 Run/Crouch 姿态、脚滑和 CMC 站→蹲测试未过质量门槛。E 盘现可读取；79 骨 UE VQ-VAE 检查点已核对。UE NNE/AnimGraph 尚未接入 MotionWeaver。工作树 `D:/AILocomotonSystem/GR00T-WholeBodyControl-p0-review`，代码基点 `e07aad2`，保留前序未提交实验。原版 `model/MotionWeaver/` 网络与 G1 演示仍保留；本轮未改变现有玩家试玩的 UE 推理行为。训练和验证详情见[已完成的实验记录](experiments/2026-09-28-motionweaver-a800-actor-root.md)。
 
 ## 名称与边界
 
 - **AIAnimationSystem**：项目名称。
-- **MotionBricks**：原版模型源码与 G1 参考演示，继续位于 `model/motionbricks/`、`training/models/`、`inference/runtime/backbone/` 及原版权重目录。保留来源和许可归属。
-- **MotionWeaver**：基于 MotionBricks 架构适配 UE 玩家控制的目标模型。`model/motionweaver/` 目前记录命名与架构；已实现的网络适配位于 `training/models/backbone/`，训练与推理入口分别位于 `training/pretrain/` 和 `inference/runtime/`。共用上游网络时直接引用原实现，并记录差异与来源。
+- **MotionBricks**：上游模型架构、原始代码与 G1 参考演示的来源名称。继承的网络统一维护在 `model/MotionWeaver/`，训练封装归 `training/models/`，参考推理归 `inference/runtime/backbone/`；上游权重继续使用原目录，保留来源和许可归属。
+- **MotionWeaver**：基于 MotionBricks 架构适配 UE 玩家控制的模型。`model/MotionWeaver/` 保存 tokenizer、backbone、动作表示与几何源码；已实现的 Lightning 训练适配位于 `training/models/backbone/`，训练与推理入口分别位于 `training/pretrain/` 和 `inference/runtime/`。共用上游网络时直接引用同一份实现，并记录差异与来源。旧 `motionbricks.*` Python 名称由安装映射保留，用于现有配置和检查点兼容。
 - **ReferenceGuidedPose**：现有 UE 试玩用的约 310 万参数直接回归实验模型，定义在 [`training/pretrain/train_conditioned_pose.py`](../training/pretrain/train_conditioned_pose.py)。继续作为可复现的轻量对照；其现有 ONNX、日志和指标不得改标签冒充 MotionWeaver 成绩。
 
 ## 本地代码实际差别
@@ -14,20 +14,23 @@
 | 层 | MotionBricks 原版 / 当前保留代码 | 当前 UE 试玩 `ReferenceGuidedPose` | MotionWeaver 目标 |
 | --- | --- | --- | --- |
 | 数据 | `data/runtime/synthetic_dataset.py` 为原版训练入口；UE 数据另有 `unreal_dataset.py` | UE 独立 Root 与 79 骨姿态；`conditioned_motion.py` 制作 24+24 帧窗口，冻结契约和划分 | 已将 UE `raw_*.npz` 的独立 Actor Root 逐帧制成 sidecar，并与姿态窗口同步；训练不把骨盆相对 Root 当 CMC 世界轨迹，也不制造玩家按键真值 |
-| 表示 | `model/motionbricks/vqvae/` 的多头离散码本与条件解码 | 每骨位置和 6D 旋转直接回归，没有动作 Token | 已核对 UE 79 骨 VQ-VAE 检查点与数据签名；Pose Token 网络复用原版结构，正式 20000 步权重已保存在 `output/motionweaver_actor_a800_20k_20260928/` |
+| 表示 | `model/MotionWeaver/tokenizer/` 的多头离散码本与条件解码 | 每骨位置和 6D 旋转直接回归，没有动作 Token | 已核对 UE 79 骨 VQ-VAE 检查点与数据签名；Pose Token 网络复用原版结构，正式 20000 步权重已保存在 `output/motionweaver_actor_a800_20k_20260928/` |
 | 生成 | `motion_backbone/` 包含 Root 与 Pose 模块；原版推理先 Root 后 Token/解码 | GRU 历史编码 + 3 层 Transformer，给定外部 Root 直接输出 79 骨 | 已实现 Actor Root 轨迹条件 → Pose Token → VQ 解码的本地入口；在线输入仅给前 4 帧历史姿态。模型生成 Actor Root、在线样例关键帧仍属后续能力 |
 | 世界位移 | 原版 Root 模块可生成并细化 Root | 当前试玩由 CMC 决定 Actor，模型只给姿态；轨迹/坐标仍待对齐 | 运动来源可选 CMC、Mover、模型生成；UE 执行层处理碰撞及最终位移，实际 Root 回馈姿态生成 |
 | 训练 | `training/pretrain/train_{vqvae,root,pose}.py`；UE 入口 `train_unreal.py` 可训练 VQ-VAE/Pose，pose-only 契约拒绝 Root 训练 | `train_conditioned_pose.py` 和后续短训脚本；来源未来 Root 配对监督 | `train_unreal.py --motionweaver_online` 已按 Actor Root sidecar 在 A800 从零训练 20000 步；固定 48 条 validation 的 Token CE 为 1.4536 nats。模型驱动 Root 需另立数据与训练契约 |
 | 推理 | `inference/runtime/backbone/motion_inference.py` 使用 Root/Pose/VQ-VAE，G1 演示走 `inference/demo/` | `inference/runtime/conditioned_pose.py` 与 `output/playable_player_20260927/bundle/*.onnx`；UE NNE/AnimGraph 消费 | `inference/runtime/motionweaver.py` 已加载正式 Pose 权重做本地来源 Root 与录制 CMC Root 推理；脚滑与蹲伏响应未过验收，UE NNE 实时闭环尚未接入 |
 
-源码依据：[原版 VQ-VAE](../model/motionbricks/vqvae/neural_modules/vqvae.py)、[原版 Root](../model/motionbricks/motion_backbone/neural_modules/root_backbone.py)、[原版 Pose](../model/motionbricks/motion_backbone/neural_modules/pose_backbone.py)、[原版推理编排](../inference/runtime/backbone/motion_inference.py)、[UE 原版模型训练入口](../training/pretrain/train_unreal.py)、[直接回归模型](../training/pretrain/train_conditioned_pose.py)。
+源码依据：[原版 VQ-VAE](../model/MotionWeaver/tokenizer/neural_modules/vqvae.py)、[原版 Root](../model/MotionWeaver/backbone/neural_modules/root_backbone.py)、[原版 Pose](../model/MotionWeaver/backbone/neural_modules/pose_backbone.py)、[原版推理编排](../inference/runtime/backbone/motion_inference.py)、[UE 原版模型训练入口](../training/pretrain/train_unreal.py)、[直接回归模型](../training/pretrain/train_conditioned_pose.py)。
 
 ## 目标目录和职责
 
 ```text
 model/
-  motionbricks/                原版源码，继续保留
-  motionweaver/                MotionWeaver 命名与架构说明；当前网络适配实现在 training/models/
+  MotionWeaver/
+    tokenizer/               VQ-VAE 编码器、码本与条件解码器
+    backbone/                Pose / Root 网络与采样
+    representation/          动作表示、骨架与共享特征
+    geometry/                几何计算
 data/
   runtime/unreal_dataset.py   现有 UE 骨架/特征加载
   runtime/conditioned_motion.py 现有 Root/姿态窗口契约
@@ -46,7 +49,7 @@ unreal-script/
 .build/actor_root_sidecar_20260928/  与 UE 数据对应的训练 sidecar，非模型权重
 ```
 
-原版底层模型代码留在 `model/`；当前 MotionWeaver 的 Pose Token 包装位于 `training/models/`，数据转换位于 `data/`，训练器位于 `training/`，推理编排位于 `inference/`，UE 负责控制状态与蒙皮接线。新代码不能通过复制整个 `motionbricks/` 目录形成难以追踪的第二份上游；只为确需改动的模块建立 MotionWeaver 实现，并记录原模块及差异。
+底层网络统一维护在 `model/MotionWeaver/`；当前 MotionWeaver 的 Lightning Pose Token 包装位于 `training/models/`，数据转换位于 `data/`，训练器位于 `training/`，推理编排位于 `inference/`，UE 负责控制状态与蒙皮接线。新代码不复制第二份上游实现，修改时记录原模块及差异。
 
 ## 运动来源与唯一实际位移
 

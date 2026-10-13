@@ -5,8 +5,9 @@ import copy
 import os
 
 from hydra.utils import instantiate
-from motionbricks.helper.pl_util import load_motion_rep
-from motionbricks.repository import base_weights
+from motionweaver.representation.helper.pl_util import load_motion_rep
+from motionweaver.repository import base_weights
+from motionweaver.legacy import canonical_config
 from omegaconf import OmegaConf, open_dict
 
 DEFAULT_RESULT_DIR = str(base_weights())
@@ -57,7 +58,7 @@ def test(args: argparse.Namespace | None = None):
         ckpt_path = f"{ckpt_dir}/checkpoints/{ckpt_info[model_key + '_ckpt']}"
         config_path = f"{ckpt_dir}/hparams.yaml"
 
-        conf = OmegaConf.load(config_path)
+        conf = canonical_config(OmegaConf.load(config_path))
         conf.ckpt_path = ckpt_path
         # The upstream serialized configs use paths relative to their original out/ folder.
         # Resolve those resources against the selected bundle without rewriting the checkpoint.
@@ -81,12 +82,12 @@ def test(args: argparse.Namespace | None = None):
             # 将结果保存到另一目录："+data.explicit_dataset_folder=YOUR_DEBUG_FOLDER"
             conf.data.folder = args.explicit_dataset_folder
 
-        from motionbricks.motionlib.train.utils import get_rank, setup_train_logging
+        from training.common.optim.utils import get_rank, setup_train_logging
         motion_rep = load_motion_rep(conf)
         if conf.model.pose_vqvae_network is None and model_name == 'pose':
             pose_vqvae_config_path = \
                 os.path.abspath(os.path.join(conf.model.args.vqvae_model_ckpt_path, "..", "..", "config.yaml"))
-            pose_vqvae_config = OmegaConf.load(pose_vqvae_config_path)
+            pose_vqvae_config = canonical_config(OmegaConf.load(pose_vqvae_config_path))
             pose_network_config = pose_vqvae_config.model.pose_network if 'pose_network' in pose_vqvae_config.model \
                 else pose_vqvae_config.model.pose_vqvae_network
             conf.model.pose_vqvae_network = copy.deepcopy(pose_network_config)
@@ -108,7 +109,7 @@ def test(args: argparse.Namespace | None = None):
         # 获取进程序号
         global_rank = get_rank() or 0
         import tempfile
-        run_dir = tempfile.mkdtemp(prefix="motionbricks_")
+        run_dir = tempfile.mkdtemp(prefix="motionweaver_")
         conf.out_dir = run_dir
 
         log = setup_train_logging(run_dir, global_rank)
