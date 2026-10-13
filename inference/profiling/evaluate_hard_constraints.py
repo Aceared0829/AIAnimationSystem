@@ -30,7 +30,7 @@ def evaluate():
         report['variants'][name]={'mean_cm':float(rms(error).mean()),'acceleration_error':float(accel.mean()),
             'anchor_neighbor_acceleration_error':float(accel[np.array(near)-1].mean()),
             'max_local_bone_length_difference_cm':float(np.abs(lengths-source_lengths).max())}
-    output=Path('output/ai_animation_runtime_pose_references/hard_constraint_comparison.json')
+    output=Path('.build/experiments/ai_animation_runtime_pose_references/hard_constraint_comparison.json')
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text(json.dumps(report,indent=2),encoding='utf8')
     print(json.dumps(report,indent=2))

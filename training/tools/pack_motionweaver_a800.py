@@ -12,9 +12,10 @@ from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
 SOURCE_DIRECTORIES = (
-    "model/motionbricks",
+    "model/MotionWeaver",
     "data/runtime",
     "training/common",
+    "training/configs/pretrain",
     "training/models",
     "training/pretrain",
     "inference/runtime/backbone",
@@ -23,10 +24,12 @@ SOURCE_DIRECTORIES = (
 )
 SOURCE_FILES = (
     "setup.py",
+    "pyproject.toml",
     "data/__init__.py",
     "training/__init__.py",
     "inference/__init__.py",
-    "model-weight/base/motionbricks/motionbricks_pose/version_1/hparams.yaml",
+    "inference/runtime/__init__.py",
+    "tools/compat/motionbricks/__init__.py",
 )
 
 
@@ -57,7 +60,8 @@ def main():
 
     source_files = [project / name for name in SOURCE_FILES]
     for directory in SOURCE_DIRECTORIES:
-        source_files.extend(path for path in (project / directory).rglob("*.py") if "__pycache__" not in path.parts)
+        source_files.extend(path for path in (project / directory).rglob("*")
+                            if path.suffix in {".py", ".yaml"} and "__pycache__" not in path.parts)
     source_files = sorted(set(source_files))
     dataset_files = [dataset / name for name in ("dataset.json", "skeleton.json", "stats/mean.npy", "stats/std.npy")]
     dataset_files.extend(dataset / item["file"] for item in manifest["clips"])

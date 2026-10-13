@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import contained_file
+from data.runtime.unreal_dataset import contained_file
 from torch import nn
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 

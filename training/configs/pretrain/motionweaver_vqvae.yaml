@@ -1,0 +1,102 @@
+# MotionWeaver UE training defaults; dataset and output paths are supplied by the CLI.
+model:
+  pose_vqvae_network:
+    _target_: motionweaver.tokenizer.neural_modules.vqvae.VQVAE
+    pose_root_mode: pose
+    motion_rep: ???
+    encoder_state_dim: 241
+    decoder_state_dim: 329
+    decoder_target_cond_dim: 241
+    decoder_external_cond_dim: 2
+    feature_mode:
+    - joint_positions_and_rotations_and_hip_height
+    - pose
+    - joint_positions_and_rotations_and_hip_height
+    - root_without_hip_height_without_heading
+    quantizer_strategy: multihead_ema_reset
+    quantizer_mu: 0.99
+    nb_code: 100000000
+    code_dim: 256
+    output_emb_width: 256
+    down_t: 2
+    stride_t: 2
+    width: 512
+    depth: 4
+    dilation_growth_rate: 3
+    activation: relu
+    num_heads: 8
+    kmeans_init: false
+    norm: None
+    calculate_per_head_perplexity: true
+    cond_fusion_last_layer: false
+  _target_: training.models.vqvae.motion_vqvae.MotionVQVAEModel
+  motion_rep: ???
+  pose_vqvae_motion_rep: local
+  root_vqvae_network: null
+  denoiser:
+    backbone:
+      llm_shape: null
+  args:
+    min_tokens: 6
+    max_tokens: 16
+    down_t: 2
+    commit_loss_coeff: 0.02
+    batchsize_mul_factor: 2
+    root_vqvae_max_num_keyframes: 5
+    root_vqvae_no_keyframe_prob: 0.25
+    pose_vqvae_max_num_keyframes: 10
+    pose_vqvae_no_keyframe_prob: 0.25
+    keyframe_num_warmup_steps: 200000
+    global_root_loss_coeff: 0.5
+    local_root_loss_coeff: 0.5
+    max_angle_diff: 5.0
+    max_norm_ratio: 0.2
+    percentage_of_perturbed_samples: 0.2
+    floor_estimation: min_joint_height_within_windows
+    floor_estimation_window_time: 1.0
+    skate_contact_loss_coeff: 0.01
+    joint_vel_loss_coeff: 2.0
+  optimizer:
+    _target_: adam_atan2_pytorch.AdamAtan2
+    _partial_: true
+    lr: 0.0002
+    weight_decay: 0.0
+  scheduler:
+    _target_: training.common.optim.scheduler.WarmupCosineScheduler
+    _partial_: true
+    num_warmup_steps: 10000
+    num_training_steps: ${trainer.max_steps}
+    final_lr: 4.0e-06
+    last_epoch: -1
+    lt_kwargs:
+      interval: step
+      frequency: 1
+trainer:
+  _target_: pytorch_lightning.Trainer
+  precision: 32
+  enable_progress_bar: false
+  profiler: null
+  check_val_every_n_epoch: null
+  detect_anomaly: false
+  num_sanity_val_steps: 0
+  max_steps: 2000001
+  gradient_clip_val: 0.5
+  log_every_n_steps: 50
+  val_check_interval: 50000
+  devices: 8
+  num_nodes: 4
+  accelerator: gpu
+  strategy: ddp
+data:
+  folder: ???
+  text_embeddings: null
+skeleton:
+  _target_: data.runtime.unreal_dataset.UnrealSkeleton
+  folder: ???
+motion_rep:
+  name: unreal_dual_root_global_joints
+  stats:
+    _target_: motionweaver.representation.core.utils.stats.Stats
+    folder: ???
+  _target_: motionweaver.representation.core.motion_reps.dual_root_global_joints.GlobalRootGlobalJoints
+fps: 30

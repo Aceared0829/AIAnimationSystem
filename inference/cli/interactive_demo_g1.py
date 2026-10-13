@@ -4,8 +4,8 @@ import argparse
 import platform
 import time
 
-from motionbricks.helper.argparse_zh import enable_chinese_argparse
-from motionbricks.repository import base_weights, repository_root
+from motionweaver.representation.helper.argparse_zh import enable_chinese_argparse
+from motionweaver.repository import base_weights, repository_root
 
 
 def _disable_mujoco_keyboard_shortcuts(controller_keys='wasdrtfgeqzxcvb'):
@@ -55,10 +55,10 @@ def main(args) -> None:
     try:
         import mujoco
         import mujoco.viewer
-        from motionbricks.motion_backbone.demo.chinese_control_panel import (
+        from inference.demo.chinese_control_panel import (
             ChineseControlPanel,
         )
-        from motionbricks.motion_backbone.demo.utils import navigation_demo
+        from inference.demo.utils import navigation_demo
     except ModuleNotFoundError as error:
         raise RuntimeError('G1 演示缺少可选依赖；请从仓库根目录安装 .[demo] 并准备 G1 权重。') from error
     demo_agent = navigation_demo(args)

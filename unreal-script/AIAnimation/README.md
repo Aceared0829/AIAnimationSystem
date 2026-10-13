@@ -102,7 +102,7 @@ GASP 动画序列 → 79 骨骼的 Root 相对姿态 → 30 Hz、16 帧历史窗
 
 主要运动的二阶差分降低约 49%–65%，同时平均位置误差下降。二阶差分不是越低越好的独立质量目标，需结合源动作、速度误差及姿态误差判断。静止保护抑制了周期微抖，但 Idle 平均位置误差增加约 0.5 cm；Traversal 的旋转误差 P95 也未改善。4 帧方案仍出现更大的局部尖峰，因此默认选 8 帧。脚部速度误差仅是相对源动作的速度差，不等同于落地接触或真实滑步测量。
 
-本轮重跑报告在 `output/ai_animation_runtime_cr_{lastframe,stream4,final}/runtime_report.json`；各目录含六类动作截图和运行日志。同时间区间对照与图表在 `output/ai_animation_runtime_overlap_comparison/quality_final.json`、`quality_comparison.png`。
+本轮重跑报告在 `output/ai_animation_runtime_cr_{lastframe,stream4,final}/runtime_report.json`；各目录含六类动作截图和运行日志。同时间区间对照与图表在 `.build/experiments/ai_animation_runtime_overlap_comparison/quality_final.json`、`quality_comparison.png`。
 
 最终 UE 编译通过；实际执行的 `AIAnimation.Lab.FixedSampling`、`AIAnimation.Lab.PlaybackBuffer`、`AIAnimation.Lab.StationaryPlayback` 三项自动化测试均成功，覆盖固定采样网格、同时间点插值、已播放端点冻结、四元数符号、缓冲上限、重置和静止解除。日志：`.build/ai_animation_stream_build_final.log`、`.build/ai_animation_stream_tests_final.log`。本轮没有重新训练模型，也未验证完整 GASP 玩法、打包、多角色并发或长时运行。
 
@@ -137,14 +137,14 @@ GASP 动画序列 → 79 骨骼的 Root 相对姿态 → 30 Hz、16 帧历史窗
 ./unreal-script/AIAnimation/Run-GaspPreview.ps1 -Playback LastFrame
 
 # 相同源时间区间的质量对照；CPU 只用于算法评估，不测 UE GPU 性能
-.venv/Scripts/python.exe -m inference.profiling.evaluate_unreal_streaming --bundle output/ue_animgraph_v2 --dataset data/prepared/native30_relative_v2_worldcontacts --output output/ai_animation_runtime_overlap_comparison/quality_final.json
+.venv/Scripts/python.exe -m inference.profiling.evaluate_unreal_streaming --bundle output/ue_animgraph_v2 --dataset data/prepared/native30_relative_v2_worldcontacts --output .build/experiments/ai_animation_runtime_overlap_comparison/quality_final.json
 ```
 
 需要重新导出和导入时，从仓库根目录执行以下命令。Python 环境需要项目训练依赖、`onnx` 与 `onnxruntime`（或 Windows 的 `onnxruntime-directml`，二者不要同时安装）。导出输出目录必须不存在。
 
 ```powershell
 .venv/Scripts/python.exe -m inference.export.export_unreal_animgraph --checkpoint training/runs/relative_v2_vqvae_contract_20260909/checkpoints/final.ckpt --output output/ue_animgraph_new
-& D:/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe D:/GameAnimationSample/GameAnimationSample.uproject -run=AIAnimationPrepare -ModelFolder=D:/AILocomotonSystem/GR00T-WholeBodyControl/output/ue_animgraph_new -ValidateGPU -unattended -nop4 -AllowCommandletRendering
+& D:/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe D:/GameAnimationSample/GameAnimationSample.uproject -run=AIAnimationPrepare -ModelFolder=D:/AILocomotonSystem/MotionWeaver/output/ue_animgraph_new -ValidateGPU -unattended -nop4 -AllowCommandletRendering
 ```
 
 导入命令只更新 `/Game/AIAnimationPreview/` 下的实验资产，包含模型、对照地图及一个插入重建节点的 GASP CMC AnimBP 副本。这个副本仅验证编译，未验证完整玩法，且节点在最终输出前，会影响原图的 IK 结果，不应作为正式接入模板。

@@ -3,13 +3,13 @@ from copy import deepcopy
 
 import torch as t
 
-# using this matrix_to_quaternion instead of the one in motionbricks.motionlib.core.utils.rotations
+# using this matrix_to_quaternion instead of the one in motionweaver.representation.core.utils.rotations
 # to avoid some tensorrt issues
-from motionbricks.geometry.quaternions import matrix_to_quaternion
-from motionbricks.helper.mujoco_helper import get_mujoco_converter
-from motionbricks.motion_backbone.demo.clips import clip_holder_G1
-from motionbricks.motion_backbone.inference.motion_inference import motion_inference
-from motionbricks.motionlib.core.utils.rotations import (
+from motionweaver.geometry.quaternions import matrix_to_quaternion
+from inference.demo.mujoco_helper import get_mujoco_converter
+from inference.demo.clips import clip_holder_G1
+from inference.runtime.backbone.motion_inference import motion_inference
+from motionweaver.representation.core.utils.rotations import (
     angle_to_Y_rotation_matrix,
     matrix_to_cont6d,
     quaternion_to_matrix,

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+from motionweaver.representation.helper.data_training_util import extract_feature_from_motion_rep
 
 from inference.export.export_unreal_inference import load_package
 

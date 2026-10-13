@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 from contact_v2_audit import ROLES, contact_candidates, unpack
-from motionbricks.data.unreal_dataset import apply_authoritative_root, contained_file
+from data.runtime.unreal_dataset import apply_authoritative_root, contained_file
 
 from data.runtime.conditioned_motion import load_raw, load_window
 from inference.runtime.conditioned_pose import ConditionedPosePredictor

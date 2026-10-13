@@ -13,7 +13,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.unreal_dataset import contained_file
+from data.runtime.unreal_dataset import contained_file
 from scipy.spatial.transform import Rotation
 
 from data.runtime.conditioned_motion import load_raw

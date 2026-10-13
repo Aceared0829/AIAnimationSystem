@@ -41,7 +41,7 @@ def evaluate():
     variants={'history24':(24,False),'curated24':(24,True),'proxy48':(48,False),'curated_proxy48':(48,True)}
     report={'completed':False,'scope':'Four diagnostic test examples; manually curated after source inspection, not held-out generalization. Proxy48 encodes known source animation including24 future frames, NOT sparse-only prediction. Same display interval/history-start/stride4/delay8. No UE agent, motion matching, root-follow or transition generation implementation.',
         'selection':'Asset-specific fixed frames; source skeleton visually inspected. Pose descriptions do not assert obstacle contact.', 'clips':[]}
-    output=Path('output/ai_animation_runtime_pose_references/proxy_curated.json')
+    output=Path('.build/experiments/ai_animation_runtime_pose_references/proxy_curated.json')
     output.parent.mkdir(parents=True,exist_ok=True)
     archive={};manifest={}
     with torch.inference_mode():

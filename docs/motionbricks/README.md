@@ -89,14 +89,14 @@ git lfs install
 普通克隆不会自动下载约 2.2 GiB 的 MotionBricks 预训练检查点。如果只需要源代码，例如准备使用自己的数据训练，可以直接克隆：
 
 ```bash
-git clone https://github.com/Aceared0829/AIAnimationSystem.git
+git clone https://github.com/Aceared0829/MotionWeaver.git
 cd AIAnimationSystem
 ```
 
 如需运行交互演示，请在仓库根目录显式拉取检查点和 G1 参考角色网格：
 
 ```bash
-git clone https://github.com/Aceared0829/AIAnimationSystem.git
+git clone https://github.com/Aceared0829/MotionWeaver.git
 cd AIAnimationSystem
 git lfs pull --include="model-weight/base/motionbricks/**" --exclude=""
 git lfs pull --include="inference/assets/skeletons/g1/meshes/**" --exclude=""  # 交互演示需要
@@ -239,7 +239,7 @@ python training/pretrain/train_root.py
 
 ```text
 AIAnimationSystem/
-  model/motionbricks/       # 网络、几何、动作表示
+  model/MotionWeaver/       # 网络、几何、动作表示
   data/runtime/            # motionbricks.data 包
   data/tools/              # 数据准备与审核
   training/pretrain/       # 训练入口
@@ -282,4 +282,4 @@ Licensed by NVIDIA Corporation under the NVIDIA Open Model License.
 
 ## 联系方式
 
-AIAnimationSystem 的中文界面、UE 插件及训练适配问题请提交至 [本仓库 Issues](https://github.com/Aceared0829/AIAnimationSystem/issues)。上游 MotionBricks 的反馈渠道见 [原项目](https://github.com/NVlabs/GR00T-WholeBodyControl)；本项目由本仓库独立维护。
+AIAnimationSystem 的中文界面、UE 插件及训练适配问题请提交至 [本仓库 Issues](https://github.com/Aceared0829/MotionWeaver/issues)。上游 MotionBricks 的反馈渠道见 [原项目](https://github.com/NVlabs/GR00T-WholeBodyControl)；本项目由本仓库独立维护。

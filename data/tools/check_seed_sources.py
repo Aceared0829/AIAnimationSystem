@@ -5,7 +5,7 @@ import json
 import math
 from pathlib import Path
 
-from motionbricks.data.motion_catalog import MotionCatalog
+from data.runtime.motion_catalog import MotionCatalog
 
 
 def header(path):

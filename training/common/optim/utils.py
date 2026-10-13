@@ -4,7 +4,7 @@
 import logging
 import os
 
-from motionbricks.motionlib.core.utils.custom_logging import setup_logging
+from motionweaver.representation.core.utils.custom_logging import setup_logging
 
 
 # from lightning_fabric/utilities/rank_zero.py

@@ -68,7 +68,7 @@ def audit():
         arrays[name] = prediction
     arrays['source'] = reference
     report['completed'] = True
-    output = Path('output/ai_animation_runtime_pose_references/marked_frame_audit.json')
+    output = Path('.build/experiments/ai_animation_runtime_pose_references/marked_frame_audit.json')
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text(json.dumps(report,indent=2),encoding='utf8')
     np.savez_compressed(output.with_suffix('.npz'), **arrays)

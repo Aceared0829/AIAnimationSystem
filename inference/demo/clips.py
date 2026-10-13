@@ -6,10 +6,10 @@ from typing import Any, Literal, Protocol, TypedDict, cast
 
 import numpy as np
 import torch as t
-from motionbricks.helper.mujoco_helper import (
+from inference.demo.mujoco_helper import (
     mujoco_qpos_converter,
 )
-from motionbricks.motionlib.core.motion_reps.motion_reps_base.seperate_root_local_body import SeparatedRootLocalBody
+from motionweaver.representation.core.motion_reps.motion_reps_base.seperate_root_local_body import SeparatedRootLocalBody
 from torch.utils.data import DataLoader
 from typing_extensions import NotRequired
 

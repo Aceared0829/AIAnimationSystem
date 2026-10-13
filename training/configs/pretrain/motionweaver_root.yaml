@@ -1,0 +1,113 @@
+# MotionWeaver UE training defaults; dataset and output paths are supplied by the CLI.
+model:
+  backbone_network:
+    _target_: motionweaver.backbone.neural_modules.root_backbone.root_backbone_network
+    motion_rep: ???
+    args:
+      min_tokens: ${model.args.min_tokens}
+      max_tokens: ${model.args.max_tokens}
+      down_t: ${model.args.down_t}
+      use_hard_num_token_emb_for_root_prediction: ${model.args.use_hard_num_token_emb_for_root_prediction}
+      local_root_feature: ${model.args.local_root_feature}
+      global_root_feature: ${model.args.global_root_feature}
+      local_pose_feature: ${model.args.local_pose_feature}
+      pose_feat_dim: 256
+      local_root_feat_dim: 64
+      global_root_feat_dim: 64
+      text_emb_dim: 4096
+      text_embeddings: ${data.text_embeddings}
+      input_feat_mlp_num_layers: 2
+      n_embd: 512
+      n_head: 16
+      n_layers_shared: 3
+      n_layers_root_token: 3
+      width: 512
+      depth: 4
+      dilation_growth_rate: 3
+      activation: relu
+      norm: None
+      pose_vqvae:
+        nb_code: 1024
+        code_dim: 60
+        num_heads: 1
+      root_vqvae:
+        nb_code: 1024
+        code_dim: 60
+        num_heads: 1
+  _target_: training.models.backbone.root_model.MotionModel
+  motion_rep: ???
+  root_vqvae_network: null
+  pose_vqvae_network: null
+  denoiser:
+    backbone:
+      llm_shape: null
+  args:
+    pose_root_mode: root
+    local_pose_feature: joint_positions_and_rotations_and_hip_height
+    local_root_feature: root
+    global_root_feature: root
+    min_tokens: 6
+    max_tokens: 16
+    use_hard_num_token_emb_for_root_prediction: true
+    min_off_target_tokens_to_sample: 25
+    max_off_target_tokens_to_sample: 40
+    prob_off_range_target_token: 0.0
+    prob_provide_num_tokens: 0.0
+    down_t: 2
+    vqvae_model_ckpt_path: null
+    batchsize_mul_factor: 2
+    max_num_start_keyframes: 4
+    no_start_keyframe_prob: 0.0
+    max_num_end_keyframes: 4
+    no_end_keyframe_prob: 0.0
+    prob_provide_text_emb: 0.0
+    num_token_loss_coeff: 1.0
+    global_root_loss_coeff: 2.0
+    local_root_loss_coeff: 1.0
+    keyframe_num_warmup_steps: 200000
+    floor_estimation: min_joint_height_within_windows
+    floor_estimation_window_time: 1.0
+  optimizer:
+    _target_: adam_atan2_pytorch.AdamAtan2
+    _partial_: true
+    lr: 0.0001
+    weight_decay: 0.0
+  scheduler:
+    _target_: training.common.optim.scheduler.WarmupCosineScheduler
+    _partial_: true
+    num_warmup_steps: 10000
+    num_training_steps: ${trainer.max_steps}
+    final_lr: 2.0e-06
+    last_epoch: -1
+    lt_kwargs:
+      interval: step
+      frequency: 1
+trainer:
+  _target_: pytorch_lightning.Trainer
+  precision: 32
+  enable_progress_bar: false
+  profiler: null
+  check_val_every_n_epoch: null
+  detect_anomaly: false
+  num_sanity_val_steps: 0
+  max_steps: 2000001
+  gradient_clip_val: 0.5
+  log_every_n_steps: 50
+  val_check_interval: 50000
+  devices: 8
+  num_nodes: 2
+  accelerator: gpu
+  strategy: ddp
+data:
+  folder: ???
+  text_embeddings: null
+skeleton:
+  _target_: data.runtime.unreal_dataset.UnrealSkeleton
+  folder: ???
+motion_rep:
+  name: unreal_dual_root_global_joints
+  stats:
+    _target_: motionweaver.representation.core.utils.stats.Stats
+    folder: ???
+  _target_: motionweaver.representation.core.motion_reps.dual_root_global_joints.GlobalRootGlobalJoints
+fps: 30

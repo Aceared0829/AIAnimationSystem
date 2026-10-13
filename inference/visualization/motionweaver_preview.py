@@ -18,8 +18,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import apply_authoritative_root
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
+from data.runtime.unreal_dataset import apply_authoritative_root
+from motionweaver.representation.helper.data_training_util import extract_feature_from_motion_rep
 from PIL import Image, ImageDraw, ImageFont
 from scipy.spatial.transform import Rotation
 

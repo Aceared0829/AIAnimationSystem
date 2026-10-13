@@ -17,10 +17,11 @@ import os
 
 import pytorch_lightning as pl
 from hydra.utils import instantiate
-from motionbricks.data.synthetic_dataset import SyntheticMotionDataset, collate_batch
-from motionbricks.helper.argparse_zh import enable_chinese_argparse
-from motionbricks.helper.pl_util import load_motion_rep
-from motionbricks.repository import base_weights
+from data.runtime.synthetic_dataset import SyntheticMotionDataset, collate_batch
+from motionweaver.representation.helper.argparse_zh import enable_chinese_argparse
+from motionweaver.representation.helper.pl_util import load_motion_rep
+from motionweaver.repository import base_weights
+from motionweaver.legacy import canonical_config
 from omegaconf import OmegaConf, open_dict
 from torch.utils.data import DataLoader
 
@@ -29,7 +30,7 @@ def load_config(result_dir: str, max_steps: int):
     """加载 hparams.yaml，并将其调整为单 GPU 训练配置。"""
     version_dir = os.path.join(result_dir, "motionbricks_root", "version_1")
     hparams_path = os.path.join(version_dir, "hparams.yaml")
-    conf = OmegaConf.load(hparams_path)
+    conf = canonical_config(OmegaConf.load(hparams_path))
 
     with open_dict(conf):
         # 将数据路径解析到保存骨架与统计量的版本目录

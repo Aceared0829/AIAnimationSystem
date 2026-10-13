@@ -12,15 +12,16 @@ from pathlib import Path
 
 import torch
 from hydra.utils import instantiate
-from motionbricks.data.motionweaver_root import actor_track_to_condition
-from motionbricks.helper.data_training_util import extract_feature_from_motion_rep
-from motionbricks.helper.pl_util import load_motion_rep
-from motionbricks.motion_backbone.inference.motion_inference import motion_inference
+from motionweaver.legacy import canonical_config
+from data.runtime.motionweaver_root import actor_track_to_condition
+from motionweaver.representation.helper.data_training_util import extract_feature_from_motion_rep
+from motionweaver.representation.helper.pl_util import load_motion_rep
+from inference.runtime.backbone.motion_inference import motion_inference
 from omegaconf import DictConfig, OmegaConf, open_dict
 
 
 class MotionWeaverInference(motion_inference):
-    """Run MotionBricks Pose Tokens with an explicit root-condition profile."""
+    """Run MotionWeaver Pose Tokens with an explicit root-condition profile."""
 
     def __init__(self, pose_model, args, device="cpu", condition_profile=None):
         torch.nn.Module.__init__(self)
@@ -303,11 +304,11 @@ def load_motionweaver_pose(pose_checkpoint, *, vqvae_checkpoint, dataset_dir=Non
         raise ValueError("Pose and VQ-VAE checkpoints have different UE training contracts")
     del vqvae_state
 
-    conf = OmegaConf.create(pose_contract["config"])
+    conf = canonical_config(OmegaConf.create(pose_contract["config"]))
     if not isinstance(conf, DictConfig):
         raise ValueError("Pose checkpoint config must be a mapping")
     profile = conf.get("motionweaver_profile")
-    if (conf.model._target_ != "motionbricks.motion_backbone.models.motionweaver_pose_model.MotionWeaverPoseModel"
+    if (conf.model._target_ != "training.models.backbone.motionweaver_pose_model.MotionWeaverPoseModel"
             or profile not in {"online_history4_compact_v1", "actor_root_history4_compact_v1"}):
         raise ValueError("Pose checkpoint is not a supported MotionWeaver online-history model")
     if pose_contract.get("motionweaver_profile") != profile:

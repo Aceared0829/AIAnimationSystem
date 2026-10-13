@@ -6,7 +6,7 @@ import subprocess
 import uuid
 from pathlib import Path
 
-from motionbricks.repository import unreal_scripts
+from motionweaver.repository import unreal_scripts
 
 
 def main():

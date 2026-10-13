@@ -7,20 +7,20 @@ from collections.abc import Callable, Iterable
 import numpy as np
 import torch
 import torch as t
-from motionbricks.helper.data_training_util import (
+from motionweaver.representation.helper.data_training_util import (
     extract_feature_from_motion_rep,
     sample_keyframes,
     sample_motion_segments_from_motion_clips,
 )
-from motionbricks.motion_backbone.neural_modules.pose_backbone import (
+from motionweaver.backbone.neural_modules.pose_backbone import (
     pose_backbone_network,
 )
-from motionbricks.motionlib.core.motion_reps import MotionRepBase
-from motionbricks.motionlib.core.motion_reps.dual_root_global_joints import (
+from motionweaver.representation.core.motion_reps import MotionRepBase
+from motionweaver.representation.core.motion_reps.dual_root_global_joints import (
     GlobalRootGlobalJoints,
     LocalRootGlobalJoints,
 )
-from motionbricks.vqvae.neural_modules import vqvae
+from motionweaver.tokenizer.neural_modules import vqvae
 from pytorch_lightning import LightningModule
 
 log = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 import unittest
 
 import torch
-from motionbricks.training.unreal_quality import PoseAwareBatchSampler
+from training.common.unreal_quality import PoseAwareBatchSampler
 
 
 class PoseAwareTests(unittest.TestCase):

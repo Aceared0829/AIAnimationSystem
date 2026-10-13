@@ -2,8 +2,8 @@
 
 import numpy as np
 import torch
-from motionbricks.data.synthetic_dataset import collate_batch
-from motionbricks.data.unreal_dataset import (
+from data.runtime.synthetic_dataset import collate_batch
+from data.runtime.unreal_dataset import (
     UnrealMotionDataset,
     contained_file,
     file_sha256,

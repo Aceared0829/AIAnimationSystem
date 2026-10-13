@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from motionbricks.data.unreal_dataset import apply_authoritative_root
+from data.runtime.unreal_dataset import apply_authoritative_root
 
 from data.runtime.conditioned_motion import load_window
 from inference.runtime.conditioned_pose import ConditionedPosePredictor

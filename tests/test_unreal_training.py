@@ -39,8 +39,8 @@ class UnrealTrainingTests(unittest.TestCase):
             self.assertIn("Root", result.stderr)
 
     def test_pose_low_focus_probability_has_finite_loss(self):
-        from motionbricks.motion_backbone.models.pose_model import MotionModel
-        from motionbricks.motion_backbone.neural_modules.pose_backbone import pose_backbone_network
+        from training.models.backbone.pose_model import MotionModel
+        from motionweaver.backbone.neural_modules.pose_backbone import pose_backbone_network
 
         model = MotionModel.__new__(MotionModel)
         torch.nn.Module.__init__(model)
@@ -62,7 +62,7 @@ class UnrealTrainingTests(unittest.TestCase):
         self.assertGreater(logits.grad.abs().sum().item(), 0)
 
     def test_resumed_schedule_uses_extended_horizon(self):
-        from motionbricks.motionlib.train.scheduler import WarmupCosineScheduler
+        from training.common.optim.scheduler import WarmupCosineScheduler
 
         script = Path(__file__).resolve().parents[1] / "training/pretrain/train_unreal.py"
         spec = importlib.util.spec_from_file_location("train_unreal", script)

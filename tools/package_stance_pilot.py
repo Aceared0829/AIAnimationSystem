@@ -7,7 +7,7 @@ import json
 import tarfile
 from pathlib import Path
 
-from motionbricks.data.unreal_dataset import contained_file, read_json
+from data.runtime.unreal_dataset import contained_file, read_json
 
 from data.runtime.conditioned_motion import sha256
 

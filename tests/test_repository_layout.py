@@ -24,9 +24,9 @@ class BlockTraining(importlib.abc.MetaPathFinder):
 sys.meta_path.insert(0, BlockTraining())
 from inference.runtime.checkpoint import load_vqvae
 from inference.export.export_unreal_inference import load_package
-from motionbricks.motion_backbone.inference.motion_inference import motion_inference
-from motionbricks.vqvae.neural_modules.vqvae import VQVAE
-from motionbricks.repository import base_weights
+from inference.runtime.backbone.motion_inference import motion_inference
+from motionweaver.tokenizer.neural_modules.vqvae import VQVAE
+from motionweaver.repository import base_weights
 assert (base_weights() / 'motionbricks_vqvae/version_1/hparams.yaml').is_file()
 '''
         with tempfile.TemporaryDirectory() as cwd:
@@ -34,9 +34,19 @@ assert (base_weights() / 'motionbricks_vqvae/version_1/hparams.yaml').is_file()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_legacy_checkpoint_class_alias(self):
-        from motionbricks.data.unreal_quality import UnrealQualityVQVAE as old
-        from motionbricks.training.unreal_quality import UnrealQualityVQVAE as new
+        import importlib
+        from importlib import resources
+
+        old = importlib.import_module('motionbricks.data.unreal_quality').UnrealQualityVQVAE
+        from training.common.unreal_quality import UnrealQualityVQVAE as new
         self.assertIs(old, new)
+        for legacy_name, canonical_name in [('motionbricks.data', 'data.runtime'),
+                                            ('motionbricks.vqvae', 'motionweaver.tokenizer')]:
+            with self.subTest(legacy=legacy_name):
+                canonical = importlib.import_module(canonical_name)
+                self.assertIs(importlib.import_module(legacy_name), canonical)
+                self.assertEqual(getattr(canonical.__spec__, 'name', None), canonical_name)
+                self.assertTrue(resources.files(canonical).joinpath('__init__.py').is_file())
 
     def test_pose_only_train_export_reload_is_numerically_equal(self):
         self._train_export_roundtrip('cpu')
@@ -46,8 +56,8 @@ assert (base_weights() / 'motionbricks_vqvae/version_1/hparams.yaml').is_file()
         self._train_export_roundtrip('gpu')
 
     def _train_export_roundtrip(self, accelerator):
-        from motionbricks.data.unreal_dataset import UnrealMotionDataset
-        from motionbricks.helper.data_training_util import (
+        from data.runtime.unreal_dataset import UnrealMotionDataset
+        from motionweaver.representation.helper.data_training_util import (
             extract_feature_from_motion_rep,
         )
 

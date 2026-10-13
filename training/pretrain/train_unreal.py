@@ -8,16 +8,16 @@ from pathlib import Path
 import pytorch_lightning as pl
 import torch
 from hydra.utils import instantiate
-from motionbricks.data.motionweaver_dataset import (
+from data.runtime.motionweaver_dataset import (
     MotionWeaverUnrealDataset,
     collate_motionweaver,
 )
-from motionbricks.data.synthetic_dataset import collate_batch
-from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
-from motionbricks.helper.pl_util import load_motion_rep
-from motionbricks.motionlib.train.scheduler import WarmupCosineScheduler
-from motionbricks.repository import base_weights
-from motionbricks.training.unreal_quality import PoseAwareBatchSampler, collate_native
+from data.runtime.synthetic_dataset import collate_batch
+from data.runtime.unreal_dataset import UnrealMotionDataset, file_sha256
+from motionweaver.representation.helper.pl_util import load_motion_rep
+from training.common.optim.scheduler import WarmupCosineScheduler
+from motionweaver.legacy import canonical_config
+from training.common.unreal_quality import PoseAwareBatchSampler, collate_native
 from omegaconf import DictConfig, OmegaConf, open_dict
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import CSVLogger
@@ -58,7 +58,8 @@ def check_checkpoint(path, signature, kind):
     contract = checkpoint.get("unreal_contract", {})
     if contract.get("signature") != signature or contract.get("kind") != kind:
         raise ValueError(f"{path} 与当前 UE 数据集或模型类型不匹配；不能使用 G1 权重")
-    return contract
+    return {**contract, "config": OmegaConf.to_container(
+        canonical_config(OmegaConf.create(contract["config"])), resolve=False)}
 
 
 def training_indices(manifest):
@@ -75,14 +76,14 @@ def training_indices(manifest):
 
 
 def build_config(args, dataset):
-    base = base_weights() / f"motionbricks_{args.model}" / "version_1" / "hparams.yaml"
+    base = Path(__file__).resolve().parents[1] / "configs/pretrain" / f"motionweaver_{args.model}.yaml"
     conf = OmegaConf.load(base)
     if not isinstance(conf, DictConfig):
         raise ValueError("Configuration must be a mapping")
     with open_dict(conf):
         conf.data = {"folder": str(Path(args.dataset).resolve()), "text_embeddings": None}
         conf.data["manifest_sha256"] = hashlib.sha256((Path(args.dataset) / "dataset.json").read_bytes()).hexdigest()
-        conf.skeleton = {"_target_": "motionbricks.data.unreal_dataset.UnrealSkeleton", "folder": conf.data["folder"]}
+        conf.skeleton = {"_target_": "data.runtime.unreal_dataset.UnrealSkeleton", "folder": conf.data["folder"]}
         conf.motion_rep.name = "unreal_dual_root_global_joints"
         conf.motion_rep.stats.folder = str(Path(args.dataset).resolve() / "stats")
         conf.fps = dataset.manifest["fps"]
@@ -94,7 +95,7 @@ def build_config(args, dataset):
         if getattr(args, "native_quality", False):
             if args.model != "vqvae" or dataset.manifest.get("split_policy", "none") == "none":
                 raise ValueError("原生质量训练要求 VQ-VAE 和预先划分的训练/留出集")
-            conf.model._target_ = "motionbricks.training.unreal_quality.UnrealQualityVQVAE"
+            conf.model._target_ = "training.common.unreal_quality.UnrealQualityVQVAE"
             conf.model.args.ue_geometry_coeff = args.geometry_coeff
             conf.model.args.ue_hand_endpoint_coeff = args.hand_endpoint_coeff
             conf.model.args.ue_traversal_endpoint_coeff = args.traversal_endpoint_coeff
@@ -110,7 +111,7 @@ def build_config(args, dataset):
             conf.model.args.vqvae_model_ckpt_path = str(Path(args.vqvae).resolve())
             conf.model.args.vqvae_sha256 = file_sha256(args.vqvae)
             if getattr(args, "motionweaver_online", False):
-                conf.model._target_ = "motionbricks.motion_backbone.models.motionweaver_pose_model.MotionWeaverPoseModel"
+                conf.model._target_ = "training.models.backbone.motionweaver_pose_model.MotionWeaverPoseModel"
                 net = conf.model.backbone_network.args
                 net.n_embd, net.n_head, net.n_layers = 256, 8, 6
                 net.pose_feat_width, net.root_feat_width, net.token_length_feat_width = 256, 128, 64

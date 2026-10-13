@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.bvh_reader import read_bvh
+from data.runtime.bvh_reader import read_bvh
 
 
 class BvhReaderTests(unittest.TestCase):

@@ -12,7 +12,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $repository = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
-if (-not $Output) { $Output = Join-Path $repository ('output/ai_animation_runtime_' + (Get-Date -Format 'yyyyMMdd_HHmmss')) }
+if (-not $Output) { $Output = Join-Path $repository ('.build/experiments/ai_animation_runtime_' + (Get-Date -Format 'yyyyMMdd_HHmmss')) }
 $Output = [IO.Path]::GetFullPath($Output)
 New-Item -ItemType Directory -Path $Output -Force | Out-Null
 $editor = Join-Path $Engine 'Engine/Binaries/Win64/UnrealEditor-Cmd.exe'

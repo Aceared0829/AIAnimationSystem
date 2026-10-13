@@ -3,8 +3,8 @@ import argparse
 import json
 from pathlib import Path
 
-from motionbricks.data.motion_catalog import MotionCatalog
-from motionbricks.data.unreal_dataset import UnrealMotionDataset, file_sha256
+from data.runtime.motion_catalog import MotionCatalog
+from data.runtime.unreal_dataset import UnrealMotionDataset, file_sha256
 
 
 def cleanup(library,plan_path,execute=False):

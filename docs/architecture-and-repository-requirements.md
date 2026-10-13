@@ -85,7 +85,7 @@ G1 预训练权重与既定骨架、关节顺序、特征语义和码本绑定�
 └── unreal-sample/         UE 示例项目代码；Content 从 Release 下载
 ```
 
-首个模型可使用 `model/motionbricks/`。这不要求立即实现第二种模型，也不要求提前建设通用模型注册平台。
+模型源码统一使用 `model/MotionWeaver/`，下分 `tokenizer/`、`backbone/`、`representation/`、`geometry/`，不再嵌套 MotionBricks 源码目录。训练封装保留在 `training/models/`，预训练与后训练入口分别归 `training/pretrain/` 和 `training/posttrain/`。旧 Python 导入名通过安装映射兼容已有配置和检查点，不复制模型实现。
 
 七个目录是业务职责布局，不表示仓库只能包含这七个目录。README、许可证、构建/安装配置、文档、测试和自动化配置仍需有明确位置。辅助目录的最终布局属于实施设计，不在本轮强行定案。
 
@@ -268,7 +268,7 @@ model-weight = 被加载的产物，不是源码依赖层
 | `motionbricks/motionbricks/data/` | `data/`、`training/` 中对应职责 | 数据加载/契约与质量训练器分开归属 |
 | `motionbricks/scripts/` 数据批处理、审核、预处理脚本 | `data/` | 同步审核界面、批次状态、队列和运行配置引用 |
 | `motionbricks/scripts/train_*.py`、训练质量评估 | `training/` | 同步日志、检查点、配置解析和续训 |
-| VQ-VAE / backbone 的 `neural_modules/` | `model/motionbricks/` | 优先保持网络数值行为和 state_dict 键 |
+| VQ-VAE / backbone 的 `neural_modules/` | `model/MotionWeaver/` | 优先保持网络数值行为和 state_dict 键 |
 | VQ-VAE / backbone 的 `models/` | 按网络与训练封装拆分到 `model/`、`training/` | 文件夹叫 models 不代表都是纯模型源码 |
 | `motionlib/`、`helper/` | 按共用表示、模型数学、训练和推理用途拆分 | 共享契约保留唯一实现，不引入循环依赖 |
 | `motion_backbone/inference/`、导出/性能脚本、参考演示 | `inference/` | 将加载能力从训练评估脚本解耦 |

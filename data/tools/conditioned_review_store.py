@@ -11,7 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.unreal_dataset import (
+from data.runtime.unreal_dataset import (
     apply_authoritative_root,
     contained_file,
     read_json,

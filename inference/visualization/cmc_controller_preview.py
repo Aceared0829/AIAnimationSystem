@@ -16,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import apply_authoritative_root
+from data.runtime.unreal_dataset import apply_authoritative_root
 from scipy.spatial.transform import Rotation
 
 from inference.visualization.motionweaver_preview import (
@@ -349,7 +349,7 @@ if __name__ == "__main__":
     parser.add_argument("--pose-checkpoint", type=Path, required=True)
     parser.add_argument("--vqvae-checkpoint", type=Path, required=True)
     parser.add_argument("--dataset", type=Path, required=True)
-    parser.add_argument("--cmc-capture", type=Path, default="output/cmc_root_capture_20260925_v2.csv")
+    parser.add_argument("--cmc-capture", type=Path, default=".build/experiments/cmc_root_capture_20260925_v2.csv")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cmc-start", type=int, default=44)
     parser.add_argument("--frames", type=int, default=28)

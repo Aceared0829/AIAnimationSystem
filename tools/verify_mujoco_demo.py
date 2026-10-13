@@ -8,8 +8,8 @@ from pathlib import Path
 import mujoco
 import numpy as np
 import torch
-from motionbricks.motion_backbone.demo.utils import navigation_demo
-from motionbricks.repository import base_weights, repository_root
+from inference.demo.utils import navigation_demo
+from motionweaver.repository import base_weights, repository_root
 from PIL import Image
 
 from inference.cli.interactive_demo_g1 import parse_args

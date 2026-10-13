@@ -5,7 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
-from motionbricks.data.unreal_dataset import contained_file, read_json
+from data.runtime.unreal_dataset import contained_file, read_json
 
 from data.runtime.conditioned_motion import load_raw, root_local, sha256
 

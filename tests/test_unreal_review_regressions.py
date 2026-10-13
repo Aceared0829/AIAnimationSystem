@@ -8,8 +8,8 @@ from unittest.mock import patch
 
 import numpy as np
 import torch
-from motionbricks.data.unreal_dataset import file_sha256, training_signature
-from motionbricks.training.unreal_quality import sample_native_segment
+from data.runtime.unreal_dataset import file_sha256, training_signature
+from training.common.unreal_quality import sample_native_segment
 from test_unreal_dataset import fixture, prepare_function
 
 from inference.export.export_unreal_inference import load_package
