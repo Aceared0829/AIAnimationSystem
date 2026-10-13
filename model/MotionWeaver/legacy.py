@@ -2,8 +2,9 @@
 
 import importlib
 import importlib.abc
-import importlib.util
+import importlib.machinery
 import sys
+from typing import cast
 
 LEGACY_MODULES = {
     "motionbricks.motion_backbone.models": "training.models.backbone",
@@ -55,10 +56,13 @@ class LegacyModuleAliases(importlib.abc.MetaPathFinder, importlib.abc.Loader):
         if canonical == fullname:
             return None
         module = importlib.import_module(canonical)
-        return importlib.util.spec_from_loader(fullname, self, is_package=hasattr(module, "__path__"))
+        spec = importlib.machinery.ModuleSpec(fullname, self, is_package=hasattr(module, "__path__"))
+        spec.loader_state = module.__spec__
+        return spec
 
     def create_module(self, spec):
         return importlib.import_module(canonical_module(spec.name))
 
     def exec_module(self, module):
-        pass
+        # 别名导入仍返回同一模块，同时保留规范模块的资源读取与重载元数据。
+        module.__spec__ = cast(importlib.machinery.ModuleSpec, module.__spec__).loader_state

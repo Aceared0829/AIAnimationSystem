@@ -35,10 +35,18 @@ assert (base_weights() / 'motionbricks_vqvae/version_1/hparams.yaml').is_file()
 
     def test_legacy_checkpoint_class_alias(self):
         import importlib
+        from importlib import resources
 
         old = importlib.import_module('motionbricks.data.unreal_quality').UnrealQualityVQVAE
         from training.common.unreal_quality import UnrealQualityVQVAE as new
         self.assertIs(old, new)
+        for legacy_name, canonical_name in [('motionbricks.data', 'data.runtime'),
+                                            ('motionbricks.vqvae', 'motionweaver.tokenizer')]:
+            with self.subTest(legacy=legacy_name):
+                canonical = importlib.import_module(canonical_name)
+                self.assertIs(importlib.import_module(legacy_name), canonical)
+                self.assertEqual(getattr(canonical.__spec__, 'name', None), canonical_name)
+                self.assertTrue(resources.files(canonical).joinpath('__init__.py').is_file())
 
     def test_pose_only_train_export_reload_is_numerically_equal(self):
         self._train_export_roundtrip('cpu')
