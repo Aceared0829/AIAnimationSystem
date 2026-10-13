@@ -1,4 +1,4 @@
-"""Check canonical/legacy CLI entrypoints and preservation of migrated files."""
+"""Check canonical/legacy CLI entrypoints; optionally audit migration metadata."""
 import argparse
 import concurrent.futures
 import json
@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--migration-audit', type=Path,
+                        help='Compare artifacts with moves.json and artifact-inventory.json in this historical receipt directory.')
     args = parser.parse_args()
     with tempfile.TemporaryDirectory() as cwd:
         targets = [p for folder in ('data/tools', 'training/pretrain', 'training/evaluation', 'inference/cli', 'inference/export', 'inference/profiling', 'motionbricks/scripts')
@@ -26,8 +28,8 @@ def main():
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
             checks = list(pool.map(check, targets))
     report = {'outside_repository_cwd': True, 'cli_count': len(checks), 'cli': checks}
-    audit = ROOT / '.build/repository-migration-20260912'
-    if (audit / 'artifact-inventory.json').exists():
+    if args.migration_audit is not None:
+        audit = args.migration_audit
         moves = json.loads((audit / 'moves.json').read_text())
         inventories = json.loads((audit / 'artifact-inventory.json').read_text())
         changed = []
