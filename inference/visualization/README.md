@@ -25,7 +25,7 @@ have different history lengths.
   `actor_condition_local_joint_rms_delta_cm` compares model poses before that
   composition to test whether the model reacted to the changed plan.
 
-## Commands from the review worktree root
+## Commands from the repository root
 
 Use the checkpoint under test for `$mwPose`. The old baseline may be reused
 only if the dataset manifest and skeleton hashes match; the comparison script
@@ -34,8 +34,8 @@ checks them and checks the exact source joints, Actor Root, and contact mask.
 ```powershell
 $mwPython = '.venv_motionweaver/Scripts/python.exe'
 $mwData = 'E:/AIAnimationSystemData/prepared/native30_relative_v2_worldcontacts'
-$mwVq = 'D:/AILocomotonSystem/GR00T-WholeBodyControl/motionbricks/unreal_runs/relative_v2_vqvae_contract_20260909/checkpoints/final.ckpt'
-$mwPose = 'D:/AILocomotonSystem/GR00T-WholeBodyControl-p0-review/output/motionweaver_actor_a800_20k_20260928/final.ckpt'
+$mwVq = 'D:/AILocomotonSystem/GR00T-WholeBodyControl/training/runs/relative_v2_vqvae_contract_20260909/checkpoints/final.ckpt'
+$mwPose = 'PATH/TO/REVIEWED/final.ckpt'
 
 & $mwPython -m inference.visualization.motionweaver_preview --pose-checkpoint $mwPose --vqvae-checkpoint $mwVq --dataset $mwData --output output/motionweaver_actor_teacher_RUN --run-label 'RUN LABEL' --device cuda
 & $mwPython -m inference.visualization.cmc_controller_preview --pose-checkpoint $mwPose --vqvae-checkpoint $mwVq --dataset $mwData --cmc-capture docs/experiments/assets/2026-09-28-motionweaver-a800-actor-root/cmc_root_capture_20260925_v2.csv --output output/motionweaver_actor_cmc_RUN --run-label 'RUN LABEL' --device cuda
