@@ -227,6 +227,15 @@ MotionBricks-launcher.log
 /unreal-sample/**/*.sln
 /unreal-sample/**/*.slnx
 /unreal-sample/**/.vsconfig
+# UBT 生成的 C++ 索引数据（本机路径与绝对路径，不入库）；.clangd 配置本身保留在版本库。
+/unreal-sample/**/compile_commands.json
+/unreal-sample/**/.cache/
+/unreal-sample/**/.ignore
+/unreal-script/**/compile_commands.json
+/unreal-script/**/.cache/
+# clangd fallback 用的 UHT 生成头存根，由 unreal-script/gen_compile_commands.py 重新生成。
+/unreal-script/.clangd-stubs/
+.clangd-index/
 # UE writes local preview-lighting profiles into this file; keep functional Config/ defaults.
 /unreal-sample/UMWSamplePreview/Config/DefaultEditor.ini
 /motionbricks/assets/
