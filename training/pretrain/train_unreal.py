@@ -8,20 +8,21 @@ from pathlib import Path
 import pytorch_lightning as pl
 import torch
 from hydra.utils import instantiate
+from omegaconf import DictConfig, OmegaConf, open_dict
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.loggers import CSVLogger
+from torch.utils.data import DataLoader, Subset, WeightedRandomSampler
+
 from data.runtime.motionweaver_dataset import (
     MotionWeaverUnrealDataset,
     collate_motionweaver,
 )
 from data.runtime.synthetic_dataset import collate_batch
 from data.runtime.unreal_dataset import UnrealMotionDataset, file_sha256
+from motionweaver.legacy import canonical_config
 from motionweaver.representation.helper.pl_util import load_motion_rep
 from training.common.optim.scheduler import WarmupCosineScheduler
-from motionweaver.legacy import canonical_config
 from training.common.unreal_quality import PoseAwareBatchSampler, collate_native
-from omegaconf import DictConfig, OmegaConf, open_dict
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import CSVLogger
-from torch.utils.data import DataLoader, Subset, WeightedRandomSampler
 
 
 class DatasetContract(pl.Callback):
@@ -79,7 +80,7 @@ def build_config(args, dataset):
     base = Path(__file__).resolve().parents[1] / "configs/pretrain" / f"motionweaver_{args.model}.yaml"
     conf = OmegaConf.load(base)
     if not isinstance(conf, DictConfig):
-        raise ValueError("Configuration must be a mapping")
+        raise TypeError("Configuration must be a mapping")
     with open_dict(conf):
         conf.data = {"folder": str(Path(args.dataset).resolve()), "text_embeddings": None}
         conf.data["manifest_sha256"] = hashlib.sha256((Path(args.dataset) / "dataset.json").read_bytes()).hexdigest()

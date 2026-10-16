@@ -12,11 +12,11 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from data.runtime.unreal_dataset import contained_file
 from torch import nn
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from data.runtime.conditioned_motion import load_raw, root_local
+from data.runtime.unreal_dataset import contained_file
 
 
 def digest(path):

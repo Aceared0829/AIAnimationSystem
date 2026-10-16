@@ -5,6 +5,9 @@ from collections import Counter
 
 import numpy as np
 import torch
+from torch.nn import functional as F
+from torch.utils.data import Sampler
+
 from data.runtime.synthetic_dataset import collate_batch
 from data.runtime.unreal_dataset import UnrealSkeleton
 from motionweaver.representation.helper.data_training_util import (
@@ -12,8 +15,6 @@ from motionweaver.representation.helper.data_training_util import (
     sample_keyframes,
 )
 from training.models.vqvae.motion_vqvae import MotionVQVAEModel
-from torch.nn import functional as F
-from torch.utils.data import Sampler
 
 
 class PoseAwareBatchSampler(Sampler):

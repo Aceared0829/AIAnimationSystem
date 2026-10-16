@@ -7,11 +7,8 @@ from collections.abc import Callable, Iterable
 import numpy as np
 import torch
 import torch as t
-from motionweaver.representation.helper.data_training_util import (
-    extract_feature_from_motion_rep,
-    sample_keyframes,
-    sample_motion_segments_from_motion_clips,
-)
+from pytorch_lightning import LightningModule
+
 from motionweaver.backbone.neural_modules.pose_backbone import (
     pose_backbone_network,
 )
@@ -20,8 +17,12 @@ from motionweaver.representation.core.motion_reps.dual_root_global_joints import
     GlobalRootGlobalJoints,
     LocalRootGlobalJoints,
 )
+from motionweaver.representation.helper.data_training_util import (
+    extract_feature_from_motion_rep,
+    sample_keyframes,
+    sample_motion_segments_from_motion_clips,
+)
 from motionweaver.tokenizer.neural_modules import vqvae
-from pytorch_lightning import LightningModule
 
 log = logging.getLogger(__name__)
 
