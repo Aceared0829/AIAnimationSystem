@@ -167,7 +167,7 @@ def main():
     parser.add_argument("--data-root", type=Path, default=Path("E:/MotionWeaverData"))
     parser.add_argument("--index", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
-    parser.add_argument("--target", type=Path, default=Path("data/skeletons/soma_uniform_v1.json"))
+    parser.add_argument("--target", type=Path, default=Path(__file__).parents[1] / "skeletons/soma_uniform_v1.json")
     args = parser.parse_args()
     print(prepare(args.data_root, args.index, args.run_id, args.target))
 

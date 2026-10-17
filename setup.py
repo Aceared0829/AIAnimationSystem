@@ -23,7 +23,8 @@ setup(
     name='motionweaver', version='0.1.0', python_requires='>=3.10',
     options={'egg_info': {'egg_base': str(METADATA)}},
     packages=list(packages), package_dir=packages,
-    package_data={'data.tools': ['review_web/*'], 'training': ['configs/pretrain/*.yaml']},
+    package_data={'data': ['skeletons/*.json', 'annotations/*.json'],
+                  'data.tools': ['review_web/*'], 'training': ['configs/pretrain/*.yaml']},
     install_requires=['torch>=2.0', 'numpy', 'einops', 'scipy', 'hydra-core', 'omegaconf',
                       'vector-quantize-pytorch', 'colorlog'],
     extras_require={
