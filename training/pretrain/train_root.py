@@ -15,8 +15,8 @@ import argparse
 import copy
 import os
 
-import hydra.utils
 import pytorch_lightning as pl
+from hydra.utils import instantiate
 from omegaconf import OmegaConf, open_dict
 from torch.utils.data import DataLoader
 
@@ -106,17 +106,17 @@ def main():
     model_conf = copy.deepcopy(conf.model)
     with open_dict(model_conf):
         # 实例化骨干网络（访问 dual_rep 需要完整的 motion_rep）
-        backbone_net = hydra.utils.instantiate(
+        backbone_net = instantiate(
             model_conf.backbone_network,
             motion_rep=motion_rep,
             _recursive_=False,
         )
 
         # 将优化器和调度器构建为偏函数
-        optimizer_fn = hydra.utils.instantiate(model_conf.optimizer)
-        scheduler_fn = hydra.utils.instantiate(model_conf.scheduler) if model_conf.scheduler else None
+        optimizer_fn = instantiate(model_conf.optimizer)
+        scheduler_fn = instantiate(model_conf.scheduler) if model_conf.scheduler else None
 
-        model = hydra.utils.instantiate(
+        model = instantiate(
             model_conf,
             pose_vqvae_network=None,
             root_vqvae_network=None,
