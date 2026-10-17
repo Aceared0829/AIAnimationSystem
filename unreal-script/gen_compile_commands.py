@@ -21,6 +21,7 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
 
 BS = chr(92)  # 反斜杠，避免在字符串里反复转义
 # 脚本位于 <repo>/unreal-script/ 下，仓库根即上一级。
@@ -221,6 +222,9 @@ for d in plugin_includes:
 #   UCLASS() / UINTERFACE()                      -> <FID>_<行>_PROLOG
 #   VINTERFACES()                                -> <FID>_<行>_VINTERFACES
 STUB_DIR = f"{ROOT}/unreal-script/.clangd-stubs/UHT"
+stub_boundary = Path(ROOT).resolve() / "unreal-script/.clangd-stubs"
+if not Path(STUB_DIR).resolve().is_relative_to(stub_boundary):
+    raise ValueError("clangd 存根目录链接越过仓库生成目录")
 os.makedirs(STUB_DIR, exist_ok=True)
 inc_re = re.compile(r'#include\s+"([A-Za-z0-9_]+)\.generated\.h"')
 # (匹配的写法, 宏名后半段, 展开内容, 是否补 Super 别名)
@@ -261,6 +265,8 @@ def find_parent(lines, lineno):
 
 stub_owners = {}
 for stale in glob.glob(f"{STUB_DIR}/*.generated.h"):
+    if not Path(stale).resolve().is_relative_to(Path(STUB_DIR).resolve()):
+        raise ValueError("clangd 旧存根链接越过生成目录")
     os.remove(stale)  # 源码删了类型之后不留旧存根
 for rel in plugin_roots:
     for src in sorted(
