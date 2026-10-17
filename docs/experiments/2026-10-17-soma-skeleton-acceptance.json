@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-17",
+  "scope": "reference_skeleton_only",
+  "technical_acceptance": "passed",
+  "manual_acceptance": "approved",
+  "contract": "data\\skeletons\\soma_uniform_v1.json",
+  "contract_sha256": "2124bddce418e5c005224b30c25c4ff46be2d8d4775f559b99ac237957f2ea67",
+  "skeleton_signature": "215689644b435e6307ec67ce9b81fd579f781a5f0148c1c86ac23e7b4267c412",
+  "source_files": {
+    "soma_base_skel_minimal.usd": "9cb557ebcbd04b54383a3f6f78b7eb97beb1c059405eabdaadca7813af30be27",
+    "soma_base_skel_minimal.bvh": "d844abc909b12a1cd8bbeda93fd72473f5278fb8408946f8167d1519f72957a2"
+  },
+  "source_audit": {
+    "joints": 78,
+    "body_nodes": 77,
+    "reference_bvh_frames_checked": 2,
+    "reference_position_max_error_cm": 1.7600281255201205e-13,
+    "reference_rotation_max_matrix_error": 3.294977138357247e-14,
+    "unit_scale_max_deviation": 3.3306690738754696e-16
+  },
+  "same_version_rebuild": "byte_identical",
+  "root_hips_motion_policy": "not_decided",
+  "time_sampling_policy": "not_decided",
+  "preview": "docs\\experiments\\assets\\2026-10-17-soma-skeleton\\reference-skeleton.png",
+  "unit_tests": "four parameterized cases passed",
+  "manual_acceptance_receipt": "docs\\experiments\\2026-10-17-soma-skeleton-manual-acceptance.json"
+}

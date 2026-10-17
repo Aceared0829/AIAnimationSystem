@@ -1,0 +1,133 @@
+{
+  "date": "2026-10-17",
+  "scope": "native Python motion IO, import, normalization and review restoration; no retargeting or training run",
+  "training_target_decision": "soma_uniform_fixed_human_skeleton",
+  "uefn_role": "preserved_native_source_mirror",
+  "recovery": {
+    "session_id": "01a1394c-2cca-72a3-a1f0-2597923e0272",
+    "historical_files": 15,
+    "historical_file_patches": 37
+  },
+  "ue_readback": {
+    "verified_at": "2026-10-17T08:08:32.475320+00:00",
+    "index_clips": 1970,
+    "decoded_clips": 1970,
+    "frames": 226502,
+    "bone_family_counts": {
+      "91": 1843,
+      "201": 8,
+      "354": 89,
+      "363": 1,
+      "161": 28,
+      "875": 1
+    },
+    "normalization_recomputed_families": [
+      91,
+      161,
+      201,
+      354,
+      363,
+      875
+    ],
+    "errors": [],
+    "queue_sha256": "c83c71ce0757d1ded301a7bd04d07a831d1f3bc69810db2cafb8e6eb19fd3b2c",
+    "sqlite_quick_check": "ok",
+    "review_status_counts": {
+      "approved": 1970
+    }
+  },
+  "soma_probe": {
+    "source": "E:\\MotionWeaverData\\soma_uniform\\bvh\\240918\\body_check_001__A548.bvh",
+    "reference": "E:\\MotionWeaverData\\soma_shapes\\soma_base_rig\\soma_base_skel_minimal.bvh",
+    "reference_sha256": "d844abc909b12a1cd8bbeda93fd72473f5278fb8408946f8167d1519f72957a2",
+    "joints": 78,
+    "source_frames": 3769,
+    "source_fps": 120.00480019200768,
+    "normalized_frames": 942,
+    "normalized_fps": 30,
+    "names_match_reference": true,
+    "parents_match_reference": true,
+    "max_reference_offset_difference_cm": 1.03344379188486e-05,
+    "root_channels": [
+      "Xposition",
+      "Yposition",
+      "Zposition",
+      "Zrotation",
+      "Yrotation",
+      "Xrotation"
+    ],
+    "root_channel_ranges": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "hips_channels": [
+      "Xposition",
+      "Yposition",
+      "Zposition",
+      "Zrotation",
+      "Yrotation",
+      "Xrotation"
+    ],
+    "hips_channel_ranges": [
+      30.660079,
+      7.100684999999999,
+      25.461816,
+      88.60133499999998,
+      64.427323,
+      94.670338
+    ],
+    "profile": {
+      "meters_per_unit": 0.01,
+      "basis": [
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "root_joint": "Root",
+      "absolute_position_joints": [
+        "Hips"
+      ]
+    },
+    "storage_roundtrip": "passed"
+  },
+  "http_smoke": {
+    "catalog_total": 1970,
+    "pages": 40,
+    "first_page": 50,
+    "last_page": 20,
+    "sample_frames": 135,
+    "sample_source_joints": 91,
+    "approved_status_preserved": true,
+    "clip_endpoint": "passed"
+  },
+  "checks_passed": [
+    "historical motion import contract",
+    "historical native review contract",
+    "existing BVH tests",
+    "existing review tests",
+    "Node viewer regression",
+    "Node preload regression",
+    "selected Ruff checks",
+    "Node syntax check"
+  ],
+  "unrestored_components": [
+    "CUE4Parse .NET extractor source"
+  ],
+  "mapping_implemented": false
+}

@@ -9,16 +9,17 @@ import secrets
 import sqlite3
 import threading
 from contextlib import closing
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from functools import lru_cache
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import numpy as np
+from scipy.spatial.transform import Rotation
+
 from data.runtime.bvh_reader import read_bvh
 from data.runtime.unreal_dataset import file_sha256
-from scipy.spatial.transform import Rotation
 
 STATIC = Path(__file__).resolve().parent / "review_web"
 MAX_REVIEW_ITEMS = 50
@@ -167,7 +168,7 @@ class ReviewStore:
                     mid,
                     status,
                     note,
-                    datetime.now(timezone.utc).isoformat(),
+                    datetime.now(UTC).isoformat(),
                 ),
             )
 
@@ -400,11 +401,15 @@ def main():
         help="审核 needs_segmentation 与 needs_skeleton_review；每页最多 50 条",
     )
     parser.add_argument("--conditioned-contract", help="prepared 条件动作契约目录")
+    parser.add_argument("--native-index", help="独立运动批次的 export-index.csv")
     parser.add_argument(
         "--conditioned-audit", help="对应审计目录（report.json、review_queue.json）"
     )
     args = parser.parse_args()
     prepared_mode = bool(args.conditioned_contract or args.conditioned_audit)
+    native_mode = bool(args.native_index)
+    if native_mode and (prepared_mode or args.exception_triage):
+        parser.error("--native-index 不能与 prepared 或异常分流模式共用")
     if prepared_mode and (
         not args.conditioned_contract
         or not args.conditioned_audit
@@ -415,7 +420,15 @@ def main():
         )
     library = Path(args.library).resolve()
     source = Path(args.source).resolve()
-    if prepared_mode:
+    if native_mode:
+        from data.tools.native_review_store import (
+            NativeReviewStore,
+            load_native_review_inputs,
+        )
+
+        native_index, native_entries, native_digest = load_native_review_inputs(args.native_index, library)
+        prepared_entries = exception_entries = exception_digest = None
+    elif prepared_mode:
         from data.tools.conditioned_review_store import (
             ConditionedReviewStore,
             load_review_inputs,
@@ -432,7 +445,7 @@ def main():
             if args.exception_triage
             else (None, None)
         )
-    paged_entries = prepared_entries if prepared_mode else exception_entries
+    paged_entries = native_entries if native_mode else prepared_entries if prepared_mode else exception_entries
     page_count = (
         max(1, math.ceil(len(paged_entries) / MAX_REVIEW_ITEMS))
         if paged_entries is not None
@@ -467,7 +480,8 @@ def main():
         )
         if key not in stores:
             stores[key] = (
-                ConditionedReviewStore(
+                NativeReviewStore(library, native_index, native_entries, native_digest, page)
+                if native_mode else ConditionedReviewStore(
                     library, contract, report, prepared_entries, queue_digest, page
                 )
                 if prepared_mode
@@ -509,6 +523,7 @@ def main():
                             page_count=page_count,
                             exception_mode=args.exception_triage,
                             prepared_mode=prepared_mode,
+                            native_mode=native_mode,
                         )
                     )
                 if path.startswith("/api/clip/"):

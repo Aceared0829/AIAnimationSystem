@@ -1,0 +1,39 @@
+{
+  "outside_repository_cwd": true,
+  "previous_full_cli_count": 93,
+  "previous_failed_clis": 5,
+  "rechecked": [
+    {
+      "script": "data/tools/enrich_soma_observation.py",
+      "exit_code": 0,
+      "help_present": true,
+      "error": ""
+    },
+    {
+      "script": "data/tools/freeze_soma_skeleton.py",
+      "exit_code": 0,
+      "help_present": true,
+      "error": ""
+    },
+    {
+      "script": "data/tools/import_motion_dataset.py",
+      "exit_code": 0,
+      "help_present": true,
+      "error": ""
+    },
+    {
+      "script": "data/tools/prepare_soma_processing.py",
+      "exit_code": 0,
+      "help_present": true,
+      "error": ""
+    },
+    {
+      "script": "data/tools/soma_observation.py",
+      "exit_code": 0,
+      "help_present": true,
+      "error": ""
+    }
+  ],
+  "packaged_resources_exit_code": 0,
+  "installation": "strict editable refreshed with uv --no-deps"
+}

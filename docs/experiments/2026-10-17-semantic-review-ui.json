@@ -1,0 +1,31 @@
+{
+  "scope": "actual_GPT6_luna_predictions_bound_to_existing_motion_review",
+  "url": "http://127.0.0.1:8781",
+  "clips": 30,
+  "segments": 93,
+  "priority_clips": 22,
+  "source_and_model_HTTP_readback": "30/30; clip IDs and semantic signatures match",
+  "queue_sha256": "af532c7d6ac7ae488835b90f9408398d5c8da1b6506d810691979dbf63807fd9",
+  "cohort": "native_af532c7d6ac7ae48_p01.json",
+  "prediction_sha256": "de021153fb01e70a2792e26fbafe08f88b9267cd6308e2871810a81e1d036081",
+  "semantic_decisions_at_delivery": 0,
+  "existing_motion_decisions": "preserved; semantic decisions use a new cohort identity",
+  "validation": {
+    "new_backend_parameter_groups": 3,
+    "new_frontend_parameter_groups": 1,
+    "native_review_regression": "passed",
+    "viewport_and_preload_regression": "passed",
+    "selected_ruff": "passed",
+    "browser_console_errors_and_warnings": [],
+    "browser_segment_jump": "source clip A371 segment 3 -> data frame 123 / playback frame 124",
+    "browser_evidence_jump": "source clip A371 data frame 136 -> playback frame 137",
+    "browser_filter": "22 priority clips",
+    "browser_conflict_sample": "A544 source text says down while geometry rises; model climbing_up candidate shown at data frame 130 / playback frame 131"
+  },
+  "screenshot": "assets/2026-10-17-semantic-review-ui/model-semantics.png",
+  "limitations": [
+    "All semantic candidates require user review.",
+    "Free-text numeric claims and semantic truth are not validated by structural checks.",
+    "Existing single-motion approval plus notes is reused; detailed per-axis conclusions are recorded in notes."
+  ]
+}

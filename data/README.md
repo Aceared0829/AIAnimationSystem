@@ -1,5 +1,14 @@
 # 数据
 
+原生数据入口见 [独立原生运动导入与标准化](../docs/native-motion-import.md)：`NativeMotion`/`SampledMotion` 保存来源骨架，JSON/二进制按骨架签名共享，原生审核复用现有页面。2026-10-17 的新训练方向见 [SOMA 训练骨架方案](../docs/soma-training-data-direction.md)，后续以固定 SOMA 人体骨架为目标适配 UEFN 等来源；跨骨架转换尚未实现。
+
+最新计划明确普通 Locomotion 直接执行，使用当前姿态、站蹲状态和基础姿态参考；复杂跑酷由代理提供轨迹、语义和硬参考。数据侧共用 SOMA 标准化动作与分区，分别建立条件窗口索引，先用小样本核对 Root/Hips、时间轴及条件可见性，详见上述开发计划。
+
+已实现 [SOMA 观察试点](../docs/soma-observation-pilot.md)：`tools/soma_observation.py` 选取 30 条非镜像完整源动作，保留原始时间，生成五关节轨迹与几何候选；原生审核页可播放及逐帧查看。输出位于 `E:/MotionWeaverData/{raw,processed,reports,reviews}/soma_observation/`；Root、训练 FPS 与跨骨架映射仍待后续确定。
+
+当前按 [SOMA 轻量数据处理](../docs/soma-motion-processing.md) 执行：复用来源粗语义，生成可逆 Root 代理与自动三态接触候选，建立参考/任务候选索引。详细 LLM 请求与模型验收已移除；原始数据、实验输出和历史备注保留。
+
+
 `runtime/`：可安装的数据加载器、骨架与交换契约，保留 `motionbricks.data` 导入名称。
 
 `runtime/stance_motion.py` 和 `tools/build_stance_motion_index.py` 在既有 v1 条件契约上建立站蹲 v2 试验索引。只有历史允许首帧补齐，未来始终取真实帧；旧动画方向标注的目标状态是推定代理条件，不是玩家输入或 CMC 批准。当前 P0 标注见 `annotations/stance_transition_p0_provisional.json`，仅四条明确过渡动作，边界尚为 `provisional`。结果与实际命令见 `docs/experiments/2026-09-28-stance-transition-v2.md`。

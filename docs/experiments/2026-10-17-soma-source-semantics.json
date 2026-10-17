@@ -1,0 +1,34 @@
+{
+  "scope": "source_semantic_reading_no_motion_changes",
+  "run_id": "20261017_semantic_review_v2",
+  "report": "E:/MotionWeaverData/reports/soma_observation/20261017_semantic_review_v2/semantic-report.json",
+  "review_url": "http://127.0.0.1:8781",
+  "clips": 30,
+  "uniquely_matched_temporal_records": 30,
+  "temporal_events": 49,
+  "clips_with_review_notes": 8,
+  "clips_with_event_ends_beyond_motion": 5,
+  "max_event_end_overrun_seconds": 0.016821000000000197,
+  "clips_with_uncovered_intervals": 25,
+  "motion_paths_and_hashes_unchanged": true,
+  "manual_decisions_at_delivery": 0,
+  "candidate_direction_conflicts": [
+    {"filename": "neutral_come_down_50cm_box_R_001__A544", "hips_vertical_displacement_m": 0.5335632399999997},
+    {"filename": "neutral_come_up_50cm_box_R_001__A543", "hips_vertical_displacement_m": -0.5407034299999997}
+  ],
+  "validation": {
+    "http_readback": "30/30 clips, 49 events, four natural descriptions per clip",
+    "source_timing_cases": "2 passed",
+    "existing_observation_tests": "passed",
+    "existing_node_view_and_preload_checks": "passed",
+    "ruff_selected_checks": "passed",
+    "browser_expand_and_event_navigation": "passed; 1 second event selects frame index 121 at declared source FPS",
+    "browser_console_errors_and_warnings": []
+  },
+  "screenshot": "assets/2026-10-17-soma-semantics/source-semantics.png",
+  "limitations": [
+    "v004 whole-clip metadata and v002 temporal text are joined by exact filename; version compatibility and clock alignment remain unverified.",
+    "Chinese readings and conflict notes are not corrected ground truth or visual acceptance.",
+    "Temporal descriptions do not establish contact positions, event truth or hard references."
+  ]
+}
