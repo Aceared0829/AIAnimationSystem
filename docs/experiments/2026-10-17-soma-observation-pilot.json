@@ -1,0 +1,42 @@
+{
+  "scope": "source_preserving_observation_pilot_no_training_no_retarget",
+  "dataset_root": "E:/MotionWeaverData",
+  "run_id": "20261017_observation_pilot_v1",
+  "index": "E:/MotionWeaverData/reports/soma_observation/20261017_observation_pilot_v1/export-index.csv",
+  "review_url": "http://127.0.0.1:8780",
+  "queue_sha256_prefix": "e1afc34472472da9",
+  "clips": 30,
+  "frames": 17816,
+  "duration_seconds": 148.210738,
+  "source_fps": 120.00480019200768,
+  "manual_decisions_at_delivery": 0,
+  "shared_source_skeleton_signatures": 2,
+  "source_reference_variant": {
+    "common_clip_count": 29,
+    "variant_clip": "h_b_w_stand_to_crouch_270_start_003__A342",
+    "max_offset_component_difference_cm": 2.044615405839175,
+    "interpretation": "reference offset variation, not rounding alone; source preserved"
+  },
+  "max_bvh_import_fk_error_m": 4.440892098500626e-15,
+  "checks": {
+    "original_bvh_copy_and_native_provenance_sha256": "30/30",
+    "metadata_frame_counts": "30/30",
+    "native_and_processed_disk_readback": "30/30",
+    "source_frame_count_and_endpoint_timing": "30/30",
+    "http_clip_readback": "30/30",
+    "new_parameterized_cases": "4 passed",
+    "existing_native_review_cases": "passed",
+    "existing_review_view_and_preload_node_checks": "passed",
+    "ruff_fatal_and_unused_checks": "passed",
+    "browser_playback_trail_toggle_and_extremum_navigation": "passed",
+    "browser_console_errors_and_warnings": []
+  },
+  "screenshot": "assets/2026-10-17-soma-observation/review-vault.png",
+  "limitations": [
+    "Candidate stance, stability and height extrema are not contact or phase truth.",
+    "Two transitions require wall support; unsupported stand/crouch transitions remain unconfirmed.",
+    "Two short vault takes share an actor; this is not a formal train/test split.",
+    "Actor Root decomposition and training timing policies remain undecided.",
+    "UEFN to SOMA retargeting and hard-reference constraint generation are deferred."
+  ]
+}

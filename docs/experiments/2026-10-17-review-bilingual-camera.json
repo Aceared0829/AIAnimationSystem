@@ -1,0 +1,38 @@
+{
+  "scope": "review_display_camera_and_language_only",
+  "review_url": "http://127.0.0.1:8781",
+  "existing_cohort_sha256": "b7e91e058faafbe31110a56979acd55d317891ed427b89f0109e2b23279c78d0",
+  "camera_findings": [
+    "Viewer input is UE left-handed positions; old right-handed camera basis reflected the display.",
+    "Old front preset observed from -X. Front is now +X, with a separate -X back preset.",
+    "Top preset maps +X forward upward and +Y right to screen right."
+  ],
+  "source_identity_check": {
+    "reference_left_hand_ue_y_cm": -72.24329044,
+    "reference_right_hand_ue_y_cm": 72.27581781,
+    "sample_A371_left_hand_ue_y_cm": -23.004,
+    "sample_A371_right_hand_ue_y_cm": 21.144,
+    "interpretation": "Anatomical left/right identities preserved; camera changed, not source joints or normalization."
+  },
+  "bilingual_display": {
+    "pilot_clips": 30,
+    "distinct_source_values_checked_including_zero": 218,
+    "missing_translations_in_checked_values": 0,
+    "temporal_events": 49,
+    "english_fields_and_development_names_preserved": true,
+    "unsupported_new_text": "explicit missing-translation message; no inferred translation"
+  },
+  "validation": {
+    "new_view_cases": ["front anatomical sides", "back anatomical sides", "top forward and right", "Chinese reading with original English"],
+    "existing_view_and_preload_checks": "passed",
+    "javascript_syntax_and_git_diff_check": "passed",
+    "browser_bilingual_fields_and_event_navigation": "passed",
+    "browser_plain_observation_explanation": "passed",
+    "browser_console_errors_and_warnings": []
+  },
+  "source_motion_and_review_decisions_modified_by_agent": false,
+  "screenshots": [
+    "assets/2026-10-17-review-bilingual/camera.png",
+    "assets/2026-10-17-review-bilingual/bilingual-observation.png"
+  ]
+}

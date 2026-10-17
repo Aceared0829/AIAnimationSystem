@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "target_id": "soma_uniform_v1",
+  "status": "approved",
+  "accepted_at": "2026-10-17T08:34:07.192167+00:00",
+  "user_statement": "没什么问题",
+  "scope": "fixed_reference_skeleton_and_presented_preview",
+  "contract": "data\\skeletons\\soma_uniform_v1.json",
+  "contract_sha256": "2124bddce418e5c005224b30c25c4ff46be2d8d4775f559b99ac237957f2ea67",
+  "skeleton_signature": "215689644b435e6307ec67ce9b81fd579f781a5f0148c1c86ac23e7b4267c412",
+  "preview": "docs\\experiments\\assets\\2026-10-17-soma-skeleton\\reference-skeleton.png",
+  "preview_sha256": "fb9f2772574f798784308d9075a04ffbf571f6be203c7abbc3e93603c4e6416e",
+  "joint_count": 78,
+  "root_hips_motion_policy_accepted": false,
+  "time_sampling_policy_accepted": false,
+  "retargeted_motion_accepted": false
+}

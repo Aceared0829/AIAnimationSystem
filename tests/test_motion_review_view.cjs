@@ -54,6 +54,28 @@ assert.match(element('rootLocation').textContent, /源动作 Root（UE 轴）/,
 element('view').value = 'side';
 const vertical = vm.runInContext('projection(800,600)([100,0,100])[1]-projection(800,600)([100,0,0])[1]', context);
 assert(Math.abs(vertical) > 1, 'orthographic side view preserves Root height');
+// 两个视角分别验收 UE 左手输入；角色自身的左侧为 -Y，前方为 +X。
+for (const view of ['front', 'back']) {
+  element('view').value = view;
+  const handedness = vm.runInContext(`(() => {
+    const project=projection(800,600),left=project([0,-50,100]),right=project([0,50,100]);
+    return {leftX:left[0],rightX:right[0],hand:dot(cross(basis().right,basis().up),basis().forward)};
+  })()`, context);
+  assert(view === 'front' ? handedness.leftX > handedness.rightX : handedness.leftX < handedness.rightX,
+    `${view}: anatomical left and right are not mirrored`);
+  assert(Math.abs(handedness.hand - 1) < 1e-9, 'camera uses the same handedness as UE positions');
+}
+element('view').value = 'top';
+const topAxes = vm.runInContext(`(() => {
+  const project=projection(800,600),center=project([0,0,0]);
+  return {forwardUp:project([50,0,0])[1]<center[1],rightRight:project([0,50,0])[0]>center[0]};
+})()`, context);
+assert(topAxes.forwardUp && topAxes.rightRight, 'top view places UE +X forward above and +Y right to the right');
+// 中文是显示层释义，英文技术标签仍原样可见。
+assert.equal(vm.runInContext("bilingual('climbing box')", context), '上 / 下箱 / climbing box');
+assert.match(vm.runInContext("bilingualDescription('A person is standing, facing forward.')", context), /面向前方站立。[\s\S]*English: A person is standing, facing forward\./);
+assert.match(vm.runInContext("chineseReading('1','content_vertical_move')", context), /含义待核对/,
+  'undefined flags are not translated into asserted physical truth');
 element('view').value = 'perspective';
 
 const canvas = element('source');
