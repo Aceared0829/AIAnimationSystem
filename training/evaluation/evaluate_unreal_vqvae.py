@@ -16,14 +16,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+
 from data.runtime.unreal_dataset import (
     UnrealMotionDataset,
     derive_motion_labels,
     read_json,
 )
-from motionweaver.representation.helper.data_training_util import extract_feature_from_motion_rep
-
 from inference.runtime.checkpoint import load_vqvae
+from motionweaver.representation.helper.data_training_util import (
+    extract_feature_from_motion_rep,
+)
 
 plt.rcParams["font.family"] = "Microsoft YaHei"
 

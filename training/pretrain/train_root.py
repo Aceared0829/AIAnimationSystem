@@ -17,13 +17,14 @@ import os
 
 import pytorch_lightning as pl
 from hydra.utils import instantiate
-from data.runtime.synthetic_dataset import SyntheticMotionDataset, collate_batch
-from motionweaver.representation.helper.argparse_zh import enable_chinese_argparse
-from motionweaver.representation.helper.pl_util import load_motion_rep
-from motionweaver.repository import base_weights
-from motionweaver.legacy import canonical_config
 from omegaconf import OmegaConf, open_dict
 from torch.utils.data import DataLoader
+
+from data.runtime.synthetic_dataset import SyntheticMotionDataset, collate_batch
+from motionweaver.legacy import canonical_config
+from motionweaver.repository import base_weights
+from motionweaver.representation.helper.argparse_zh import enable_chinese_argparse
+from motionweaver.representation.helper.pl_util import load_motion_rep
 
 
 def load_config(result_dir: str, max_steps: int):

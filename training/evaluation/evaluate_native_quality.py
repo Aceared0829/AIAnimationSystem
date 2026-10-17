@@ -7,9 +7,11 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from data.runtime.unreal_dataset import apply_authoritative_root
-from motionweaver.representation.helper.data_training_util import extract_feature_from_motion_rep
 
+from data.runtime.unreal_dataset import apply_authoritative_root
+from motionweaver.representation.helper.data_training_util import (
+    extract_feature_from_motion_rep,
+)
 from training.evaluation.evaluate_unreal_vqvae import load_vqvae, rotation_error_degrees
 
 

@@ -13,13 +13,14 @@ from pathlib import Path
 import numpy as np
 import torch
 from hydra.utils import instantiate
+from omegaconf import OmegaConf, open_dict
+
 from data.runtime.motionweaver_dataset import (
     MotionWeaverUnrealDataset,
     collate_motionweaver,
 )
 from data.runtime.unreal_dataset import file_sha256
 from motionweaver.representation.helper.pl_util import load_motion_rep
-from omegaconf import OmegaConf, open_dict
 
 PROFILE = "actor_root_history4_compact_v1"
 ACTIONS = ("walk", "run", "crouch")
